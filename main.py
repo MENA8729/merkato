@@ -37,7 +37,6 @@ from sqlalchemy import Integer, String, Text
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, URL
-from flask_ckeditor import CKEditor, CKEditorField
 from datetime import datetime
 from flask_login import login_user, logout_user, login_required
 from flask_login import LoginManager,UserMixin,current_user
