@@ -81,7 +81,6 @@ app.config['MAIL_DEFAULT_SENDER'] = 'menayimge87@gmail.com'
 
 mail = Mail(app)
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-ckeditor = CKEditor(app)
 login_manager=LoginManager()
 login_manager.init_app(app)
 class Base(DeclarativeBase):
