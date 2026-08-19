@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Debt - StockManager</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root{
+        --navy:#0f2942;
+        --customer:#6d28d9;
+        --bg:#f4f6f8;
+        --dark:#1e293b;
+        --muted:#64748b;
+    }
+
+    body{
+        font-family:'Inter', sans-serif;
+        background:var(--bg);
+        color:var(--dark);
+        padding-top: 40px;
+        padding-bottom: 40px;
+    }
+
+    .debt-card{
+        background:#fff;
+        border-radius:18px;
+        padding:32px;
+        box-shadow:0 8px 24px rgba(0,0,0,0.08);
+        max-width: 550px;
+        margin: 0 auto;
+    }
+
+    .debt-header{
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 16px;
+    }
+
+    .debt-avatar{
+        width: 52px;
+        height: 52px;
+        background: var(--customer);
+        color: #fff;
+        font-weight: 700;
+        font-size: 1.2rem;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .form-control, .input-group-text{
+        border-radius: 10px;
+        padding: 11px 14px;
+        border: 1px solid #dee2e6;
+    }
+
+    .form-control:focus{
+        border-color: var(--customer);
+        box-shadow: 0 0 0 0.2rem rgba(109, 40, 217, 0.15);
+    }
+
+    .form-label{
+        font-weight: 600;
+        font-size: 0.88rem;
+    }
+
+    .btn-save{
+        background: var(--customer);
+        color: #fff;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 11px;
+    }
+
+    .btn-save:hover{
+        background: #5b21b6;
+        color: #fff;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show mb-4" role="alert" style="max-width: 550px; margin: 0 auto 20px;">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="debt-card">
+
+        <div class="debt-header">
+            <div class="debt-avatar">
+                {{ customer.name[0]|upper }}
+            </div>
+            <div>
+                <h4 class="mb-1 fw-bold">Update Customer Balance</h4>
+                <p class="text-muted mb-0 small">Customer: <span class="text-dark fw-semibold">{{ customer.name }}</span></p>
+            </div>
+        </div>
+
+        <div class="mb-3 p-3 rounded-3" style="background: #f5f3ff; border: 1px solid #ede9fe;">
+            <div class="small text-muted">Current Balance Owed</div>
+            <div class="fs-5 fw-bold" style="color: var(--customer);">
+                {{ customer.balance_owed if customer.balance_owed else '0.00' }} ETB
+            </div>
+        </div>
+
+        <form method="POST" novalidate>
+
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                {{ form.amount.label(class="form-label") }}
+                <div class="input-group">
+                    {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""), placeholder="0.00") }}
+                    <span class="input-group-text">ETB</span>
+                </div>
+                {% if form.amount.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.amount.errors[0] }}
+                    </div>
+                {% else %}
+                    <small class="text-muted">Enter a positive value to add debt.</small>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                {{ form.description.label(class="form-label") }}
+                {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), placeholder="E.g., Invoice #104 or cash payment") }}
+                {% if form.description.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.description.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('Register_customer_and_supplier') }}" class="btn btn-outline-secondary w-50 py-2">
+                    Cancel
+                </a>
+                {{ form.submit(class="btn btn-save w-50") }}
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

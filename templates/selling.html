@@ -1,0 +1,1282 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-success alert-dismissible fade show flash-message" role="alert">
+                {{ message }}
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+<style>
+    .flash-message {
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.1px;
+        padding: 8px 12px;
+        margin: 10px auto;
+        max-width: 500px;
+        border-radius: 7px;
+    }
+</style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Sale</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root{
+        --primary:#3730a3;
+        --primary-dark:#2c2582;
+        --success:#16a34a;
+        --warning:#d97706;
+        --danger:#dc2626;
+        --muted:#64748b;
+        --bg:#f4f6f8;
+        --dark:#1e293b;
+    }
+
+    body{
+        font-family:'Inter', sans-serif;
+        background:var(--bg);
+        color:var(--dark);
+    }
+
+    /* HERO */
+    .hero{
+        position:relative;
+        height:280px;
+        overflow:hidden;
+        display:flex;
+        align-items:center;
+        color:#fff;
+    }
+
+    .hero::before{
+        content:"";
+        position:absolute;
+        inset:0;
+        background:
+            linear-gradient(135deg, rgba(30,20,80,0.88), rgba(55,48,163,0.85)),
+            url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=80');
+        background-size:cover;
+        background-position:center;
+    }
+
+    .hero-content{
+        position:relative;
+        z-index:2;
+    }
+
+    .hero .badge-pill{
+        background:rgba(255,255,255,0.15);
+        border:1px solid rgba(255,255,255,0.3);
+        padding:5px 16px;
+        border-radius:30px;
+        font-size:0.78rem;
+        font-weight:600;
+        letter-spacing:0.5px;
+        display:inline-block;
+        margin-bottom:12px;
+    }
+
+    .hero h1{
+        font-weight:800;
+        font-size:2.1rem;
+        margin-bottom:8px;
+    }
+
+    .hero p{
+        color:#e0e7ff;
+        max-width:520px;
+        font-size:0.92rem;
+        margin-bottom:10px;
+    }
+
+    .hero .stat-line{
+        font-size:0.82rem;
+        font-weight:600;
+        letter-spacing:0.5px;
+        color:#c7d2fe;
+    }
+
+    /* FORM CARD */
+    .form-wrap{ margin-top:-60px; position:relative; z-index:5; }
+
+    .sale-card{
+        background:#fff;
+        border-radius:18px;
+        padding:30px;
+        box-shadow:0 14px 34px rgba(0,0,0,0.1);
+        border:1px solid #eef0f2;
+        margin-bottom:22px;
+        position:relative;
+        transition:box-shadow .2s ease;
+    }
+
+    .sale-card:hover{ box-shadow:0 18px 40px rgba(0,0,0,0.12); }
+
+    .sale-card .form-badge-num{
+        position:absolute;
+        top:-12px;
+        left:26px;
+        background:var(--primary);
+        color:#fff;
+        font-size:0.75rem;
+        font-weight:700;
+        padding:4px 14px;
+        border-radius:20px;
+    }
+
+    .card-title-main{
+        font-weight:800;
+        font-size:1.3rem;
+        margin-bottom:2px;
+    }
+
+    .card-subtitle{
+        color:var(--muted);
+        font-size:0.88rem;
+        margin-bottom:24px;
+    }
+
+    .form-label{
+        font-weight:600;
+        font-size:0.85rem;
+    }
+
+    .form-select, .form-control{
+        border-radius:10px;
+        padding:11px 14px;
+        border:1px solid #dee2e6;
+        transition:border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .form-select:focus, .form-control:focus{
+        border-color:var(--primary);
+        box-shadow:0 0 0 0.2rem rgba(55,48,163,0.15);
+    }
+
+    .helper-text{
+        font-size:0.78rem;
+        color:var(--muted);
+        margin-top:4px;
+    }
+
+    /* STOCK / CUSTOMER INFO PANELS */
+    .info-panel{
+        background:var(--bg);
+        border-radius:12px;
+        padding:12px 16px;
+        margin-top:10px;
+        font-size:0.85rem;
+        display:none;
+    }
+
+    .info-panel.show{ display:block; }
+
+    .stock-warning{
+        color:var(--danger);
+        font-weight:600;
+        font-size:0.82rem;
+        margin-top:6px;
+        display:none;
+    }
+
+    .stock-warning.show{ display:block; }
+
+    /* SUMMARY CARD */
+    .summary-card{
+        background:linear-gradient(135deg, #eef2ff, #f5f7ff);
+        border-radius:14px;
+        padding:20px;
+        margin-top:22px;
+        border:1px solid #e0e7ff;
+    }
+
+    .summary-title{
+        font-size:0.78rem;
+        text-transform:uppercase;
+        letter-spacing:1px;
+        font-weight:700;
+        color:var(--primary);
+        margin-bottom:14px;
+    }
+
+    .summary-row{
+        display:flex;
+        justify-content:space-between;
+        font-size:0.9rem;
+        padding:6px 0;
+        color:var(--muted);
+    }
+
+    .summary-row.total{
+        border-top:1px dashed #c7d2fe;
+        margin-top:8px;
+        padding-top:12px;
+        font-weight:800;
+        font-size:1.05rem;
+        color:var(--dark);
+    }
+
+    .summary-row.debt-row{
+        font-weight:700;
+    }
+
+    .debt-badge{
+        display:inline-block;
+        padding:4px 14px;
+        border-radius:20px;
+        font-size:0.82rem;
+        font-weight:700;
+        margin-top:8px;
+    }
+
+    .debt-paid{ background:#dcfce7; color:var(--success); }
+    .debt-partial{ background:#fef3c7; color:var(--warning); }
+    .debt-full{ background:#fee2e2; color:var(--danger); }
+
+    .overpay-warning{
+        background:#fee2e2;
+        color:var(--danger);
+        border-radius:10px;
+        padding:10px 14px;
+        font-size:0.85rem;
+        font-weight:600;
+        margin-top:10px;
+        display:none;
+    }
+
+    .overpay-warning.show{ display:block; }
+
+    .remove-sale-btn{
+        border-radius:10px;
+        font-weight:600;
+        font-size:0.82rem;
+    }
+
+    .pay-full-btn{
+        border-radius:10px;
+        font-weight:600;
+        font-size:0.82rem;
+    }
+
+    /* GRAND TOTAL CARD */
+    .grand-total-card{
+        background:var(--dark);
+        color:#fff;
+        border-radius:16px;
+        padding:24px;
+        margin-bottom:22px;
+        box-shadow:0 10px 24px rgba(0,0,0,0.15);
+    }
+
+    .grand-total-title{
+        font-size:0.78rem;
+        text-transform:uppercase;
+        letter-spacing:1px;
+        font-weight:700;
+        color:#c7d2fe;
+        margin-bottom:16px;
+    }
+
+    .grand-total-row{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        padding:8px 0;
+        font-size:0.95rem;
+        border-bottom:1px solid rgba(255,255,255,0.1);
+    }
+
+    .grand-total-row:last-child{ border-bottom:none; }
+
+    .grand-total-row .g-label{ color:#c7d2fe; }
+    .grand-total-row .g-value{ font-weight:800; font-size:1.1rem; }
+
+    .grand-total-row.grand-debt .g-value{ color:#fca5a5; }
+    .grand-total-row.grand-paid .g-value{ color:#86efac; }
+
+    /* ACTION AREA */
+    .action-note{
+        font-size:0.8rem;
+        color:var(--muted);
+    }
+
+    .btn-primary-custom{
+        background:var(--primary);
+        border:none;
+        border-radius:10px;
+        font-weight:700;
+        padding:12px 28px;
+        transition:background .2s ease;
+    }
+
+    .btn-primary-custom:hover{
+        background:var(--primary-dark);
+    }
+
+    .empty-state{
+        text-align:center;
+        padding:50px 20px;
+        background:#fff;
+        border-radius:16px;
+        box-shadow:0 4px 14px rgba(0,0,0,0.05);
+        margin-bottom:20px;
+    }
+
+    .empty-state i{
+        font-size:2.6rem;
+        color:#cbd5e1;
+        margin-bottom:12px;
+    }
+
+    @media (max-width: 767.98px){
+        .hero{ height:220px; }
+        .hero h1{ font-size:1.6rem; }
+        .sale-card{ padding:20px; }
+    }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="container hero-content">
+        <span class="badge-pill">Sales Management</span>
+        <h1>Create a New Sale</h1>
+        <p>Sell products, record customer payments, and keep your inventory and customer balances organized.</p>
+        <div class="stat-line">Products • Customers • Payments</div>
+    </div>
+</section>
+
+<div class="container form-wrap pb-5">
+
+    {% if not products %}
+    <div class="empty-state">
+        <i class="bi bi-box-seam"></i>
+        <h5>No products available.</h5>
+        <p class="text-muted mb-0">Add a product before creating a sale.</p>
+    </div>
+    {% elif not customers %}
+    <div class="empty-state">
+        <i class="bi bi-person-x"></i>
+        <h5>No customers available.</h5>
+        <p class="text-muted mb-0">Add a customer before creating a sale.</p>
+    </div>
+    {% else %}
+
+    <form method="POST" action="{{ url_for('Selling') }}" novalidate id="saleFormWrapper">
+        {{ sale_form.hidden_tag() }}
+
+        <div id="salesContainer">
+            {% for entry in sale_form.sales %}
+            <div class="sale-card" data-form-index="{{ loop.index }}">
+                <span class="form-badge-num">Sale #{{ loop.index }}</span>
+                <div class="card-title-main">New Sale</div>
+                <p class="card-subtitle">Enter the product and customer details below.</p>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        {{ entry.form.product_id.label(class="form-label") }}
+                        {{ entry.form.product_id(class="form-select sale-product-select") }}
+                        <div class="info-panel stock-info">
+                            <i class="bi bi-box-seam me-1"></i>Available Stock: <strong class="stock-value">-</strong>
+                        </div>
+                        <div class="stock-warning">Insufficient stock.</div>
+                    </div>
+                    <div class="col-md-6">
+                        {{ entry.form.customer_id.label(class="form-label") }}
+                        {{ entry.form.customer_id(class="form-select sale-customer-select") }}
+                        <div class="info-panel customer-info">
+                            <i class="bi bi-person me-1"></i><span class="customer-name">-</span><br>
+                            <i class="bi bi-telephone me-1"></i><span class="customer-phone">-</span><br>
+                            <i class="bi bi-wallet2 me-1"></i>Current Balance: <span class="customer-balance">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ entry.form.measurement.label(class="form-label") }}
+                    {{ entry.form.measurement(class="form-select sale-measurement") }}
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        {{ entry.form.quantity.label(class="form-label") }}
+                        {{ entry.form.quantity(class="form-control sale-quantity", placeholder="0.00", step="0.01") }}
+                        <div class="helper-text">Enter the quantity being sold.</div>
+                    </div>
+                    <div class="col-md-6">
+                        {{ entry.form.unit_price.label(class="form-label") }}
+                        {{ entry.form.unit_price(class="form-control sale-price", placeholder="0.00", step="0.01") }}
+                        <div class="helper-text">Price per selected unit.</div>
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                    {{ entry.form.current_payment.label(class="form-label") }}
+                    {{ entry.form.current_payment(class="form-control sale-payment", placeholder="0.00", step="0.01") }}
+                    <div class="helper-text">How much is the customer paying now?</div>
+                    <button type="button" class="btn btn-outline-success btn-sm pay-full-btn mt-2 pay-full-trigger">
+                        <i class="bi bi-check2-circle me-1"></i>Pay Full Amount
+                    </button>
+                </div>
+
+                <!-- LIVE SUMMARY -->
+                <div class="summary-card">
+                    <div class="summary-title">Sale Summary</div>
+                    <div class="summary-row">
+                        <span>Quantity</span>
+                        <span class="sum-quantity">0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Selling Price</span>
+                        <span class="sum-price">0.00 ETB</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total Amount</span>
+                        <span class="sum-total">0.00 ETB</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Payment Now</span>
+                        <span class="sum-payment">0.00 ETB</span>
+                    </div>
+                    <div class="summary-row debt-row">
+                        <span>Remaining Debt</span>
+                        <span class="sum-debt">0.00 ETB</span>
+                    </div>
+                    <span class="debt-badge debt-full sum-badge">Full Amount Outstanding</span>
+                    <div class="overpay-warning">Payment cannot exceed the total amount.</div>
+                </div>
+
+                {% if loop.index > 1 %}
+                <button type="button" class="btn btn-outline-danger btn-sm remove-sale-btn mt-3" onclick="this.closest('.sale-card').remove(); recalcGrandTotals();">
+                    <i class="bi bi-x-lg me-1"></i>Remove Sale
+                </button>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- GRAND TOTAL SUMMARY (across all sale cards) -->
+        <div class="grand-total-card">
+            <div class="grand-total-title"><i class="bi bi-calculator me-1"></i>Overall Sale Summary</div>
+            <div class="grand-total-row">
+                <span class="g-label">Total Amount (All Sales)</span>
+                <span class="g-value" id="grandTotalAmount">0.00 ETB</span>
+            </div>
+            <div class="grand-total-row grand-paid">
+                <span class="g-label">Total Paid Now</span>
+                <span class="g-value" id="grandTotalPaid">0.00 ETB</span>
+            </div>
+            <div class="grand-total-row grand-debt">
+                <span class="g-label">Total Remaining Debt</span>
+                <span class="g-value" id="grandTotalDebt">0.00 ETB</span>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between flex-wrap gap-2 mb-3">
+            <button type="button" class="btn btn-outline-primary" id="addAnotherSaleBtn">
+                <i class="bi bi-plus-lg me-1"></i>Sell Another Product
+            </button>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <button type="button" class="btn btn-outline-secondary me-2">Cancel</button>
+                {{ sale_form.submit(class="btn btn-primary-custom text-white") }}
+            </div>
+            <div class="action-note"><i class="bi bi-shield-check me-1"></i>Your sale will be recorded in the transaction history.</div>
+        </div>
+    </form>
+
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // =========================================================
+    // DATA FROM FLASK
+    // =========================================================
+
+    const productsData = {
+        {% for product in products %}
+        {{ product.id }}: {
+            name: {{ product.name|tojson }},
+            stock: {{ product.current_quantity|default(0, true)|tojson }},
+            measurement: {{ (product.measurement or '')|tojson }},
+            price: {{ product.unit_price|default(0, true)|tojson }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    const customersData = {
+        {% for customer in customers %}
+        {{ customer.id }}: {
+            name: {{ customer.name|tojson }},
+            phone: {{ (customer.phone or 'N/A')|tojson }},
+            balance: {{ customer.balance_owed|default(0, true)|tojson }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    };
+
+
+    // =========================================================
+    // VARIABLES
+    // =========================================================
+
+    let saleFormCount = document.querySelectorAll(".sale-card").length;
+
+
+    // =========================================================
+    // FORMAT MONEY
+    // =========================================================
+
+    function formatMoney(value) {
+        return Number(value || 0).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }) + " ETB";
+    }
+
+
+    // =========================================================
+    // INITIALIZE EACH SALE CARD
+    // =========================================================
+
+    function initSaleCard(card) {
+
+        const productSelect = card.querySelector(".sale-product-select");
+        const customerSelect = card.querySelector(".sale-customer-select");
+
+        const quantityInput = card.querySelector(".sale-quantity");
+        const priceInput = card.querySelector(".sale-price");
+        const paymentInput = card.querySelector(".sale-payment");
+
+        const payFullBtn = card.querySelector(".pay-full-trigger");
+
+        const stockInfo = card.querySelector(".stock-info");
+        const stockValue = card.querySelector(".stock-value");
+        const stockWarning = card.querySelector(".stock-warning");
+
+        const customerInfo = card.querySelector(".customer-info");
+        const customerName = card.querySelector(".customer-name");
+        const customerPhone = card.querySelector(".customer-phone");
+        const customerBalance = card.querySelector(".customer-balance");
+
+        const sumQty = card.querySelector(".sum-quantity");
+        const sumPrice = card.querySelector(".sum-price");
+        const sumTotal = card.querySelector(".sum-total");
+        const sumPayment = card.querySelector(".sum-payment");
+        const sumDebt = card.querySelector(".sum-debt");
+
+        const sumBadge = card.querySelector(".sum-badge");
+        const overpayWarning = card.querySelector(".overpay-warning");
+
+
+        // =====================================================
+        // UPDATE PRODUCT
+        // =====================================================
+
+        function updateProduct() {
+
+            const productId = productSelect.value;
+            const product = productsData[productId];
+
+            if (!product) {
+                stockInfo.classList.remove("show");
+                return;
+            }
+
+            // Show stock
+            stockInfo.classList.add("show");
+
+            stockValue.textContent =
+                product.stock +
+                (product.measurement ? " " + product.measurement : "");
+
+            // Automatically put product price
+            priceInput.value = Number(product.price || 0).toFixed(2);
+
+            // Calculate immediately
+            calculate();
+        }
+
+
+        // =====================================================
+        // UPDATE CUSTOMER
+        // =====================================================
+
+        function updateCustomer() {
+
+            const customerId = customerSelect.value;
+            const customer = customersData[customerId];
+
+            if (!customer) {
+                customerInfo.classList.remove("show");
+                return;
+            }
+
+            customerInfo.classList.add("show");
+
+            customerName.textContent = customer.name;
+            customerPhone.textContent = customer.phone;
+
+            customerBalance.textContent = formatMoney(customer.balance);
+        }
+
+
+        // =====================================================
+        // CHECK STOCK
+        // =====================================================
+
+        function checkStock() {
+
+            const productId = productSelect.value;
+            const product = productsData[productId];
+
+            const quantity = parseFloat(quantityInput.value) || 0;
+
+            if (product && quantity > product.stock) {
+
+                stockWarning.classList.add("show");
+
+                stockWarning.textContent =
+                    "Only " + product.stock + " available.";
+
+            } else {
+
+                stockWarning.classList.remove("show");
+            }
+        }
+
+
+        // =====================================================
+        // CALCULATE SALE
+        // =====================================================
+
+        function calculate() {
+
+            const quantity =
+                parseFloat(quantityInput.value) || 0;
+
+            const price =
+                parseFloat(priceInput.value) || 0;
+
+            const payment =
+                parseFloat(paymentInput.value) || 0;
+
+            const total = quantity * price;
+
+            const debt = Math.max(total - payment, 0);
+
+
+            // Overpayment
+            if (payment > total && total > 0) {
+
+                overpayWarning.classList.add("show");
+
+            } else {
+
+                overpayWarning.classList.remove("show");
+            }
+
+
+            // Update summary
+            sumQty.textContent = quantity;
+
+            sumPrice.textContent = formatMoney(price);
+
+            sumTotal.textContent = formatMoney(total);
+
+            sumPayment.textContent = formatMoney(payment);
+
+            sumDebt.textContent = formatMoney(debt);
+
+
+            // Debt badge
+            sumBadge.classList.remove(
+                "debt-paid",
+                "debt-partial",
+                "debt-full"
+            );
+
+
+            if (total > 0 && debt === 0 && payment <= total) {
+
+                sumBadge.textContent = "Paid ✓";
+
+                sumBadge.classList.add("debt-paid");
+
+            } else if (payment > 0 && debt > 0) {
+
+                sumBadge.textContent =
+                    "Remaining Debt: " + formatMoney(debt);
+
+                sumBadge.classList.add("debt-partial");
+
+            } else {
+
+                sumBadge.textContent =
+                    "Full Amount Outstanding";
+
+                sumBadge.classList.add("debt-full");
+            }
+
+
+            checkStock();
+
+            recalcGrandTotals();
+        }
+
+
+        // =====================================================
+        // PAY FULL AMOUNT
+        // =====================================================
+
+        function payFullAmount() {
+
+            const quantity =
+                parseFloat(quantityInput.value) || 0;
+
+            const price =
+                parseFloat(priceInput.value) || 0;
+
+            const total = quantity * price;
+
+            paymentInput.value = total.toFixed(2);
+
+            calculate();
+        }
+
+
+        // =====================================================
+        // EVENT LISTENERS
+        // =====================================================
+
+        productSelect.addEventListener(
+            "change",
+            updateProduct
+        );
+
+        customerSelect.addEventListener(
+            "change",
+            updateCustomer
+        );
+
+        quantityInput.addEventListener(
+            "input",
+            calculate
+        );
+
+        priceInput.addEventListener(
+            "input",
+            calculate
+        );
+
+        paymentInput.addEventListener(
+            "input",
+            calculate
+        );
+
+
+        if (payFullBtn) {
+
+            payFullBtn.addEventListener(
+                "click",
+                payFullAmount
+            );
+        }
+
+
+        // Initial state
+        updateProduct();
+        updateCustomer();
+        calculate();
+    }
+
+
+    // =========================================================
+    // GRAND TOTALS
+    // =========================================================
+
+    function recalcGrandTotals() {
+
+        let grandTotal = 0;
+        let grandPaid = 0;
+        let grandDebt = 0;
+
+
+        document.querySelectorAll(".sale-card").forEach(card => {
+
+            const quantityInput =
+                card.querySelector(".sale-quantity");
+
+            const priceInput =
+                card.querySelector(".sale-price");
+
+            const paymentInput =
+                card.querySelector(".sale-payment");
+
+
+            const quantity =
+                parseFloat(quantityInput.value) || 0;
+
+            const price =
+                parseFloat(priceInput.value) || 0;
+
+            const payment =
+                parseFloat(paymentInput.value) || 0;
+
+
+            const total = quantity * price;
+
+            const debt = Math.max(total - payment, 0);
+
+
+            grandTotal += total;
+            grandPaid += payment;
+            grandDebt += debt;
+        });
+
+
+        const totalElement =
+            document.getElementById("grandTotalAmount");
+
+        const paidElement =
+            document.getElementById("grandTotalPaid");
+
+        const debtElement =
+            document.getElementById("grandTotalDebt");
+
+
+        if (totalElement) {
+            totalElement.textContent =
+                formatMoney(grandTotal);
+        }
+
+        if (paidElement) {
+            paidElement.textContent =
+                formatMoney(grandPaid);
+        }
+
+        if (debtElement) {
+            debtElement.textContent =
+                formatMoney(grandDebt);
+        }
+    }
+
+
+    // =========================================================
+    // INITIALIZE EXISTING SALE CARDS
+    // =========================================================
+
+    document.querySelectorAll(".sale-card").forEach(card => {
+        initSaleCard(card);
+    });
+
+    recalcGrandTotals();
+
+
+    // =========================================================
+    // ADD ANOTHER SALE
+    // =========================================================
+
+    const addAnotherSaleBtn =
+        document.getElementById("addAnotherSaleBtn");
+
+
+    if (addAnotherSaleBtn) {
+
+        addAnotherSaleBtn.addEventListener(
+            "click",
+            function () {
+
+                const container =
+                    document.getElementById("salesContainer");
+
+                const index = saleFormCount;
+
+
+                // Product options
+                const productOptions =
+                    Object.entries(productsData)
+                    .map(([id, product]) => {
+
+                        return `
+                            <option value="${id}">
+                                ${product.name}
+                            </option>
+                        `;
+
+                    })
+                    .join("");
+
+
+                // Customer options
+                const customerOptions =
+                    Object.entries(customersData)
+                    .map(([id, customer]) => {
+
+                        return `
+                            <option value="${id}">
+                                ${customer.name}
+                            </option>
+                        `;
+
+                    })
+                    .join("");
+
+
+                const newCard =
+                    document.createElement("div");
+
+                newCard.className = "sale-card";
+
+                newCard.setAttribute(
+                    "data-form-index",
+                    index + 1
+                );
+
+
+                newCard.innerHTML = `
+
+                    <span class="form-badge-num">
+                        Sale #${index + 1}
+                    </span>
+
+                    <div class="card-title-main">
+                        New Sale
+                    </div>
+
+                    <p class="card-subtitle">
+                        Enter the product and customer details below.
+                    </p>
+
+
+                    <div class="row g-3 mb-3">
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Select Product
+                            </label>
+
+                            <select
+                                class="form-select sale-product-select"
+                                name="sales-${index}-product_id">
+
+                                <option value="">
+                                    Select Product
+                                </option>
+
+                                ${productOptions}
+
+                            </select>
+
+
+                            <div class="info-panel stock-info">
+
+                                <i class="bi bi-box-seam me-1"></i>
+
+                                Available Stock:
+
+                                <strong class="stock-value">
+                                    -
+                                </strong>
+
+                            </div>
+
+
+                            <div class="stock-warning">
+                                Insufficient stock.
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Select Customer
+                            </label>
+
+                            <select
+                                class="form-select sale-customer-select"
+                                name="sales-${index}-customer_id">
+
+                                <option value="">
+                                    Select Customer
+                                </option>
+
+                                ${customerOptions}
+
+                            </select>
+
+
+                            <div class="info-panel customer-info">
+
+                                <i class="bi bi-person me-1"></i>
+
+                                <span class="customer-name">
+                                    -
+                                </span>
+
+                                <br>
+
+                                <i class="bi bi-telephone me-1"></i>
+
+                                <span class="customer-phone">
+                                    -
+                                </span>
+
+                                <br>
+
+                                <i class="bi bi-wallet2 me-1"></i>
+
+                                Current Balance:
+
+                                <span class="customer-balance">
+                                    -
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Measurement
+                        </label>
+
+                        <select
+                            class="form-select sale-measurement"
+                            name="sales-${index}-measurement">
+
+                            <option value="">
+                                Select measurement (optional)
+                            </option>
+
+                            <option value="piece">
+                                Piece
+                            </option>
+
+                            <option value="kg">
+                                Kg
+                            </option>
+
+                            <option value="liter">
+                                Liter
+                            </option>
+
+                            <option value="package">
+                                Package
+                            </option>
+
+                            <option value="box">
+                                Box
+                            </option>
+
+                            <option value="meter">
+                                Meter
+                            </option>
+
+                            <option value="other">
+                                Other
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="row g-3 mb-3">
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Quantity
+                            </label>
+
+                            <input
+                                type="number"
+                                class="form-control sale-quantity"
+                                name="sales-${index}-quantity"
+                                placeholder="0.00"
+                                step="0.01">
+
+                        </div>
+
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Selling Price
+                            </label>
+
+                            <input
+                                type="number"
+                                class="form-control sale-price"
+                                name="sales-${index}-unit_price"
+                                placeholder="0.00"
+                                step="0.01">
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="mb-2">
+
+                        <label class="form-label">
+                            Current Payment
+                        </label>
+
+                        <input
+                            type="number"
+                            class="form-control sale-payment"
+                            name="sales-${index}-current_payment"
+                            placeholder="0.00"
+                            step="0.01">
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-success btn-sm pay-full-btn mt-2 pay-full-trigger">
+
+                            <i class="bi bi-check2-circle me-1"></i>
+
+                            Pay Full Amount
+
+                        </button>
+
+                    </div>
+
+
+                    <div class="summary-card">
+
+                        <div class="summary-title">
+                            Sale Summary
+                        </div>
+
+
+                        <div class="summary-row">
+                            <span>Quantity</span>
+                            <span class="sum-quantity">0</span>
+                        </div>
+
+
+                        <div class="summary-row">
+                            <span>Selling Price</span>
+                            <span class="sum-price">0.00 ETB</span>
+                        </div>
+
+
+                        <div class="summary-row total">
+                            <span>Total Amount</span>
+                            <span class="sum-total">0.00 ETB</span>
+                        </div>
+
+
+                        <div class="summary-row">
+                            <span>Payment Now</span>
+                            <span class="sum-payment">0.00 ETB</span>
+                        </div>
+
+
+                        <div class="summary-row debt-row">
+                            <span>Remaining Debt</span>
+                            <span class="sum-debt">0.00 ETB</span>
+                        </div>
+
+
+                        <span class="debt-badge debt-full sum-badge">
+                            Full Amount Outstanding
+                        </span>
+
+
+                        <div class="overpay-warning">
+                            Payment cannot exceed the total amount.
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-danger btn-sm remove-sale-btn mt-3"
+                        onclick="this.closest('.sale-card').remove(); recalcGrandTotals();">
+
+                        <i class="bi bi-x-lg me-1"></i>
+
+                        Remove Sale
+
+                    </button>
+                `;
+
+
+                container.appendChild(newCard);
+
+                initSaleCard(newCard);
+
+                saleFormCount++;
+
+                recalcGrandTotals();
+            }
+        );
+    }
+
+
+    // =========================================================
+    // PREVENT SUBMISSION WITH OVERPAYMENT
+    // =========================================================
+
+    const saleForm =
+        document.getElementById("saleFormWrapper");
+
+
+    if (saleForm) {
+
+        saleForm.addEventListener(
+            "submit",
+            function (event) {
+
+                const warnings =
+                    document.querySelectorAll(
+                        ".overpay-warning.show"
+                    );
+
+
+                if (warnings.length > 0) {
+
+                    event.preventDefault();
+
+                    warnings[0].scrollIntoView({
+                        behavior: "smooth",
+                        block: "center"
+                    });
+                }
+            }
+        );
+    }
+
+</script>
+</body>
+</html>

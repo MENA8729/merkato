@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory Tracking</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root{
+        --blue:#2563eb;
+        --green:#16a34a;
+        --orange:#ea580c;
+        --red:#dc2626;
+        --dark:#1e293b;
+        --muted:#64748b;
+        --bg:#f4f6f8;
+    }
+
+    body{
+        font-family:'Inter', sans-serif;
+        background:var(--bg);
+        color:var(--dark);
+    }
+
+    /* NAVBAR */
+    .navbar{
+        background:#fff;
+        box-shadow:0 2px 10px rgba(0,0,0,0.06);
+        padding:14px 0;
+    }
+
+    .navbar-brand{
+        font-weight:800;
+        color:var(--blue) !important;
+        font-size:1.3rem;
+    }
+
+    .navbar-brand i{ margin-right:6px; }
+
+    .nav-link{
+        font-weight:500;
+        color:#475569 !important;
+        transition:color .2s ease;
+    }
+
+    .nav-link:hover, .nav-link.active{
+        color:var(--blue) !important;
+    }
+
+    /* HERO */
+    .hero{
+        background:linear-gradient(135deg, #1e3a5f, #2563eb);
+        color:#fff;
+        padding:40px 0 55px;
+        text-align:center;
+    }
+
+    .hero .badge-pill{
+        background:rgba(255,255,255,0.15);
+        border:1px solid rgba(255,255,255,0.3);
+        padding:5px 16px;
+        border-radius:30px;
+        font-size:0.78rem;
+        font-weight:600;
+        letter-spacing:0.5px;
+        display:inline-block;
+        margin-bottom:12px;
+    }
+
+    .hero h1{
+        font-weight:800;
+        font-size:2rem;
+        margin-bottom:10px;
+    }
+
+    .hero p{
+        color:#dbeafe;
+        max-width:560px;
+        margin:0 auto;
+        font-size:0.95rem;
+    }
+
+    /* SUMMARY CARDS */
+    .summary-wrap{ margin-top:-35px; }
+
+    .summary-card{
+        background:#fff;
+        border-radius:16px;
+        padding:20px;
+        box-shadow:0 8px 20px rgba(0,0,0,0.07);
+        transition:transform .2s ease;
+        height:100%;
+    }
+
+    .summary-card:hover{ transform:translateY(-4px); }
+
+    .summary-icon{
+        width:46px;
+        height:46px;
+        border-radius:12px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:1.2rem;
+        color:#fff;
+        margin-bottom:12px;
+    }
+
+    .icon-blue{ background:var(--blue); }
+    .icon-green{ background:var(--green); }
+    .icon-orange{ background:var(--orange); }
+    .icon-red{ background:var(--red); }
+
+    .summary-value{
+        font-size:1.5rem;
+        font-weight:800;
+    }
+
+    .summary-label{
+        color:var(--muted);
+        font-size:0.83rem;
+        font-weight:500;
+    }
+
+    /* SECTION */
+    .section-title{
+        font-weight:800;
+        font-size:1.4rem;
+        margin-bottom:4px;
+    }
+
+    .section-desc{
+        color:var(--muted);
+        margin-bottom:22px;
+        font-size:0.92rem;
+    }
+
+    .section-block{
+        margin-top:50px;
+    }
+
+    /* SEARCH & FILTERS */
+    .filter-bar{
+        background:#fff;
+        border-radius:14px;
+        padding:16px;
+        box-shadow:0 4px 14px rgba(0,0,0,0.05);
+        margin-bottom:22px;
+    }
+
+    /* BADGES */
+    .badge-instock{ background:#dcfce7; color:var(--green); }
+    .badge-lowstock{ background:#fef3c7; color:#b45309; }
+    .badge-outstock{ background:#fee2e2; color:var(--red); }
+
+    .badge-status-paid{ background:#dcfce7; color:var(--green); }
+    .badge-status-partial{ background:#fef3c7; color:#b45309; }
+    .badge-status-unpaid{ background:#fee2e2; color:var(--red); }
+    .badge-active{ background:#dbeafe; color:var(--blue); }
+
+    /* TABLE */
+    .table-card{
+        background:#fff;
+        border-radius:14px;
+        box-shadow:0 4px 14px rgba(0,0,0,0.05);
+        overflow:hidden;
+    }
+
+    table th{
+        font-size:0.78rem;
+        text-transform:uppercase;
+        letter-spacing:0.5px;
+        color:var(--muted);
+        border-bottom:2px solid #eee;
+        white-space: nowrap;
+    }
+
+    table td{
+        vertical-align:middle;
+        font-size:0.92rem;
+        white-space: nowrap;
+    }
+
+    tr.clickable-row{ cursor:pointer; }
+    tr.clickable-row:hover{ background:#f8fafc; }
+
+    .debt-text{ color:var(--red); font-weight:700; }
+
+    /* EMPTY STATE */
+    .empty-state{
+        text-align:center;
+        padding:60px 20px;
+        background:#fff;
+        border-radius:14px;
+        box-shadow:0 4px 14px rgba(0,0,0,0.05);
+    }
+
+    .empty-state i{
+        font-size:3rem;
+        color:#cbd5e1;
+        margin-bottom:14px;
+    }
+
+    .empty-state h5{ font-weight:700; }
+    .empty-state p{ color:var(--muted); }
+
+    /* QUICK ACTIONS */
+    .quick-actions .btn{
+        border-radius:10px;
+        font-weight:600;
+        font-size:0.88rem;
+    }
+
+    /* ACTION MODAL - desktop centered, mobile bottom sheet */
+    .action-modal .modal-dialog{
+        max-width:420px;
+    }
+
+    .action-modal .modal-content{
+        border-radius:18px;
+        border:none;
+    }
+
+    .action-modal .modal-footer{
+        justify-content:stretch;
+        gap:10px;
+    }
+
+    .action-modal .modal-footer .btn{
+        flex:1;
+        border-radius:10px;
+        font-weight:600;
+    }
+
+    @media (max-width: 767.98px){
+        .action-modal .modal-dialog{
+            position:fixed;
+            bottom:0;
+            left:0;
+            right:0;
+            margin:0;
+            max-width:100%;
+            width:100%;
+        }
+        .action-modal .modal-content{
+            border-radius:18px 18px 0 0;
+        }
+        .action-modal.fade .modal-dialog{
+            transform:translateY(100%);
+            transition:transform .3s ease-out;
+        }
+        .action-modal.show .modal-dialog{
+            transform:translateY(0);
+        }
+    }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="{{url_for('home')}}"><i class="bi bi-boxes"></i>StockManager</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navMenu">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="{{url_for('home')}}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link active" href="{{url_for('track')}}">Products</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{url_for('purchases')}}">Purchases</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{url_for('Selling')}}">Sales</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{url_for('logout')}}">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="container">
+        <span class="badge-pill">Inventory Management</span>
+        <h1>Track Your Business</h1>
+        <p>Monitor products, stock levels, customers, and suppliers from one organized dashboard.</p>
+    </div>
+</section>
+
+<!-- SUMMARY CARDS -->
+<div class="container summary-wrap mb-4">
+    <div class="row g-3">
+        <div class="col-6 col-md-3">
+            <div class="summary-card">
+                <div class="summary-icon icon-blue"><i class="bi bi-box-seam"></i></div>
+                <div class="summary-value">{{ products|length }}</div>
+                <div class="summary-label">Total Products</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="summary-card">
+                <div class="summary-icon icon-green"><i class="bi bi-stack"></i></div>
+                <div class="summary-value">{{ products|sum(attribute='current_quantity') if products else 0 }}</div>
+                <div class="summary-label">Total Stock</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="summary-card">
+                <div class="summary-icon icon-orange"><i class="bi bi-people"></i></div>
+                <div class="summary-value">{{ customers|length }}</div>
+                <div class="summary-label">Total Customers</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="summary-card">
+                <div class="summary-icon icon-red"><i class="bi bi-truck"></i></div>
+                <div class="summary-value">{{ suppliers|length }}</div>
+                <div class="summary-label">Total Suppliers</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="container mb-4 quick-actions">
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{url_for('inventory')}}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Product</a>
+        <a href="{{url_for('purchases')}}" class="btn btn-outline-primary"><i class="bi bi-cart-plus me-1"></i>New Purchase</a>
+        <a href="{{url_for('Selling')}}" class="btn btn-outline-primary"><i class="bi bi-graph-up-arrow me-1"></i>New Sale</a>
+        <a href="{{url_for('suppliers_customers')}}" class="btn btn-outline-secondary"><i class="bi bi-person-plus me-1"></i>Add Customer</a>
+        <a href="{{url_for('suppliers_customers')}}" class="btn btn-outline-secondary"><i class="bi bi-building-add me-1"></i>Add Supplier</a>
+    </div>
+</div>
+
+<!-- PRODUCT TRACKING -->
+<div class="container section-block">
+    <h2 class="section-title">Product Inventory</h2>
+    <p class="section-desc">Monitor your products, selling prices, quantities, and stock information.</p>
+
+    <div class="filter-bar">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small fw-semibold">Search</label>
+                <input type="text" class="form-control" id="productSearch" placeholder="Search products...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Stock Status</label>
+                <select class="form-select" id="stockFilter">
+                    <option value="all">All</option>
+                    <option value="instock">In Stock</option>
+                    <option value="lowstock">Low Stock</option>
+                    <option value="outstock">Out of Stock</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">Measurement</label>
+                <select class="form-select" id="measurementFilter">
+                    <option value="all">All</option>
+                    {% set measurements = [] %}
+                    {% for product in products %}
+                        {% if product.measurement and product.measurement not in measurements %}
+                            {% set _ = measurements.append(product.measurement) %}
+                            <option value="{{ product.measurement|lower }}">{{ product.measurement }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    {% if products %}
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Product</th><th>Code</th><th>Selling Price</th><th>Quantity</th>
+                        <th>Measurement</th><th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr class="product-row clickable-row"
+                        data-status="{{ 'instock' if product.current_quantity > 10 else ('lowstock' if product.current_quantity > 0 else 'outstock') }}"
+                        data-measurement="{{ product.measurement|lower if product.measurement else '' }}"
+                        data-search="{{ product.name|lower }} {{ product.stock_code|lower if product.stock_code else '' }} {{ product.measurement|lower if product.measurement else '' }}"
+                        onclick="openProductAction({{ product.id }}, '{{ product.name|e }}', '{{ product.stock_code|e if product.stock_code else 'N/A' }}', '{{ '%.2f'|format(product.unit_price) }}', '{{ product.current_quantity }}', '{{ product.measurement|e if product.measurement else 'N/A' }}')">
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.stock_code if product.stock_code else 'N/A' }}</td>
+                        <td>{{ "{:,.2f}".format(product.unit_price) }} ETB</td>
+                        <td>{{ product.current_quantity }}</td>
+                        <td>{{ product.measurement if product.measurement else 'N/A' }}</td>
+                        <td>
+                            {% if product.current_quantity > 10 %}
+                            <span class="badge badge-instock">In Stock</span>
+                            {% elif product.current_quantity > 0 %}
+                            <span class="badge badge-lowstock">Low Stock</span>
+                            {% else %}
+                            <span class="badge badge-outstock">Out of Stock</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-box"></i>
+        <h5>No Products Found</h5>
+        <p>Your products will appear here.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- CUSTOMER TRACKING -->
+<div class="container section-block">
+    <h2 class="section-title">Customer Management</h2>
+    <p class="section-desc">Keep track of customers and their transaction information.</p>
+
+    <div class="filter-bar">
+        <input type="text" class="form-control" id="customerSearch" placeholder="Search customers...">
+    </div>
+
+    {% if customers %}
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Customer</th><th>Phone</th><th>Email</th><th>Outstanding Debt</th><th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr class="customer-row clickable-row"
+                        data-search="{{ customer.name|lower }} {{ customer.phone if customer.phone else '' }}"
+                        onclick="openCustomerAction({{ customer.id }}, '{{ customer.name|e }}', '{{ customer.phone|e if customer.phone else 'N/A' }}')">
+                        <td>{{ customer.name }}</td>
+                        <td>{{ customer.phone if customer.phone else 'N/A' }}</td>
+                        <td>{{ customer.email if customer.email is defined and customer.email else 'N/A' }}</td>
+                        <td>
+                            {% if customer.debt is defined %}
+                            <span class="{{ 'debt-text' if customer.debt > 0 else '' }}">{{ "{:,.2f}".format(customer.debt) }} ETB</span>
+                            {% else %}
+                            N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if customer.debt is defined %}
+                                {% if customer.debt == 0 %}
+                                <span class="badge badge-status-paid">Paid</span>
+                                {% elif customer.debt > 0 and customer.paid_amount is defined and customer.paid_amount > 0 %}
+                                <span class="badge badge-status-partial">Partially Paid</span>
+                                {% else %}
+                                <span class="badge badge-status-unpaid">Outstanding</span>
+                                {% endif %}
+                            {% else %}
+                            <span class="badge badge-active">Active</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-people"></i>
+        <h5>No Customers Found</h5>
+        <p>Customer records will appear here.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- SUPPLIER TRACKING -->
+<div class="container section-block mb-5">
+    <h2 class="section-title">Supplier Management</h2>
+    <p class="section-desc">Track your suppliers, purchases, and outstanding balances.</p>
+
+    <div class="filter-bar">
+        <input type="text" class="form-control" id="supplierSearch" placeholder="Search suppliers...">
+    </div>
+
+    {% if suppliers %}
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Supplier</th><th>Phone</th><th>Purchases</th><th>Total Debt</th><th>Paid</th><th>Remaining</th><th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for supplier in suppliers %}
+                    <tr class="supplier-row clickable-row"
+                        data-search="{{ supplier.name|lower }} {{ supplier.phone if supplier.phone else '' }}"
+                        onclick="openSupplierAction({{ supplier.id }}, '{{ supplier.name|e }}', '{{ supplier.phone|e if supplier.phone else 'N/A' }}')">
+                        <td>{{ supplier.name }}</td>
+                        <td>{{ supplier.phone if supplier.phone else 'N/A' }}</td>
+                        <td>{{ supplier.purchase_count if supplier.purchase_count is defined else 'N/A' }}</td>
+                        <td>{{ "{:,.2f}".format(supplier.total_debt) if supplier.total_debt is defined else 'N/A' }} ETB</td>
+                        <td>{{ "{:,.2f}".format(supplier.total_paid) if supplier.total_paid is defined else 'N/A' }} ETB</td>
+                        <td class="debt-text">{{ "{:,.2f}".format(supplier.remaining_debt) if supplier.remaining_debt is defined else 'N/A' }} ETB</td>
+                        <td>
+                            {% if supplier.remaining_debt is defined %}
+                                {% if supplier.remaining_debt == 0 %}
+                                <span class="badge badge-status-paid">Paid</span>
+                                {% elif supplier.total_paid is defined and supplier.total_paid > 0 %}
+                                <span class="badge badge-status-partial">Partially Paid</span>
+                                {% else %}
+                                <span class="badge badge-status-unpaid">Outstanding</span>
+                                {% endif %}
+                            {% else %}
+                            N/A
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-truck"></i>
+        <h5>No Suppliers Found</h5>
+        <p>Supplier records will appear here.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- ============== PRODUCT MODALS ============== -->
+
+<div class="modal fade action-modal" id="productActionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="actionProductName">Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row-line d-flex justify-content-between py-1"><span>Code</span><span id="actionProductCode">N/A</span></div>
+                <div class="row-line d-flex justify-content-between py-1"><span>Selling Price</span><span id="actionProductPrice">0.00 ETB</span></div>
+                <div class="row-line d-flex justify-content-between py-1"><span>Quantity</span><span id="actionProductQty">0</span></div>
+                <div class="row-line d-flex justify-content-between py-1"><span>Measurement</span><span id="actionProductMeasurement">N/A</span></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProductConfirmModal" data-bs-dismiss="modal">
+                    <i class="bi bi-pencil me-1"></i>Edit
+                </button>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteProductConfirmModal" data-bs-dismiss="modal">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editProductConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Edit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Do you want to edit <strong id="editProductName"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="editProductBtn" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>Yes, Edit</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteProductConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to delete <strong id="deleteProductName"></strong>? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteProductForm" method="POST" action="#">
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============== CUSTOMER MODALS ============== -->
+
+<div class="modal fade action-modal" id="customerActionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="actionCustomerName">Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row-line d-flex justify-content-between py-1"><span>Phone</span><span id="actionCustomerPhone">N/A</span></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editCustomerConfirmModal" data-bs-dismiss="modal">
+                    <i class="bi bi-pencil me-1"></i>Edit
+                </button>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteCustomerConfirmModal" data-bs-dismiss="modal">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editCustomerConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Edit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Do you want to edit <strong id="editCustomerName"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="editCustomerBtn" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>Yes, Edit</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteCustomerConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to delete <strong id="deleteCustomerName"></strong>? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteCustomerForm" method="POST" action="#">
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============== SUPPLIER MODALS ============== -->
+
+<div class="modal fade action-modal" id="supplierActionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="actionSupplierName">Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row-line d-flex justify-content-between py-1"><span>Phone</span><span id="actionSupplierPhone">N/A</span></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editSupplierConfirmModal" data-bs-dismiss="modal">
+                    <i class="bi bi-pencil me-1"></i>Edit
+                </button>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteSupplierConfirmModal" data-bs-dismiss="modal">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editSupplierConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Edit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Do you want to edit <strong id="editSupplierName"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="editSupplierBtn" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>Yes, Edit</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteSupplierConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to delete <strong id="deleteSupplierName"></strong>? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteSupplierForm" method="POST" action="#">
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Search Filter Logic
+    function setupSearch(inputId, rowClass) {
+        const searchInput = document.getElementById(inputId);
+        if (!searchInput) return;
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            const rows = document.querySelectorAll('.' + rowClass);
+            rows.forEach(row => {
+                const searchData = row.getAttribute('data-search') || '';
+                if (searchData.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    setupSearch('productSearch', 'product-row');
+    setupSearch('customerSearch', 'customer-row');
+    setupSearch('supplierSearch', 'supplier-row');
+
+    // Advanced Filtering for Products
+    const stockFilter = document.getElementById('stockFilter');
+    const measurementFilter = document.getElementById('measurementFilter');
+
+    function filterProducts() {
+        if (!stockFilter || !measurementFilter) return;
+        const stockVal = stockFilter.value;
+        const measVal = measurementFilter.value;
+        const rows = document.querySelectorAll('.product-row');
+
+        rows.forEach(row => {
+            const rowStatus = row.getAttribute('data-status');
+            const rowMeas = row.getAttribute('data-measurement');
+
+            const matchesStock = (stockVal === 'all' || rowStatus === stockVal);
+            const matchesMeas = (measVal === 'all' || rowMeas === measVal);
+
+            if (matchesStock && matchesMeas) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    if (stockFilter) stockFilter.addEventListener('change', filterProducts);
+    if (measurementFilter) measurementFilter.addEventListener('change', filterProducts);
+
+    // Modal Trigger Handlers
+   function openProductAction(id, name, code, price, qty, measurement) {
+    document.getElementById('actionProductName').innerText = name;
+    document.getElementById('actionProductCode').innerText = code;
+    document.getElementById('actionProductPrice').innerText = price + ' ETB';
+    document.getElementById('actionProductQty').innerText = qty;
+    document.getElementById('actionProductMeasurement').innerText = measurement;
+
+    document.getElementById('editProductName').innerText = name;
+    document.getElementById('editProductBtn').href = "/edit/product/" + id;
+
+    document.getElementById('deleteProductName').innerText = name;
+    document.getElementById('deleteProductForm').action = "/delete_product/" + id;
+
+    const modal = new bootstrap.Modal(document.getElementById('productActionModal'));
+    modal.show();
+}
+
+function openCustomerAction(id, name, phone) {
+    document.getElementById('actionCustomerName').innerText = name;
+    document.getElementById('actionCustomerPhone').innerText = phone;
+
+    document.getElementById('editCustomerName').innerText = name;
+    document.getElementById('editCustomerBtn').href = "/edit/customer/" + id;
+
+    document.getElementById('deleteCustomerName').innerText = name;
+    document.getElementById('deleteCustomerForm').action = "/delete_customer/" + id;
+
+    const modal = new bootstrap.Modal(document.getElementById('customerActionModal'));
+    modal.show();
+}
+
+function openSupplierAction(id, name, phone) {
+    document.getElementById('actionSupplierName').innerText = name;
+    document.getElementById('actionSupplierPhone').innerText = phone;
+
+    document.getElementById('editSupplierName').innerText = name;
+    document.getElementById('editSupplierBtn').href = "/edit/supplier/" + id;
+
+    document.getElementById('deleteSupplierName').innerText = name;
+    document.getElementById('deleteSupplierForm').action = "/delete_supplier/" + id;
+
+    const modal = new bootstrap.Modal(document.getElementById('supplierActionModal'));
+    modal.show();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Report</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root{
+        --blue:#2563eb; --blue-soft:#eff6ff;
+        --green:#16a34a; --green-soft:#dcfce7;
+        --orange:#ea580c; --orange-soft:#ffedd5;
+        --red:#dc2626; --red-soft:#fee2e2;
+        --purple:#7c3aed; --purple-soft:#f3e8ff;
+        --navy:#0f172a; --muted:#64748b; --bg:#f4f6f8; --border:#e5e9ee;
+    }
+    *{ box-sizing:border-box; }
+    body{ font-family:'Inter', sans-serif; background:var(--bg); color:var(--navy); }
+
+    /* NAVBAR */
+    .navbar{ background:#fff; box-shadow:0 2px 10px rgba(0,0,0,0.06); padding:14px 0; }
+    .navbar-brand{ font-weight:800; color:var(--blue) !important; font-size:1.3rem; }
+    .navbar-brand i{ margin-right:6px; }
+    .nav-link{ font-weight:500; color:#475569 !important; }
+    .nav-link:hover, .nav-link.active{ color:var(--blue) !important; }
+
+    .page-wrap{ max-width:1200px; margin:0 auto; padding:32px 20px 60px; }
+
+    /* REPORT HEADER */
+    .report-hero{
+        background:linear-gradient(135deg, #0f172a, #1e3a5f);
+        color:#fff; border-radius:18px; padding:32px; margin-bottom:28px;
+    }
+    .report-hero h2{ font-weight:800; margin:0 0 4px; }
+    .report-hero p{ color:#cbd5e1; margin:0 0 20px; font-size:0.92rem; }
+    .report-hero .date-badge{ font-size:0.95rem; font-weight:600; color:#fff; }
+    .date-form{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    .date-form input[type="date"]{
+        border-radius:10px; border:none; padding:9px 14px; font-size:0.9rem;
+    }
+    .btn-generate{ background:var(--blue); color:#fff; border:none; border-radius:10px; padding:9px 18px; font-weight:600; }
+    .btn-print{ background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.3); color:#fff; border-radius:10px; padding:9px 18px; font-weight:600; }
+    .btn-print:hover{ background:rgba(255,255,255,0.2); color:#fff; }
+
+    .section-title{ font-weight:800; font-size:1.15rem; margin:32px 0 14px; }
+
+    /* SUMMARY CARDS */
+    .stat-card{
+        background:#fff; border-radius:14px; padding:18px;
+        border:1px solid var(--border); box-shadow:0 4px 12px rgba(15,23,42,0.05);
+        height:100%;
+    }
+    .stat-icon{
+        width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center;
+        font-size:1.1rem; color:#fff; margin-bottom:10px;
+    }
+    .icon-blue{ background:var(--blue); }
+    .icon-green{ background:var(--green); }
+    .icon-orange{ background:var(--orange); }
+    .icon-red{ background:var(--red); }
+    .icon-purple{ background:var(--purple); }
+    .stat-value{ font-size:1.2rem; font-weight:800; }
+    .stat-label{ color:var(--muted); font-size:0.78rem; font-weight:500; }
+
+    /* STOCK MOVEMENT */
+    .movement-card{
+        background:#fff; border-radius:14px; padding:20px;
+        border:1px solid var(--border); box-shadow:0 4px 12px rgba(15,23,42,0.05);
+        display:flex; align-items:center; gap:16px; height:100%;
+    }
+    .movement-icon{
+        width:50px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+        font-size:1.3rem; color:#fff;
+    }
+    .movement-value{ font-size:1.3rem; font-weight:800; }
+    .movement-label{ color:var(--muted); font-size:0.82rem; }
+
+    /* TABLE CARD */
+    .table-card{
+        background:#fff; border-radius:16px; border:1px solid var(--border);
+        box-shadow:0 4px 14px rgba(15,23,42,0.05); overflow:hidden; margin-bottom:10px;
+    }
+    .table-card table{ margin:0; }
+    table thead th{
+        font-size:0.72rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted);
+        border-bottom:1.5px solid var(--border); padding:14px 16px; background:#fafbfc; white-space:nowrap;
+    }
+    table tbody td{ vertical-align:middle; padding:12px 16px; font-size:0.87rem; border-bottom:1px solid var(--border); }
+    table tbody tr:last-child td{ border-bottom:none; }
+    .debt-text{ color:var(--red); font-weight:700; }
+
+    .badge-status-paid{ background:var(--green-soft); color:var(--green); }
+    .badge-status-partial{ background:#fef3c7; color:#b45309; }
+    .badge-status-unpaid{ background:var(--red-soft); color:var(--red); }
+
+    .empty-state{ text-align:center; padding:40px 20px; color:var(--muted); }
+    .empty-state i{ font-size:2.2rem; color:#cbd5e1; margin-bottom:10px; display:block; }
+
+    /* FINANCIAL SUMMARY */
+    .financial-card{
+        background:#fff; border-radius:16px; border:1px solid var(--border);
+        box-shadow:0 4px 14px rgba(15,23,42,0.05); padding:26px;
+    }
+    .financial-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:0.92rem; }
+    .financial-row:last-child{ border-bottom:none; }
+    .financial-row.total{ font-weight:800; font-size:1.1rem; padding-top:14px; }
+    .financial-note{
+        background:var(--blue-soft); color:var(--blue); border-radius:10px; padding:10px 14px;
+        font-size:0.8rem; margin-top:14px;
+    }
+
+    /* PRINT STYLES */
+    @media print{
+        .navbar, .date-form, .btn-print, .no-print{ display:none !important; }
+        .report-hero{ background:#fff !important; color:#000 !important; border:1px solid #ccc; }
+        .report-hero p, .report-hero .date-badge{ color:#333 !important; }
+        body{ background:#fff; }
+        .table-card, .stat-card, .movement-card, .financial-card{ box-shadow:none; border:1px solid #ddd; }
+    }
+
+    @media (max-width: 767.98px){
+        .report-hero{ padding:22px; }
+        .date-form{ flex-direction:column; align-items:stretch; }
+    }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg sticky-top no-print">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('home') }}"><i class="bi bi-boxes"></i>StockManager</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navMenu">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Dashboard</a></li>
+                <!-- PLACEHOLDER: verify actual route name for Products page -->
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('track') }}">Products</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('purchases') }}">Purchases</a></li>
+                <!-- PLACEHOLDER: verify actual route name for Sales page -->
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('Selling') }}">Sales</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('suppliers_customers') }}">Customers</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('suppliers_customers') }}">Suppliers</a></li>
+                <li class="nav-item"><a class="nav-link active" href="{{ url_for('report') }}">Reports</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('history') }}">History</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="page-wrap">
+
+    <!-- REPORT HERO -->
+    <div class="report-hero">
+        <h2><i class="bi bi-journal-text me-2"></i>Business Report</h2>
+        <p>Daily Business Activity</p>
+        <div class="date-badge mb-3">
+            <i class="bi bi-calendar-event me-1"></i>
+            {{ selected_date.strftime('%B %d, %Y') }}
+        </div>
+
+        <form method="GET" action="{{ url_for('report') }}" class="date-form">
+            <input type="date" name="report_date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
+            <button type="submit" class="btn btn-generate"><i class="bi bi-arrow-repeat me-1"></i>Generate Report</button>
+            <button type="button" class="btn btn-print" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print Report</button>
+        </form>
+    </div>
+
+    <!-- DAILY SUMMARY CARDS -->
+    <h5 class="section-title">Daily Summary</h5>
+    <div class="row g-3">
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon icon-blue"><i class="bi bi-receipt"></i></div>
+                <div class="stat-value">{{ total_sales_count }}</div>
+                <div class="stat-label">Total Sales</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon icon-blue"><i class="bi bi-graph-up-arrow"></i></div>
+                <div class="stat-value">{{ "{:,.2f}".format(total_sales_revenue) }} ETB</div>
+                <div class="stat-label">Sales Revenue</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon icon-green"><i class="bi bi-cash-stack"></i></div>
+                <div class="stat-value">{{ "{:,.2f}".format(total_collected_from_sales) }} ETB</div>
+                <div class="stat-label">Collected From Sales</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon icon-red"><i class="bi bi-exclamation-circle"></i></div>
+                <div class="stat-value">{{ "{:,.2f}".format(total_new_customer_debt) }} ETB</div>
+                <div class="stat-label">New Customer Debt</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon icon-orange"><i class="bi bi-cart-plus"></i></div>
+                <div class="stat-value">{{ total_purchases_count }}</div>
+                <div class="stat-label">Total Purchases</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon icon-orange"><i class="bi bi-cash"></i></div>
+                <div class="stat-value">{{ "{:,.2f}".format(total_purchase_cost) }} ETB</div>
+                <div class="stat-label">Purchase Cost</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon icon-green"><i class="bi bi-truck"></i></div>
+                <div class="stat-value">{{ "{:,.2f}".format(total_paid_to_suppliers) }} ETB</div>
+                <div class="stat-label">Paid to Suppliers (Purchase.payment)</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon icon-purple"><i class="bi bi-wallet2"></i></div>
+                <div class="stat-value">{{ "{:,.2f}".format(total_supplier_payments) }} ETB</div>
+                <div class="stat-label">Supplier Payments Made</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon icon-purple"><i class="bi bi-cash-coin"></i></div>
+                <div class="stat-value">{{ "{:,.2f}".format(total_customer_payments) }} ETB</div>
+                <div class="stat-label">Customer Payments Received</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STOCK MOVEMENT -->
+    <h5 class="section-title">Stock Movement</h5>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="movement-card">
+                <div class="movement-icon icon-orange"><i class="bi bi-box-arrow-in-down"></i></div>
+                <div>
+                    <div class="movement-value">{{ total_quantity_purchased }}</div>
+                    <div class="movement-label">Total Quantity Purchased</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="movement-card">
+                <div class="movement-icon icon-blue"><i class="bi bi-box-arrow-up"></i></div>
+                <div>
+                    <div class="movement-value">{{ total_quantity_sold }}</div>
+                    <div class="movement-label">Total Quantity Sold</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SALES TABLE -->
+    <h5 class="section-title">Sales</h5>
+    <div class="table-card">
+        {% if sales_rows %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Sale ID</th><th>Product</th><th>Customer</th><th>Qty</th><th>Measurement</th>
+                        <th>Unit Price</th><th>Total</th><th>Payment</th><th>Debt</th><th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in sales_rows %}
+                    <tr>
+                        <td>#{{ row.id }}</td>
+                        <td>{{ row.product_name }}</td>
+                        <td>{{ row.customer_name }}</td>
+                        <td>{{ row.quantity }}</td>
+                        <td>{{ row.measurement }}</td>
+                        <td>{{ "{:,.2f}".format(row.unit_price) }} ETB</td>
+                        <td>{{ "{:,.2f}".format(row.total) }} ETB</td>
+                        <td>{{ "{:,.2f}".format(row.payment) }} ETB</td>
+                        <td class="debt-text">{{ "{:,.2f}".format(row.debt) }} ETB</td>
+                        <td>
+                            <span class="badge {{ 'badge-status-paid' if row.status == 'Paid' else ('badge-status-partial' if row.status == 'Partial' else 'badge-status-unpaid') }}">
+                                {{ row.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state"><i class="bi bi-inbox"></i>No sales recorded for this date.</div>
+        {% endif %}
+    </div>
+
+    <!-- PURCHASES TABLE -->
+    <h5 class="section-title">Purchases</h5>
+    <div class="table-card">
+        {% if purchases_rows %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Purchase ID</th><th>Product</th><th>Supplier</th><th>Qty</th><th>Measurement</th>
+                        <th>Unit Price</th><th>Total Cost</th><th>Initial Payment</th><th>Debt</th><th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in purchases_rows %}
+                    <tr>
+                        <td>#{{ row.id }}</td>
+                        <td>{{ row.product_name }}</td>
+                        <td>{{ row.supplier_name }}</td>
+                        <td>{{ row.quantity }}</td>
+                        <td>{{ row.measurement }}</td>
+                        <td>{{ "{:,.2f}".format(row.unit_price) }} ETB</td>
+                        <td>{{ "{:,.2f}".format(row.total) }} ETB</td>
+                        <td>{{ "{:,.2f}".format(row.payment) }} ETB</td>
+                        <td class="debt-text">{{ "{:,.2f}".format(row.debt) }} ETB</td>
+                        <td>
+                            <span class="badge {{ 'badge-status-paid' if row.status == 'Paid' else ('badge-status-partial' if row.status == 'Partial' else 'badge-status-unpaid') }}">
+                                {{ row.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state"><i class="bi bi-inbox"></i>No purchases recorded for this date.</div>
+        {% endif %}
+    </div>
+
+    <!-- SUPPLIER PAYMENTS -->
+    <h5 class="section-title">Supplier Payments</h5>
+    <div class="table-card">
+        {% if supplier_payments_rows %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead><tr><th>Payment ID</th><th>Supplier</th><th>Amount</th><th>Date</th></tr></thead>
+                <tbody>
+                    {% for row in supplier_payments_rows %}
+                    <tr>
+                        <td>#{{ row.id }}</td>
+                        <td>{{ row.supplier_name }}</td>
+                        <td>{{ "{:,.2f}".format(row.amount) }} ETB</td>
+                        <td>{{ row.date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state"><i class="bi bi-inbox"></i>No supplier payments recorded for this date.</div>
+        {% endif %}
+    </div>
+
+    <!-- CUSTOMER PAYMENTS -->
+    <h5 class="section-title">Customer Payments</h5>
+    <div class="table-card">
+        {% if customer_payments_rows %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead><tr><th>Payment ID</th><th>Customer</th><th>Amount</th><th>Date</th></tr></thead>
+                <tbody>
+                    {% for row in customer_payments_rows %}
+                    <tr>
+                        <td>#{{ row.id }}</td>
+                        <td>{{ row.customer_name }}</td>
+                        <td>{{ "{:,.2f}".format(row.amount) }} ETB</td>
+                        <td>{{ row.date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state"><i class="bi bi-inbox"></i>No customer payments recorded for this date.</div>
+        {% endif %}
+    </div>
+
+    <!-- TOP SELLING PRODUCTS -->
+    <h5 class="section-title">Top Selling Products</h5>
+    <div class="table-card">
+        {% if top_selling_products %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead><tr><th>Product</th><th>Qty Sold</th><th># Sales</th><th>Revenue</th></tr></thead>
+                <tbody>
+                    {% for p in top_selling_products %}
+                    <tr>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.quantity }}</td>
+                        <td>{{ p.count }}</td>
+                        <td>{{ "{:,.2f}".format(p.revenue) }} ETB</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state"><i class="bi bi-inbox"></i>No sales recorded for this date.</div>
+        {% endif %}
+    </div>
+
+    <!-- TOP PURCHASED PRODUCTS -->
+    <h5 class="section-title">Products Purchased Most</h5>
+    <div class="table-card">
+        {% if top_purchased_products %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead><tr><th>Product</th><th>Qty Purchased</th><th># Purchases</th><th>Total Cost</th></tr></thead>
+                <tbody>
+                    {% for p in top_purchased_products %}
+                    <tr>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.quantity }}</td>
+                        <td>{{ p.count }}</td>
+                        <td>{{ "{:,.2f}".format(p.total_cost) }} ETB</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state"><i class="bi bi-inbox"></i>No purchases recorded for this date.</div>
+        {% endif %}
+    </div>
+
+    <!-- CUSTOMER ACTIVITY -->
+    <h5 class="section-title">Customer Activity</h5>
+    <div class="table-card">
+        {% if customer_activity %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead><tr><th>Customer</th><th># Sales</th><th>Total Purchased</th><th>Amount Paid</th><th>Debt Created</th></tr></thead>
+                <tbody>
+                    {% for c in customer_activity %}
+                    <tr>
+                        <td>{{ c.name }}</td>
+                        <td>{{ c.sales_count }}</td>
+                        <td>{{ "{:,.2f}".format(c.total_purchased) }} ETB</td>
+                        <td>{{ "{:,.2f}".format(c.amount_paid) }} ETB</td>
+                        <td class="debt-text">{{ "{:,.2f}".format(c.debt_created) }} ETB</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state"><i class="bi bi-inbox"></i>No customer activity for this date.</div>
+        {% endif %}
+    </div>
+
+    <!-- SUPPLIER ACTIVITY -->
+    <h5 class="section-title">Supplier Activity</h5>
+    <div class="table-card">
+        {% if supplier_activity %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead><tr><th>Supplier</th><th># Purchases</th><th>Qty Purchased</th><th>Total Cost</th><th>Initial Payment</th><th>Debt Created</th></tr></thead>
+                <tbody>
+                    {% for s in supplier_activity %}
+                    <tr>
+                        <td>{{ s.name }}</td>
+                        <td>{{ s.purchases_count }}</td>
+                        <td>{{ s.quantity_purchased }}</td>
+                        <td>{{ "{:,.2f}".format(s.total_cost) }} ETB</td>
+                        <td>{{ "{:,.2f}".format(s.initial_payment) }} ETB</td>
+                        <td class="debt-text">{{ "{:,.2f}".format(s.debt_created) }} ETB</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state"><i class="bi bi-inbox"></i>No supplier activity for this date.</div>
+        {% endif %}
+    </div>
+
+    <!-- DAILY FINANCIAL SUMMARY -->
+    <h5 class="section-title">Daily Financial Activity</h5>
+    <div class="financial-card">
+        <div class="financial-row"><span>Sales Revenue</span><span>+ {{ "{:,.2f}".format(total_sales_revenue) }} ETB</span></div>
+        <div class="financial-row"><span>Purchase Cost</span><span>- {{ "{:,.2f}".format(total_purchase_cost) }} ETB</span></div>
+        <div class="financial-row"><span>Supplier Payments Made</span><span>- {{ "{:,.2f}".format(total_supplier_payments) }} ETB</span></div>
+        <div class="financial-row"><span>Customer Payments Received</span><span>+ {{ "{:,.2f}".format(total_customer_payments) }} ETB</span></div>
+        <div class="financial-row total">
+            <span>Daily Financial Activity</span>
+            <span>{{ "{:,.2f}".format(daily_financial_activity) }} ETB</span>
+        </div>
+        <div class="financial-note">
+            <i class="bi bi-info-circle me-1"></i>
+            This is a daily cash/business activity summary — it is NOT a profit calculation (it does not account for cost of goods, expenses, or accounting adjustments).
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

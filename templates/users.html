@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Users</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root{
+        --navy:#0f172a;
+        --blue:#2563eb;
+        --blue-soft:#eff6ff;
+        --green:#16a34a;
+        --green-soft:#dcfce7;
+        --orange:#ea580c;
+        --orange-soft:#ffedd5;
+        --red:#dc2626;
+        --red-soft:#fee2e2;
+        --muted:#64748b;
+        --bg:#f4f6f8;
+        --border:#e5e9ee;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+        font-family:'Inter', sans-serif;
+        background:var(--bg);
+        color:var(--navy);
+    }
+
+    .page-wrap{ max-width:1200px; margin:0 auto; padding:36px 20px 60px; }
+
+    /* HEADER */
+    .page-header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        flex-wrap:wrap;
+        gap:16px;
+        margin-bottom:28px;
+    }
+
+    .page-header-left{ display:flex; align-items:center; gap:16px; }
+
+    .page-icon{
+        width:56px;
+        height:56px;
+        border-radius:14px;
+        background:linear-gradient(135deg, var(--blue), #1d4ed8);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:#fff;
+        font-size:1.5rem;
+        flex-shrink:0;
+    }
+
+    .page-title{ font-weight:800; font-size:1.6rem; margin:0; }
+    .page-desc{ color:var(--muted); font-size:0.92rem; margin:2px 0 0; }
+
+    .total-badge{
+        background:#fff;
+        border:1px solid var(--border);
+        border-radius:14px;
+        padding:10px 20px;
+        text-align:center;
+        box-shadow:0 2px 8px rgba(15,23,42,0.04);
+    }
+
+    .total-badge .num{ font-weight:800; font-size:1.3rem; color:var(--blue); }
+    .total-badge .lbl{ font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+
+    /* FLASH */
+    .alert{ border-radius:12px; border:none; font-size:0.9rem; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
+
+    /* SUMMARY CARDS */
+    .summary-card{
+        background:#fff;
+        border-radius:16px;
+        padding:20px;
+        box-shadow:0 4px 14px rgba(15,23,42,0.05);
+        border:1px solid var(--border);
+        display:flex;
+        align-items:center;
+        gap:14px;
+        transition:transform .2s ease, box-shadow .2s ease;
+        height:100%;
+    }
+
+    .summary-card:hover{ transform:translateY(-3px); box-shadow:0 10px 24px rgba(15,23,42,0.08); }
+
+    .summary-icon{
+        width:48px;
+        height:48px;
+        border-radius:12px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:1.3rem;
+        color:#fff;
+        flex-shrink:0;
+    }
+
+    .icon-total{ background:var(--blue); }
+    .icon-verified{ background:var(--green); }
+    .icon-unverified{ background:var(--orange); }
+    .icon-admin{ background:#7c3aed; }
+
+    .summary-value{ font-size:1.4rem; font-weight:800; line-height:1; }
+    .summary-label{ color:var(--muted); font-size:0.82rem; font-weight:500; margin-top:2px; }
+
+    /* TOOLBAR */
+    .toolbar{
+        background:#fff;
+        border-radius:16px;
+        padding:18px;
+        border:1px solid var(--border);
+        box-shadow:0 2px 10px rgba(15,23,42,0.04);
+        margin:28px 0 20px;
+        display:flex;
+        flex-wrap:wrap;
+        gap:14px;
+        align-items:center;
+        justify-content:space-between;
+    }
+
+    .search-box{ position:relative; flex:1; min-width:220px; }
+
+    .search-box i{
+        position:absolute;
+        left:14px;
+        top:50%;
+        transform:translateY(-50%);
+        color:var(--muted);
+        font-size:0.95rem;
+    }
+
+    .search-box input{
+        width:100%;
+        padding:10px 14px 10px 38px;
+        border-radius:10px;
+        border:1.5px solid var(--border);
+        font-size:0.9rem;
+        transition:border-color .2s ease;
+    }
+
+    .search-box input:focus{
+        outline:none;
+        border-color:var(--blue);
+        box-shadow:0 0 0 3px rgba(37,99,235,0.1);
+    }
+
+    .filter-pills{
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+    }
+
+    .filter-pill{
+        border:1.5px solid var(--border);
+        background:#fff;
+        color:var(--muted);
+        padding:7px 16px;
+        border-radius:30px;
+        font-size:0.82rem;
+        font-weight:600;
+        text-decoration:none;
+        transition:all .2s ease;
+        cursor:pointer;
+    }
+
+    .filter-pill:hover{
+        border-color:var(--blue);
+        color:var(--blue);
+    }
+
+    .filter-pill.active{
+        background:var(--blue);
+        border-color:var(--blue);
+        color:#fff;
+    }
+
+    /* TABLE CARD */
+    .table-card{
+        background:#fff;
+        border-radius:18px;
+        border:1px solid var(--border);
+        box-shadow:0 4px 18px rgba(15,23,42,0.05);
+        overflow:hidden;
+    }
+
+    .table-card table{ margin:0; }
+
+    table thead th{
+        font-size:0.74rem;
+        text-transform:uppercase;
+        letter-spacing:0.6px;
+        color:var(--muted);
+        font-weight:700;
+        border-bottom:1.5px solid var(--border);
+        padding:16px 18px;
+        background:#fafbfc;
+    }
+
+    table tbody td{
+        vertical-align:middle;
+        padding:14px 18px;
+        font-size:0.9rem;
+        border-bottom:1px solid var(--border);
+    }
+
+    table tbody tr:last-child td{ border-bottom:none; }
+
+    table tbody tr{
+        transition:background .15s ease;
+    }
+
+    table tbody tr:hover{
+        background:#fafbfc;
+    }
+
+    .user-cell{
+        display:flex;
+        align-items:center;
+        gap:12px;
+    }
+
+    .avatar{
+        width:40px;
+        height:40px;
+        border-radius:10px;
+        background:linear-gradient(135deg, var(--blue), #1d4ed8);
+        color:#fff;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-weight:700;
+        font-size:1rem;
+        flex-shrink:0;
+    }
+
+    .username-text{
+        font-weight:700;
+        font-size:0.92rem;
+    }
+
+    .email-cell{
+        color:var(--muted);
+        font-size:0.87rem;
+        display:flex;
+        align-items:center;
+        gap:6px;
+    }
+
+    .badge-pill{
+        padding:5px 12px;
+        border-radius:20px;
+        font-size:0.76rem;
+        font-weight:700;
+        display:inline-flex;
+        align-items:center;
+        gap:5px;
+    }
+
+    .badge-verified{
+        background:var(--green-soft);
+        color:var(--green);
+    }
+
+    .badge-unverified{
+        background:var(--red-soft);
+        color:var(--red);
+    }
+
+    .badge-admin{
+        background:#f3e8ff;
+        color:#7c3aed;
+    }
+
+    .badge-user{
+        background:#f1f5f9;
+        color:var(--muted);
+    }
+
+    .action-btns{
+        display:flex;
+        gap:6px;
+        flex-wrap:wrap;
+    }
+
+    .btn-action{
+        border-radius:9px;
+        font-weight:600;
+        font-size:0.78rem;
+        padding:7px 12px;
+        border:1.5px solid transparent;
+        transition:all .2s ease;
+    }
+
+    .btn-edit{
+        background:var(--blue-soft);
+        color:var(--blue);
+        border-color:var(--blue-soft);
+    }
+
+    .btn-edit:hover{
+        background:var(--blue);
+        color:#fff;
+    }
+
+    .btn-add-admin{
+        background:var(--green-soft);
+        color:var(--green);
+        border-color:var(--green-soft);
+    }
+
+    .btn-add-admin:hover{
+        background:var(--green);
+        color:#fff;
+    }
+
+    .btn-remove-admin{
+        background:var(--orange-soft);
+        color:var(--orange);
+        border-color:var(--orange-soft);
+    }
+
+    .btn-remove-admin:hover{
+        background:var(--orange);
+        color:#fff;
+    }
+
+    .btn-add-emp{
+        background:#e0f2fe;
+        color:#0284c7;
+        border-color:#bae6fd;
+    }
+
+    .btn-add-emp:hover{
+        background:#0284c7;
+        color:#fff;
+    }
+
+    .btn-remove-emp{
+        background:#ffedd5;
+        color:#c2410c;
+        border-color:#fed7aa;
+    }
+
+    .btn-remove-emp:hover{
+        background:#c2410c;
+        color:#fff;
+    }
+
+    .btn-delete{
+        background:var(--red-soft);
+        color:var(--red);
+        border-color:var(--red-soft);
+    }
+
+    .btn-delete:hover{
+        background:var(--red);
+        color:#fff;
+    }
+
+    /* MOBILE CARDS */
+    .mobile-user-card{
+        background:#fff;
+        border-radius:12px;
+        border:1px solid var(--border);
+        box-shadow:0 2px 8px rgba(15,23,42,0.04);
+        padding:10px 12px;
+        margin-bottom:8px;
+    }
+
+    .mobile-user-card .user-cell{
+        margin-bottom:5px;
+    }
+
+    .mobile-user-card .email-cell{
+        margin-bottom:5px;
+        font-size:0.78rem;
+    }
+
+    .mobile-user-card .user-cell .avatar{
+        width:32px;
+        height:32px;
+        border-radius:8px;
+        font-size:0.82rem;
+    }
+
+    .mobile-user-card .username-text{
+        font-size:0.82rem;
+    }
+
+    .mobile-user-card .badges-row{
+        display:flex;
+        gap:5px;
+        margin-bottom:7px;
+        flex-wrap:wrap;
+    }
+
+    .mobile-user-card .badge-pill{
+        padding:3px 8px;
+        font-size:0.67rem;
+    }
+
+    .mobile-user-card .action-btns{
+        border-top:1px solid var(--border);
+        padding-top:7px;
+        flex-wrap:nowrap;
+        overflow-x:auto;
+        overflow-y:hidden;
+        width:100%;
+        scrollbar-width:thin;
+        -webkit-overflow-scrolling:touch;
+    }
+
+    .mobile-user-card .action-btns > form,
+    .mobile-user-card .action-btns > a,
+    .mobile-user-card .action-btns > button{
+        flex:0 0 auto;
+    }
+
+    .mobile-user-card .action-btns form{
+        display:flex;
+        flex:0 0 auto;
+    }
+
+    .mobile-user-card .btn-action{
+        flex:0 0 auto;
+        text-align:center;
+        white-space:nowrap;
+        font-size:0.68rem;
+        padding:5px 8px;
+        border-radius:7px;
+    }
+
+    @media (min-width: 768px){
+        .desktop-only{ display:block; }
+        .mobile-only{ display:none; }
+    }
+
+    @media (max-width: 767.98px){
+
+        .desktop-only{
+            display:none;
+        }
+
+        .mobile-only{
+            display:block;
+        }
+
+        .page-header{
+            flex-direction:column;
+            align-items:flex-start;
+        }
+
+        /* Keep all buttons on one horizontal line */
+        .mobile-user-card .action-btns{
+            flex-wrap:nowrap;
+            overflow-x:auto;
+            justify-content:flex-start;
+        }
+
+        .mobile-user-card .action-btns .flex-fill{
+            flex:0 0 auto !important;
+        }
+
+        .mobile-user-card .action-btns .w-100{
+            width:auto !important;
+        }
+
+        .mobile-user-card .btn-action{
+            font-size:0.68rem;
+            padding:5px 8px;
+        }
+    }
+
+    /* EMPTY STATE */
+    .empty-state{
+        text-align:center;
+        padding:70px 20px;
+        background:#fff;
+        border-radius:18px;
+        border:1px solid var(--border);
+    }
+
+    .empty-state i{
+        font-size:3.2rem;
+        color:#cbd5e1;
+        margin-bottom:16px;
+    }
+
+    .empty-state h5{
+        font-weight:800;
+        margin-bottom:6px;
+    }
+
+    .empty-state p{
+        color:var(--muted);
+        margin:0;
+    }
+
+    /* MODAL */
+    .modal-content{
+        border-radius:18px;
+        border:none;
+        overflow:hidden;
+    }
+
+    .modal-header{
+        border-bottom:1px solid var(--border);
+        padding:20px 24px;
+    }
+
+    .modal-header .modal-title{
+        font-weight:800;
+    }
+
+    .modal-body{
+        padding:24px;
+        font-size:0.92rem;
+        color:var(--navy);
+    }
+
+    .modal-footer{
+        border-top:1px solid var(--border);
+        padding:16px 24px;
+    }
+
+    .modal-icon-wrap{
+        width:56px;
+        height:56px;
+        border-radius:14px;
+        background:var(--red-soft);
+        color:var(--red);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:1.5rem;
+        margin-bottom:14px;
+    }
+
+    .no-results{
+        text-align:center;
+        padding:40px;
+        color:var(--muted);
+        display:none;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="page-wrap">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert">
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+
+    <!-- HEADER -->
+    <div class="page-header">
+
+        <div class="page-header-left">
+
+            <div class="page-icon">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+
+            <div>
+                <h2 class="page-title">Manage Users</h2>
+
+                <p class="page-desc">
+                    View, manage, and control user accounts and permissions.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="total-badge">
+
+            <div class="num">
+                {{ users|rejectattr('email', 'equalto', 'menayimge87@gmail.com')|list|length }}
+            </div>
+
+            <div class="lbl">
+                Total Users
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- SUMMARY CARDS -->
+    <div class="row g-3 mb-2">
+
+        <div class="col-6 col-lg-3">
+
+            <div class="summary-card">
+
+                <div class="summary-icon icon-total">
+                    <i class="bi bi-people"></i>
+                </div>
+
+                <div>
+
+                    <div class="summary-value">
+                        {{ users|rejectattr('email', 'equalto', 'menayimge87@gmail.com')|list|length }}
+                    </div>
+
+                    <div class="summary-label">
+                        Total Users
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-lg-3">
+
+            <div class="summary-card">
+
+                <div class="summary-icon icon-verified">
+                    <i class="bi bi-patch-check"></i>
+                </div>
+
+                <div>
+
+                    <div class="summary-value">
+                        {{ users|rejectattr('email', 'equalto', 'menayimge87@gmail.com')|selectattr('is_verified')|list|length }}
+                    </div>
+
+                    <div class="summary-label">
+                        Verified Users
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-lg-3">
+
+            <div class="summary-card">
+
+                <div class="summary-icon icon-unverified">
+                    <i class="bi bi-exclamation-circle"></i>
+                </div>
+
+                <div>
+
+                    <div class="summary-value">
+                        {{ users|rejectattr('email', 'equalto', 'menayimge87@gmail.com')|rejectattr('is_verified')|list|length }}
+                    </div>
+
+                    <div class="summary-label">
+                        Unverified Users
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-lg-3">
+
+            <div class="summary-card">
+
+                <div class="summary-icon icon-admin">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+
+                <div>
+
+                    <div class="summary-value">
+
+                        {{ users|rejectattr('email', 'equalto', 'menayimge87@gmail.com')|selectattr('email', 'in', admin_emails)|list|length }}
+
+                    </div>
+
+                    <div class="summary-label">
+                        Admin Users
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {% if users %}
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+
+        <div class="search-box">
+
+            <i class="bi bi-search"></i>
+
+            <input type="text"
+                   id="userSearch"
+                   placeholder="Search by username or email...">
+
+        </div>
+
+
+        <div class="filter-pills">
+
+            <a href="#"
+               class="filter-pill active"
+               data-filter="all">
+                All
+            </a>
+
+            <a href="#"
+               class="filter-pill"
+               data-filter="verified">
+                Verified
+            </a>
+
+            <a href="#"
+               class="filter-pill"
+               data-filter="unverified">
+                Unverified
+            </a>
+
+            <a href="#"
+               class="filter-pill"
+               data-filter="admin">
+                Admin
+            </a>
+
+            <a href="#"
+               class="filter-pill"
+               data-filter="regular">
+                Regular User
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- DESKTOP TABLE -->
+    <div class="table-card desktop-only">
+
+        <table class="table">
+
+            <thead>
+
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Verification</th>
+                    <th>Permission</th>
+                    <th>Actions</th>
+                </tr>
+
+            </thead>
+
+
+            <tbody id="userTableBody">
+
+                {% for user in users %}
+
+                    {% if user.email != 'menayimge87@gmail.com' %}
+
+                    <tr class="user-row"
+                        data-search="{{ user.name|lower }} {{ user.email|lower }}"
+                        data-verified="{{ 'yes' if user.is_verified else 'no' }}"
+                        data-admin="{{ 'yes' if user.email in admin_emails else 'no' }}">
+
+                        <td>
+
+                            <div class="user-cell">
+
+                                <div class="avatar">
+                                    {{ user.name[0]|upper }}
+                                </div>
+
+                                <div class="username-text">
+                                    {{ user.name }}
+                                </div>
+
+                            </div>
+
+                        </td>
+
+
+                        <td>
+
+                            <div class="email-cell">
+
+                                <i class="bi bi-envelope"></i>
+
+                                {{ user.email }}
+
+                            </div>
+
+                        </td>
+
+
+                        <td>
+
+                            <span class="badge-pill {{ 'badge-verified' if user.is_verified else 'badge-unverified' }}">
+
+                                <i class="bi {{ 'bi-check-circle-fill' if user.is_verified else 'bi-x-circle-fill' }}"></i>
+
+                                {{ 'Verified' if user.is_verified else 'Unverified' }}
+
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            {% if user.email in admin_emails %}
+
+                            <span class="badge-pill badge-admin">
+
+                                <i class="bi bi-shield-check"></i>
+
+                                Admin
+
+                            </span>
+
+                            {% else %}
+
+                            <span class="badge-pill badge-user">
+
+                                <i class="bi bi-person"></i>
+
+                                User
+
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            <div class="action-btns">
+
+                                <a href="{{ url_for('edit_user', user_id=user.id) }}"
+                                   class="btn btn-action btn-edit">
+
+                                    <i class="bi bi-pencil me-1"></i>
+
+                                    astekakil
+
+                                </a>
+
+
+                                <form method="POST"
+                                      action="{{ url_for('toggle_admin', user_id=user.id) }}"
+                                      class="d-inline">
+
+                                    {% if user.email in admin_emails %}
+
+                                    <button type="submit"
+                                            class="btn btn-action btn-remove-admin">
+
+                                        <i class="bi bi-shield-minus me-1"></i>
+
+                                        Remove Admin
+
+                                    </button>
+
+                                    {% else %}
+
+                                    <button type="submit"
+                                            class="btn btn-action btn-add-admin">
+
+                                        <i class="bi bi-shield-plus me-1"></i>
+
+                                        Add Admin
+
+                                    </button>
+
+                                    {% endif %}
+
+                                </form>
+
+
+                                <form method="POST"
+                                      action="{{ url_for('toggle_emp', user_id=user.id) }}"
+                                      class="d-inline">
+
+                                    {% if user.email in emp_emails %}
+
+                                    <button type="submit"
+                                            class="btn btn-action btn-remove-emp">
+
+                                        <i class="bi bi-person-dash me-1"></i>
+
+                                        Remove Employe
+
+                                    </button>
+
+                                    {% else %}
+
+                                    <button type="submit"
+                                            class="btn btn-action btn-add-emp">
+
+                                        <i class="bi bi-person-plus me-1"></i>
+
+                                        Add Employe
+
+                                    </button>
+
+                                    {% endif %}
+
+                                </form>
+
+
+                                <button type="button"
+                                        class="btn btn-action btn-delete"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal{{ user.id }}">
+
+                                    <i class="bi bi-trash me-1"></i>
+
+                                    Delete
+
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endif %}
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+
+        <div class="no-results"
+             id="noResultsDesktop">
+
+            <i class="bi bi-search"
+               style="font-size:2rem; color:#cbd5e1;">
+            </i>
+
+            <p class="mt-2 mb-0">
+                No matching users found.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- MOBILE CARDS -->
+    <div class="mobile-only"
+         id="userCardsMobile">
+
+        {% for user in users %}
+
+            {% if user.email != 'menayimge87@gmail.com' %}
+
+            <div class="mobile-user-card user-row"
+
+                 data-search="{{ user.name|lower }} {{ user.email|lower }}"
+
+                 data-verified="{{ 'yes' if user.is_verified else 'no' }}"
+
+                 data-admin="{{ 'yes' if user.email in admin_emails else 'no' }}">
+
+
+                <div class="user-cell">
+
+                    <div class="avatar">
+                        {{ user.name[0]|upper }}
+                    </div>
+
+                    <div class="username-text">
+                        {{ user.name }}
+                    </div>
+
+                </div>
+
+
+                <div class="email-cell">
+
+                    <i class="bi bi-envelope"></i>
+
+                    {{ user.email }}
+
+                </div>
+
+
+                <div class="badges-row">
+
+                    <span class="badge-pill {{ 'badge-verified' if user.is_verified else 'badge-unverified' }}">
+
+                        <i class="bi {{ 'bi-check-circle-fill' if user.is_verified else 'bi-x-circle-fill' }}"></i>
+
+                        {{ 'Verified' if user.is_verified else 'Unverified' }}
+
+                    </span>
+
+
+                    {% if user.email in admin_emails %}
+
+                    <span class="badge-pill badge-admin">
+
+                        <i class="bi bi-shield-check"></i>
+
+                        Admin
+
+                    </span>
+
+                    {% else %}
+
+                    <span class="badge-pill badge-user">
+
+                        <i class="bi bi-person"></i>
+
+                        User
+
+                    </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- MOBILE ACTION BUTTONS -->
+                <div class="d-flex gap-2 action-btns flex-nowrap">
+
+                    <a href="{{ url_for('edit_user', user_id=user.id) }}"
+                       class="btn btn-action btn-edit">
+
+                        <i class="bi bi-pencil me-1"></i>
+
+                        astekakil
+
+                    </a>
+
+
+                    <form method="POST"
+                          action="{{ url_for('toggle_admin', user_id=user.id) }}">
+
+                        {% if user.email in admin_emails %}
+
+                        <button type="submit"
+                                class="btn btn-action btn-remove-admin">
+
+                            <i class="bi bi-shield-minus me-1"></i>
+
+                            Remove Admin
+
+                        </button>
+
+                        {% else %}
+
+                        <button type="submit"
+                                class="btn btn-action btn-add-admin">
+
+                            <i class="bi bi-shield-plus me-1"></i>
+
+                            Add Admin
+
+                        </button>
+
+                        {% endif %}
+
+                    </form>
+
+
+                    <form method="POST"
+                          action="{{ url_for('toggle_emp', user_id=user.id) }}">
+
+                        {% if user.email in emp_emails %}
+
+                        <button type="submit"
+                                class="btn btn-action btn-remove-emp">
+
+                            <i class="bi bi-person-dash me-1"></i>
+
+                            Remove Employe
+
+                        </button>
+
+                        {% else %}
+
+                        <button type="submit"
+                                class="btn btn-action btn-add-emp">
+
+                            <i class="bi bi-person-plus me-1"></i>
+
+                            Add Employe
+
+                        </button>
+
+                        {% endif %}
+
+                    </form>
+
+
+                    <button type="button"
+                            class="btn btn-action btn-delete"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteModal{{ user.id }}">
+
+                        <i class="bi bi-trash me-1"></i>
+
+                        Delete
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            {% endif %}
+
+        {% endfor %}
+
+
+        <div class="no-results"
+             id="noResultsMobile">
+
+            <i class="bi bi-search"
+               style="font-size:2rem; color:#cbd5e1;">
+            </i>
+
+            <p class="mt-2 mb-0">
+                No matching users found.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <i class="bi bi-people"></i>
+
+        <h5>
+            No Users Found
+        </h5>
+
+        <p>
+            There are currently no user accounts to display.
+        </p>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+
+<!-- DELETE MODALS -->
+{% for user in users %}
+
+    {% if user.email != 'menayimge87@gmail.com' %}
+
+    <div class="modal fade"
+         id="deleteModal{{ user.id }}"
+         tabindex="-1">
+
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        Confirm Delete
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal">
+                    </button>
+
+                </div>
+
+
+                <div class="modal-body">
+
+                    <div class="modal-icon-wrap">
+
+                        <i class="bi bi-exclamation-triangle"></i>
+
+                    </div>
+
+                    <p class="mb-0">
+
+                        Are you sure you want to delete
+
+                        <strong>{{ user.name }}</strong>?
+
+                        This action cannot be undone.
+
+                    </p>
+
+                </div>
+
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">
+
+                        Cancel
+
+                    </button>
+
+
+                    <form method="POST"
+                          action="{{ url_for('delete_user', user_id=user.id) }}">
+
+                        <button type="submit"
+                                class="btn btn-danger">
+
+                            <i class="bi bi-trash me-1"></i>
+
+                            Delete
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+{% endfor %}
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+    const searchInput = document.getElementById('userSearch');
+
+    const filterPills =
+        document.querySelectorAll('.filter-pill');
+
+    let activeFilter = 'all';
+
+
+    function applyUserFilters(){
+
+        const searchVal =
+            searchInput
+            ? searchInput.value.toLowerCase().trim()
+            : '';
+
+
+        let anyVisibleDesktop = false;
+
+        let anyVisibleMobile = false;
+
+
+        document.querySelectorAll('.user-row').forEach(row => {
+
+            const search =
+                row.getAttribute('data-search');
+
+            const verified =
+                row.getAttribute('data-verified');
+
+            const admin =
+                row.getAttribute('data-admin');
+
+
+            let visible = true;
+
+
+            if(searchVal && !search.includes(searchVal))
+                visible = false;
+
+
+            if(activeFilter === 'verified' &&
+               verified !== 'yes')
+                visible = false;
+
+
+            if(activeFilter === 'unverified' &&
+               verified !== 'no')
+                visible = false;
+
+
+            if(activeFilter === 'admin' &&
+               admin !== 'yes')
+                visible = false;
+
+
+            if(activeFilter === 'regular' &&
+               admin !== 'no')
+                visible = false;
+
+
+            row.style.display =
+                visible ? '' : 'none';
+
+
+            if(visible){
+
+                if(row.tagName === 'TR')
+                    anyVisibleDesktop = true;
+
+                else
+                    anyVisibleMobile = true;
+
+            }
+
+        });
+
+
+        const noResultsDesktop =
+            document.getElementById('noResultsDesktop');
+
+        const noResultsMobile =
+            document.getElementById('noResultsMobile');
+
+
+        if(noResultsDesktop)
+
+            noResultsDesktop.style.display =
+                anyVisibleDesktop ? 'none' : 'block';
+
+
+        if(noResultsMobile)
+
+            noResultsMobile.style.display =
+                anyVisibleMobile ? 'none' : 'block';
+
+    }
+
+
+    if(searchInput){
+
+        searchInput.addEventListener(
+            'input',
+            applyUserFilters
+        );
+
+    }
+
+
+    filterPills.forEach(pill => {
+
+        pill.addEventListener('click', function(e){
+
+            e.preventDefault();
+
+
+            filterPills.forEach(p =>
+                p.classList.remove('active')
+            );
+
+
+            this.classList.add('active');
+
+
+            activeFilter =
+                this.getAttribute('data-filter');
+
+
+            applyUserFilters();
+
+        });
+
+    });
+
+</script>
+
+</body>
+</html>
