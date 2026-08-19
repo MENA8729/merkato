@@ -19,7 +19,7 @@ from datetime import date
 from enum import unique
 from functools import wraps
 from traceback import print_tb
-import request
+from flask import request
 from flask import request
 from flask import abort
 from sqlalchemy.exc import IntegrityError
