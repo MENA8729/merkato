@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="am">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Inventory Tracking</title>
+<title>የእቃ ክምችት ክትትል</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -271,11 +271,11 @@
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navMenu">
             <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{{url_for('home')}}">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link active" href="{{url_for('track')}}">Products</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{url_for('purchases')}}">Purchases</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{url_for('Selling')}}">Sales</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{url_for('logout')}}">Logout</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{url_for('home')}}">ዳሽቦርድ</a></li>
+                <li class="nav-item"><a class="nav-link active" href="{{url_for('track')}}">ምርቶች</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{url_for('purchases')}}">ግዢዎች</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{url_for('Selling')}}">ሽያጮች</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{url_for('logout')}}">ውጣ</a></li>
             </ul>
         </div>
     </div>
@@ -284,9 +284,9 @@
 <!-- HERO -->
 <section class="hero">
     <div class="container">
-        <span class="badge-pill">Inventory Management</span>
-        <h1>Track Your Business</h1>
-        <p>Monitor products, stock levels, customers, and suppliers from one organized dashboard.</p>
+        <span class="badge-pill">የእቃ ክምችት አስተዳደር</span>
+        <h1>ንግድዎን ይከታተሉ</h1>
+        <p>ምርቶችን፣ የክምችት መጠንን፣ ደንበኞችን እና አቅራቢዎችን ከአንድ የተደራጀ ገጽ ይቆጣጠሩ።</p>
     </div>
 </section>
 
@@ -297,28 +297,28 @@
             <div class="summary-card">
                 <div class="summary-icon icon-blue"><i class="bi bi-box-seam"></i></div>
                 <div class="summary-value">{{ products|length }}</div>
-                <div class="summary-label">Total Products</div>
+                <div class="summary-label">ጠቅላላ ምርቶች</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="summary-card">
                 <div class="summary-icon icon-green"><i class="bi bi-stack"></i></div>
                 <div class="summary-value">{{ products|sum(attribute='current_quantity') if products else 0 }}</div>
-                <div class="summary-label">Total Stock</div>
+                <div class="summary-label">ጠቅላላ ክምችት</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="summary-card">
                 <div class="summary-icon icon-orange"><i class="bi bi-people"></i></div>
                 <div class="summary-value">{{ customers|length }}</div>
-                <div class="summary-label">Total Customers</div>
+                <div class="summary-label">ጠቅላላ ደንበኞች</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="summary-card">
                 <div class="summary-icon icon-red"><i class="bi bi-truck"></i></div>
                 <div class="summary-value">{{ suppliers|length }}</div>
-                <div class="summary-label">Total Suppliers</div>
+                <div class="summary-label">ጠቅላላ አቅራቢዎች</div>
             </div>
         </div>
     </div>
@@ -327,38 +327,38 @@
 <!-- QUICK ACTIONS -->
 <div class="container mb-4 quick-actions">
     <div class="d-flex flex-wrap gap-2">
-        <a href="{{url_for('inventory')}}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Product</a>
-        <a href="{{url_for('purchases')}}" class="btn btn-outline-primary"><i class="bi bi-cart-plus me-1"></i>New Purchase</a>
-        <a href="{{url_for('Selling')}}" class="btn btn-outline-primary"><i class="bi bi-graph-up-arrow me-1"></i>New Sale</a>
-        <a href="{{url_for('suppliers_customers')}}" class="btn btn-outline-secondary"><i class="bi bi-person-plus me-1"></i>Add Customer</a>
-        <a href="{{url_for('suppliers_customers')}}" class="btn btn-outline-secondary"><i class="bi bi-building-add me-1"></i>Add Supplier</a>
+        <a href="{{url_for('inventory')}}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>ምርት ጨምር</a>
+        <a href="{{url_for('purchases')}}" class="btn btn-outline-primary"><i class="bi bi-cart-plus me-1"></i>አዲስ ግዢ</a>
+        <a href="{{url_for('Selling')}}" class="btn btn-outline-primary"><i class="bi bi-graph-up-arrow me-1"></i>አዲስ ሽያጭ</a>
+        <a href="{{url_for('suppliers_customers')}}" class="btn btn-outline-secondary"><i class="bi bi-person-plus me-1"></i>ደንበኛ ጨምር</a>
+        <a href="{{url_for('suppliers_customers')}}" class="btn btn-outline-secondary"><i class="bi bi-building-add me-1"></i>አቅራቢ ጨምር</a>
     </div>
 </div>
 
 <!-- PRODUCT TRACKING -->
 <div class="container section-block">
-    <h2 class="section-title">Product Inventory</h2>
-    <p class="section-desc">Monitor your products, selling prices, quantities, and stock information.</p>
+    <h2 class="section-title">የምርት ክምችት</h2>
+    <p class="section-desc">ምርቶችዎን፣ የመሸጫ ዋጋዎችን፣ መጠኖችን እና የክምችት መረጃዎችን ይከታተሉ።</p>
 
     <div class="filter-bar">
         <div class="row g-3 align-items-end">
             <div class="col-md-5">
-                <label class="form-label small fw-semibold">Search</label>
-                <input type="text" class="form-control" id="productSearch" placeholder="Search products...">
+                <label class="form-label small fw-semibold">ፈልግ</label>
+                <input type="text" class="form-control" id="productSearch" placeholder="ምርቶችን ይፈልጉ...">
             </div>
             <div class="col-md-3">
-                <label class="form-label small fw-semibold">Stock Status</label>
+                <label class="form-label small fw-semibold">የክምችት ሁኔታ</label>
                 <select class="form-select" id="stockFilter">
-                    <option value="all">All</option>
-                    <option value="instock">In Stock</option>
-                    <option value="lowstock">Low Stock</option>
-                    <option value="outstock">Out of Stock</option>
+                    <option value="all">ሁሉም</option>
+                    <option value="instock">በክምችት ውስጥ</option>
+                    <option value="lowstock">ክምችቱ እየቀነሰ ነው</option>
+                    <option value="outstock">ከክምችት ውጭ</option>
                 </select>
             </div>
             <div class="col-md-4">
-                <label class="form-label small fw-semibold">Measurement</label>
+                <label class="form-label small fw-semibold">መለኪያ</label>
                 <select class="form-select" id="measurementFilter">
-                    <option value="all">All</option>
+                    <option value="all">ሁሉም</option>
                     {% set measurements = [] %}
                     {% for product in products %}
                         {% if product.measurement and product.measurement not in measurements %}
@@ -377,8 +377,8 @@
             <table class="table mb-0">
                 <thead>
                     <tr>
-                        <th>Product</th><th>Code</th><th>Selling Price</th><th>Quantity</th>
-                        <th>Measurement</th><th>Status</th>
+                        <th>ምርት</th><th>ኮድ</th><th>የመሸጫ ዋጋ</th><th>መጠን</th>
+                        <th>መለኪያ</th><th>ሁኔታ</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -395,11 +395,11 @@
                         <td>{{ product.measurement if product.measurement else 'N/A' }}</td>
                         <td>
                             {% if product.current_quantity > 10 %}
-                            <span class="badge badge-instock">In Stock</span>
+                            <span class="badge badge-instock">በክምችት ውስጥ</span>
                             {% elif product.current_quantity > 0 %}
-                            <span class="badge badge-lowstock">Low Stock</span>
+                            <span class="badge badge-lowstock">ክምችቱ እየቀነሰ ነው</span>
                             {% else %}
-                            <span class="badge badge-outstock">Out of Stock</span>
+                            <span class="badge badge-outstock">ከክምችት ውጭ</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -411,19 +411,19 @@
     {% else %}
     <div class="empty-state">
         <i class="bi bi-box"></i>
-        <h5>No Products Found</h5>
-        <p>Your products will appear here.</p>
+        <h5>ምንም ምርት አልተገኘም</h5>
+        <p>ምርቶችዎ እዚህ ይታያሉ።</p>
     </div>
     {% endif %}
 </div>
 
 <!-- CUSTOMER TRACKING -->
 <div class="container section-block">
-    <h2 class="section-title">Customer Management</h2>
-    <p class="section-desc">Keep track of customers and their transaction information.</p>
+    <h2 class="section-title">የደንበኞች አስተዳደር</h2>
+    <p class="section-desc">ደንበኞችን እና የግብይት መረጃዎቻቸውን ይከታተሉ።</p>
 
     <div class="filter-bar">
-        <input type="text" class="form-control" id="customerSearch" placeholder="Search customers...">
+        <input type="text" class="form-control" id="customerSearch" placeholder="ደንበኞችን ይፈልጉ...">
     </div>
 
     {% if customers %}
@@ -432,7 +432,7 @@
             <table class="table mb-0">
                 <thead>
                     <tr>
-                        <th>Customer</th><th>Phone</th><th>Email</th><th>Outstanding Debt</th><th>Status</th>
+                        <th>ደንበኛ</th><th>ስልክ</th><th>ኢሜይል</th><th>ያልተከፈለ ዕዳ</th><th>ሁኔታ</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -453,14 +453,14 @@
                         <td>
                             {% if customer.debt is defined %}
                                 {% if customer.debt == 0 %}
-                                <span class="badge badge-status-paid">Paid</span>
+                                <span class="badge badge-status-paid">ተከፍሏል</span>
                                 {% elif customer.debt > 0 and customer.paid_amount is defined and customer.paid_amount > 0 %}
-                                <span class="badge badge-status-partial">Partially Paid</span>
+                                <span class="badge badge-status-partial">በከፊል ተከፍሏል</span>
                                 {% else %}
-                                <span class="badge badge-status-unpaid">Outstanding</span>
+                                <span class="badge badge-status-unpaid">ያልተከፈለ</span>
                                 {% endif %}
                             {% else %}
-                            <span class="badge badge-active">Active</span>
+                            <span class="badge badge-active">ንቁ</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -472,19 +472,19 @@
     {% else %}
     <div class="empty-state">
         <i class="bi bi-people"></i>
-        <h5>No Customers Found</h5>
-        <p>Customer records will appear here.</p>
+        <h5>ምንም ደንበኛ አልተገኘም</h5>
+        <p>የደንበኞች መረጃ እዚህ ይታያል።</p>
     </div>
     {% endif %}
 </div>
 
 <!-- SUPPLIER TRACKING -->
 <div class="container section-block mb-5">
-    <h2 class="section-title">Supplier Management</h2>
-    <p class="section-desc">Track your suppliers, purchases, and outstanding balances.</p>
+    <h2 class="section-title">የአቅራቢዎች አስተዳደር</h2>
+    <p class="section-desc">አቅራቢዎችን፣ ግዢዎችን እና ያልተከፈሉ ሂሳቦችን ይከታተሉ።</p>
 
     <div class="filter-bar">
-        <input type="text" class="form-control" id="supplierSearch" placeholder="Search suppliers...">
+        <input type="text" class="form-control" id="supplierSearch" placeholder="አቅራቢዎችን ይፈልጉ...">
     </div>
 
     {% if suppliers %}
@@ -493,7 +493,7 @@
             <table class="table mb-0">
                 <thead>
                     <tr>
-                        <th>Supplier</th><th>Phone</th><th>Purchases</th><th>Total Debt</th><th>Paid</th><th>Remaining</th><th>Status</th>
+                        <th>አቅራቢ</th><th>ስልክ</th><th>ግዢዎች</th><th>ጠቅላላ ዕዳ</th><th>የተከፈለ</th><th>ቀሪ</th><th>ሁኔታ</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -510,11 +510,11 @@
                         <td>
                             {% if supplier.remaining_debt is defined %}
                                 {% if supplier.remaining_debt == 0 %}
-                                <span class="badge badge-status-paid">Paid</span>
+                                <span class="badge badge-status-paid">ተከፍሏል</span>
                                 {% elif supplier.total_paid is defined and supplier.total_paid > 0 %}
-                                <span class="badge badge-status-partial">Partially Paid</span>
+                                <span class="badge badge-status-partial">በከፊል ተከፍሏል</span>
                                 {% else %}
-                                <span class="badge badge-status-unpaid">Outstanding</span>
+                                <span class="badge badge-status-unpaid">ያልተከፈለ</span>
                                 {% endif %}
                             {% else %}
                             N/A
@@ -529,8 +529,8 @@
     {% else %}
     <div class="empty-state">
         <i class="bi bi-truck"></i>
-        <h5>No Suppliers Found</h5>
-        <p>Supplier records will appear here.</p>
+        <h5>ምንም አቅራቢ አልተገኘም</h5>
+        <p>የአቅራቢዎች መረጃ እዚህ ይታያል።</p>
     </div>
     {% endif %}
 </div>
@@ -541,21 +541,21 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="actionProductName">Product</h5>
+                <h5 class="modal-title" id="actionProductName">ምርት</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="row-line d-flex justify-content-between py-1"><span>Code</span><span id="actionProductCode">N/A</span></div>
-                <div class="row-line d-flex justify-content-between py-1"><span>Selling Price</span><span id="actionProductPrice">0.00 ETB</span></div>
-                <div class="row-line d-flex justify-content-between py-1"><span>Quantity</span><span id="actionProductQty">0</span></div>
-                <div class="row-line d-flex justify-content-between py-1"><span>Measurement</span><span id="actionProductMeasurement">N/A</span></div>
+                <div class="row-line d-flex justify-content-between py-1"><span>ኮድ</span><span id="actionProductCode">N/A</span></div>
+                <div class="row-line d-flex justify-content-between py-1"><span>የመሸጫ ዋጋ</span><span id="actionProductPrice">0.00 ETB</span></div>
+                <div class="row-line d-flex justify-content-between py-1"><span>መጠን</span><span id="actionProductQty">0</span></div>
+                <div class="row-line d-flex justify-content-between py-1"><span>መለኪያ</span><span id="actionProductMeasurement">N/A</span></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProductConfirmModal" data-bs-dismiss="modal">
-                    <i class="bi bi-pencil me-1"></i>Edit
+                    <i class="bi bi-pencil me-1"></i>አስተካክል
                 </button>
                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteProductConfirmModal" data-bs-dismiss="modal">
-                    <i class="bi bi-trash me-1"></i>Delete
+                    <i class="bi bi-trash me-1"></i>ሰርዝ
                 </button>
             </div>
         </div>
@@ -566,15 +566,15 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Edit</h5>
+                <h5 class="modal-title">ማስተካከልን ያረጋግጡ</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-0">Do you want to edit <strong id="editProductName"></strong>?</p>
+                <p class="mb-0"><strong id="editProductName"></strong>ን ማስተካከል ይፈልጋሉ?</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="#" id="editProductBtn" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>Yes, Edit</a>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ይቅር</button>
+                <a href="#" id="editProductBtn" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>አዎ፣ አስተካክል</a>
             </div>
         </div>
     </div>
@@ -584,16 +584,16 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
+                <h5 class="modal-title">መሰረዙን ያረጋግጡ</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-0">Are you sure you want to delete <strong id="deleteProductName"></strong>? This action cannot be undone.</p>
+                <p class="mb-0"><strong id="deleteProductName"></strong>ን ማጥፋት እርግጠኛ ነዎት? ይህ ድርጊት መመለስ አይቻልም።</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ይቅር</button>
                 <form id="deleteProductForm" method="POST" action="#">
-                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>ሰርዝ</button>
                 </form>
             </div>
         </div>
@@ -606,18 +606,18 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="actionCustomerName">Customer</h5>
+                <h5 class="modal-title" id="actionCustomerName">ደንበኛ</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="row-line d-flex justify-content-between py-1"><span>Phone</span><span id="actionCustomerPhone">N/A</span></div>
+                <div class="row-line d-flex justify-content-between py-1"><span>ስልክ</span><span id="actionCustomerPhone">N/A</span></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editCustomerConfirmModal" data-bs-dismiss="modal">
-                    <i class="bi bi-pencil me-1"></i>Edit
+                    <i class="bi bi-pencil me-1"></i>አስተካክል
                 </button>
                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteCustomerConfirmModal" data-bs-dismiss="modal">
-                    <i class="bi bi-trash me-1"></i>Delete
+                    <i class="bi bi-trash me-1"></i>ሰርዝ
                 </button>
             </div>
         </div>
@@ -628,15 +628,15 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Edit</h5>
+                <h5 class="modal-title">ማስተካከልን ያረጋግጡ</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-0">Do you want to edit <strong id="editCustomerName"></strong>?</p>
+                <p class="mb-0"><strong id="editCustomerName"></strong>ን ማስተካከል ይፈልጋሉ?</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="#" id="editCustomerBtn" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>Yes, Edit</a>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ይቅር</button>
+                <a href="#" id="editCustomerBtn" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>አዎ፣ አስተካክል</a>
             </div>
         </div>
     </div>
@@ -646,16 +646,16 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
+                <h5 class="modal-title">መሰረዙን ያረጋግጡ</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-0">Are you sure you want to delete <strong id="deleteCustomerName"></strong>? This action cannot be undone.</p>
+                <p class="mb-0"><strong id="deleteCustomerName"></strong>ን ማጥፋት እርግጠኛ ነዎት? ይህ ድርጊት መመለስ አይቻልም።</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ይቅር</button>
                 <form id="deleteCustomerForm" method="POST" action="#">
-                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>ሰርዝ</button>
                 </form>
             </div>
         </div>
@@ -668,18 +668,18 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="actionSupplierName">Supplier</h5>
+                <h5 class="modal-title" id="actionSupplierName">አቅራቢ</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="row-line d-flex justify-content-between py-1"><span>Phone</span><span id="actionSupplierPhone">N/A</span></div>
+                <div class="row-line d-flex justify-content-between py-1"><span>ስልክ</span><span id="actionSupplierPhone">N/A</span></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editSupplierConfirmModal" data-bs-dismiss="modal">
-                    <i class="bi bi-pencil me-1"></i>Edit
+                    <i class="bi bi-pencil me-1"></i>አስተካክል
                 </button>
                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteSupplierConfirmModal" data-bs-dismiss="modal">
-                    <i class="bi bi-trash me-1"></i>Delete
+                    <i class="bi bi-trash me-1"></i>ሰርዝ
                 </button>
             </div>
         </div>
@@ -690,15 +690,15 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Edit</h5>
+                <h5 class="modal-title">ማስተካከልን ያረጋግጡ</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-0">Do you want to edit <strong id="editSupplierName"></strong>?</p>
+                <p class="mb-0"><strong id="editSupplierName"></strong>ን ማስተካከል ይፈልጋሉ?</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="#" id="editSupplierBtn" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>Yes, Edit</a>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ይቅር</button>
+                <a href="#" id="editSupplierBtn" class="btn btn-primary"><i class="bi bi-pencil me-1"></i>አዎ፣ አስተካክል</a>
             </div>
         </div>
     </div>
@@ -708,16 +708,16 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
+                <h5 class="modal-title">መሰረዙን ያረጋግጡ</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-0">Are you sure you want to delete <strong id="deleteSupplierName"></strong>? This action cannot be undone.</p>
+                <p class="mb-0"><strong id="deleteSupplierName"></strong>ን ማጥፋት እርግጠኛ ነዎት? ይህ ድርጊት መመለስ አይቻልም።</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ይቅር</button>
                 <form id="deleteSupplierForm" method="POST" action="#">
-                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>ሰርዝ</button>
                 </form>
             </div>
         </div>
@@ -777,50 +777,50 @@
     if (measurementFilter) measurementFilter.addEventListener('change', filterProducts);
 
     // Modal Trigger Handlers
-   function openProductAction(id, name, code, price, qty, measurement) {
-    document.getElementById('actionProductName').innerText = name;
-    document.getElementById('actionProductCode').innerText = code;
-    document.getElementById('actionProductPrice').innerText = price + ' ETB';
-    document.getElementById('actionProductQty').innerText = qty;
-    document.getElementById('actionProductMeasurement').innerText = measurement;
+    function openProductAction(id, name, code, price, qty, measurement) {
+        document.getElementById('actionProductName').innerText = name;
+        document.getElementById('actionProductCode').innerText = code;
+        document.getElementById('actionProductPrice').innerText = price + ' ETB';
+        document.getElementById('actionProductQty').innerText = qty;
+        document.getElementById('actionProductMeasurement').innerText = measurement;
 
-    document.getElementById('editProductName').innerText = name;
-    document.getElementById('editProductBtn').href = "/edit/product/" + id;
+        document.getElementById('editProductName').innerText = name;
+        document.getElementById('editProductBtn').href = "/edit/product/" + id;
 
-    document.getElementById('deleteProductName').innerText = name;
-    document.getElementById('deleteProductForm').action = "/delete_product/" + id;
+        document.getElementById('deleteProductName').innerText = name;
+        document.getElementById('deleteProductForm').action = "/delete_product/" + id;
 
-    const modal = new bootstrap.Modal(document.getElementById('productActionModal'));
-    modal.show();
-}
+        const modal = new bootstrap.Modal(document.getElementById('productActionModal'));
+        modal.show();
+    }
 
-function openCustomerAction(id, name, phone) {
-    document.getElementById('actionCustomerName').innerText = name;
-    document.getElementById('actionCustomerPhone').innerText = phone;
+    function openCustomerAction(id, name, phone) {
+        document.getElementById('actionCustomerName').innerText = name;
+        document.getElementById('actionCustomerPhone').innerText = phone;
 
-    document.getElementById('editCustomerName').innerText = name;
-    document.getElementById('editCustomerBtn').href = "/edit/customer/" + id;
+        document.getElementById('editCustomerName').innerText = name;
+        document.getElementById('editCustomerBtn').href = "/edit/customer/" + id;
 
-    document.getElementById('deleteCustomerName').innerText = name;
-    document.getElementById('deleteCustomerForm').action = "/delete_customer/" + id;
+        document.getElementById('deleteCustomerName').innerText = name;
+        document.getElementById('deleteCustomerForm').action = "/delete_customer/" + id;
 
-    const modal = new bootstrap.Modal(document.getElementById('customerActionModal'));
-    modal.show();
-}
+        const modal = new bootstrap.Modal(document.getElementById('customerActionModal'));
+        modal.show();
+    }
 
-function openSupplierAction(id, name, phone) {
-    document.getElementById('actionSupplierName').innerText = name;
-    document.getElementById('actionSupplierPhone').innerText = phone;
+    function openSupplierAction(id, name, phone) {
+        document.getElementById('actionSupplierName').innerText = name;
+        document.getElementById('actionSupplierPhone').innerText = phone;
 
-    document.getElementById('editSupplierName').innerText = name;
-    document.getElementById('editSupplierBtn').href = "/edit/supplier/" + id;
+        document.getElementById('editSupplierName').innerText = name;
+        document.getElementById('editSupplierBtn').href = "/edit/supplier/" + id;
 
-    document.getElementById('deleteSupplierName').innerText = name;
-    document.getElementById('deleteSupplierForm').action = "/delete_supplier/" + id;
+        document.getElementById('deleteSupplierName').innerText = name;
+        document.getElementById('deleteSupplierForm').action = "/delete_supplier/" + id;
 
-    const modal = new bootstrap.Modal(document.getElementById('supplierActionModal'));
-    modal.show();
-}
+        const modal = new bootstrap.Modal(document.getElementById('supplierActionModal'));
+        modal.show();
+    }
 </script>
 </body>
 </html>

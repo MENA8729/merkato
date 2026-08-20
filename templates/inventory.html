@@ -26,11 +26,11 @@
     }
 </style>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="am">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Inventory — Menur Stock</title>
+<title>ምርት_Kiya</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -354,21 +354,21 @@ a{ text-decoration:none; }
 <!-- HEADER -->
 <header class="header">
     <div class="container d-flex align-items-center justify-content-between">
-        <a href="#" class="brand"><i class="bi bi-box-seam"></i>Menur Stock</a>
+        <a href="{{ url_for('home') }}" class="brand"><i class="bi bi-box-seam"></i>Kiya Stock</a>
 
         <nav class="d-none d-lg-flex">
-            <a class="nav-link" href="#">Home</a>
-            <a class="nav-link" href="/products">Products</a>
-            <a class="nav-link active" href="/inventory">Inventory</a>
-            <a class="nav-link" href="/sales">Sales</a>
-            <a class="nav-link" href="/purchases">Purchases</a>
-            <a class="nav-link" href="/reports">Reports</a>
+            <a class="nav-link" href="{{ url_for('home') }}">መነሻ</a>
+            <a class="nav-link" href="{{ url_for('track') }}">ምርቶች</a>
+            <a class="nav-link active" href="{{ url_for('inventory') }}">ምርት</a>
+            <a class="nav-link" href="{{ url_for('Selling') }}">ሽያጭ</a>
+            <a class="nav-link" href="{{ url_for('purchases') }}">ግዢ</a>
+            <a class="nav-link" href="{{ url_for('report') }}">ሪፖርቶች</a>
         </nav>
 
         <div class="d-flex align-items-center">
             <a href="#" class="icon-btn d-none d-lg-inline"><i class="bi bi-bell"></i></a>
             <a href="#" class="icon-btn d-none d-lg-inline"><i class="bi bi-person-circle"></i></a>
-            <span class="d-none d-lg-inline fw-semibold ms-2">Menay</span>
+            <span class="d-none d-lg-inline fw-semibold ms-2">Kiyashop</span>
             <button class="btn d-lg-none" id="menuToggle" aria-label="Open menu">
                 <i class="bi bi-list fs-3"></i>
             </button>
@@ -381,32 +381,31 @@ a{ text-decoration:none; }
 <div class="side-menu-overlay" id="menuOverlay"></div>
 <div class="side-menu" id="sideMenu">
     <button class="close-btn" id="menuClose" aria-label="Close menu"><i class="bi bi-x-lg"></i></button>
-    <a href="#"><i class="bi bi-house"></i>Home</a>
-    <a href="{{url_for('track')}}"><i class="bi bi-box-seam"></i>Products</a>
-    <a href="{{url_for('inventory')}}"><i class="bi bi-clipboard-data"></i>Inventory</a>
-    <a href="{{url_for('Selling')}}"><i class="bi bi-cash-coin"></i>Sales</a>
-    <a href="{{url_for('purchases')}}"><i class="bi bi-truck"></i>Purchases</a>
-    <a href="#"><i class="bi bi-people"></i>Customers and supp</a>
-    <a href="{{url_for('report')}}"><i class="bi bi-bar-chart"></i>Reports</a>
+    <a href="{{ url_for('home') }}"><i class="bi bi-house"></i>መነሻ</a>
+    <a href="{{ url_for('track') }}"><i class="bi bi-box-seam"></i>ምርቶች</a>
+    <a href="{{ url_for('inventory') }}" class="active"><i class="bi bi-clipboard-data"></i>ምርት</a>
+    <a href="{{ url_for('Selling') }}"><i class="bi bi-cash-coin"></i>ሽያጭ</a>
+    <a href="{{ url_for('purchases') }}"><i class="bi bi-truck"></i>ግዢ</a>
+    <a href="#"><i class="{{ url_for('suppliers_customers') }}"></i>ደንበኞች እና አቅራቢዎች</a>
+    <a href="{{ url_for('report') }}"><i class="bi bi-bar-chart"></i>ሪፖርቶች</a>
     <hr>
-    <a href="#"><i class="bi bi-bell"></i>Notifications</a>
-    <a href="#"><i class="bi bi-person-circle"></i>Profile</a>
-    <a href="/logout"><i class="bi bi-box-arrow-right"></i>Logout</a>
+    <a href="#"><i class="bi bi-person-circle"></i>መገለጫ</a>
+    <a href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i>ውጣ</a>
 </div>
 
 <!-- SMALL HERO -->
 <section class="page-hero">
     <div class="container">
         <div class="icon-circle"><i class="bi bi-box-seam"></i></div>
-        <h1>Track Stock</h1>
-        <p>Add, manage, and keep track of your available stock in one place.</p>
+        <h1>ምርት ይመዝግቡ</h1>
+        <p>ያሉትን ምርቶች በአንድ ቦታ ያስገቡ፣ ያስተዳድሩ እና ይከታተሉ።</p>
     </div>
 </section>
 
 <!-- FORM SECTION -->
 <section class="form-section">
     <div class="container">
-        <h2 class="section-title">Stock Information</h2>
+        <h2 class="section-title">የምርት መረጃ</h2>
 
         <form method="POST" id="stockForm">
 
@@ -418,11 +417,11 @@ a{ text-decoration:none; }
                 <div class="stock-card-header">
                     <div class="stock-title">
                         <i class="bi bi-box"></i>
-                        <span class="stock-number">Stock #{{ loop.index }}</span>
+                        <span class="stock-number">ምርት #{{ loop.index }}</span>
                     </div>
                     {% if not loop.first %}
                         <button type="button" class="remove-stock-btn">
-                            <i class="bi bi-x-circle"></i> Remove
+                            <i class="bi bi-x-circle"></i> አስወግድ
                         </button>
                     {% endif %}
                 </div>
@@ -449,7 +448,7 @@ a{ text-decoration:none; }
                     </div>
 
                     <div class="col-md-6">
-                        {{ stock.unit_price.label(class="form-label") }}
+                        <label class="form-label">የመሸጫ ዋጋ</label>
                         <div class="price-input-wrap">
                             {{ stock.unit_price(class="form-control stock-price", placeholder="Enter unit price", min="0", step="0.01") }}
                             <span class="currency-tag">ETB</span>
@@ -458,7 +457,7 @@ a{ text-decoration:none; }
                 </div>
 
                 <div class="total-box">
-                    <div class="total-label">Total Stock Value</div>
+                    <div class="total-label">ጠቅላላ የምርት ዋጋ</div>
                     <div class="total-value stock-total">0.00 ETB</div>
                 </div>
             </div>
@@ -467,13 +466,13 @@ a{ text-decoration:none; }
 
     <div class="add-stock-wrap">
         <button type="button" class="add-stock-btn" id="addStockBtn">
-            <i class="bi bi-plus-circle"></i> Add More Stock
+            <i class="bi bi-plus-circle"></i> ሌላ ምርት ጨምር
         </button>
     </div>
 
     <div class="summary-card">
-        <div class="entries-count" id="entriesCount">Stock Entries: 1</div>
-        <div class="grand-label">Total Stock Value</div>
+        <div class="entries-count" id="entriesCount">የምርት ብዛት: 1</div>
+        <div class="grand-label">ጠቅላላ የምርት ዋጋ</div>
         <div class="grand-total" id="grandTotal">0.00 ETB</div>
 
         {{ form.submit(class="save-stock-btn") }}
@@ -510,7 +509,7 @@ a{ text-decoration:none; }
     const entriesCountEl = document.getElementById('entriesCount');
     const grandTotalEl = document.getElementById('grandTotal');
 
-    let stockIndex = 1; // next index to use (0 already used by Stock #1)
+    let stockIndex = 1;
 
     function formatMoney(num){
         return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -535,9 +534,9 @@ a{ text-decoration:none; }
     function renumberCards(){
         const cards = document.querySelectorAll('.stock-card');
         cards.forEach((card, i) => {
-            card.querySelector('.stock-number').textContent = 'Stock #' + (i + 1);
+            card.querySelector('.stock-number').textContent = 'ምርት #' + (i + 1);
         });
-        entriesCountEl.textContent = 'Stock Entries: ' + cards.length;
+        entriesCountEl.textContent = 'የምርት ብዛት: ' + cards.length;
     }
 
     function attachCardEvents(card){
@@ -549,7 +548,7 @@ a{ text-decoration:none; }
         if (removeBtn){
             removeBtn.addEventListener('click', () => {
                 const totalCards = document.querySelectorAll('.stock-card').length;
-                if (totalCards <= 1) return; // always keep at least one
+                if (totalCards <= 1) return;
                 card.remove();
                 renumberCards();
                 calculateGrandTotal();
@@ -566,30 +565,30 @@ a{ text-decoration:none; }
             <div class="stock-card-header">
                 <div class="stock-title">
                     <i class="bi bi-box"></i>
-                    <span class="stock-number">Stock #${index + 1}</span>
+                    <span class="stock-number">ምርት #${index + 1}</span>
                 </div>
                 <button type="button" class="remove-stock-btn">
-                    <i class="bi bi-x-circle"></i> Remove
+                    <i class="bi bi-x-circle"></i> አስወግድ
                 </button>
             </div>
 
             <div class="row g-3">
                 <div class="col-12">
-                    <label class="form-label">Stock Name</label>
+                    <label class="form-label">የምርት ስም</label>
                     <input type="text" class="form-control stock-name"
                            name="stocks-${index}-stock_name"
                            placeholder="Enter stock name" required>
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label">Stock Code</label>
+                    <label class="form-label">የምርት ኮድ</label>
                     <input type="text" class="form-control stock-code"
                            name="stocks-${index}-stock_code"
                            placeholder="Enter stock code" required>
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label">Measurement</label>
+                    <label class="form-label">መለኪያ</label>
                     <select class="form-select stock-measurement"
                             name="stocks-${index}-measurement" required>
                         <option selected disabled value="">Choose measurement</option>
@@ -607,14 +606,14 @@ a{ text-decoration:none; }
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label">Quantity</label>
+                    <label class="form-label">ብዛት</label>
                     <input type="number" class="form-control stock-quantity"
                            name="stocks-${index}-quantity"
                            placeholder="Enter quantity" min="0" step="0.01" required>
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label">Unit Price</label>
+                    <label class="form-label">የመሸጫ ዋጋ</label>
                     <div class="price-input-wrap">
                         <input type="number" class="form-control stock-price"
                                name="stocks-${index}-unit_price"
@@ -625,7 +624,7 @@ a{ text-decoration:none; }
             </div>
 
             <div class="total-box">
-                <div class="total-label">Total Stock Value</div>
+                <div class="total-label">ጠቅላላ የምርት ዋጋ</div>
                 <div class="total-value stock-total">0.00 ETB</div>
             </div>
         `;
@@ -642,7 +641,6 @@ a{ text-decoration:none; }
         calculateGrandTotal();
     });
 
-    // Attach events to the initial Stock #1 card
     attachCardEvents(document.querySelector('.stock-card'));
 </script>
 

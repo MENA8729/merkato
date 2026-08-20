@@ -583,13 +583,62 @@
 
     let saleFormCount = document.querySelectorAll(".sale-card").length;
 
+    // Small tolerance for floating-point comparisons
+    const MONEY_EPSILON = 0.00001;
+
+
+    // =========================================================
+    // SAFE NUMBER FUNCTIONS
+    // =========================================================
+
+    function getNumber(value) {
+
+        const number = Number.parseFloat(value);
+
+        return Number.isFinite(number) ? number : 0;
+    }
+
+
+    function roundMoney(value) {
+
+        return Math.round(
+            (getNumber(value) + Number.EPSILON) * 100
+        ) / 100;
+    }
+
+
+    function calculateTotal(quantity, price) {
+
+        const safeQuantity = getNumber(quantity);
+        const safePrice = getNumber(price);
+
+        return roundMoney(safeQuantity * safePrice);
+    }
+
+
+    function isOverPayment(payment, total) {
+
+        return getNumber(payment) > getNumber(total) + MONEY_EPSILON;
+    }
+
+
+    function isFullyPaid(payment, total) {
+
+        return Math.abs(
+            getNumber(payment) - getNumber(total)
+        ) <= MONEY_EPSILON;
+    }
+
 
     // =========================================================
     // FORMAT MONEY
     // =========================================================
 
     function formatMoney(value) {
-        return Number(value || 0).toLocaleString(undefined, {
+
+        const safeValue = roundMoney(value);
+
+        return safeValue.toLocaleString(undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }) + " ETB";
@@ -640,19 +689,31 @@
             const product = productsData[productId];
 
             if (!product) {
+
                 stockInfo.classList.remove("show");
+
+                stockWarning.classList.remove("show");
+
                 return;
             }
+
 
             // Show stock
             stockInfo.classList.add("show");
 
             stockValue.textContent =
-                product.stock +
-                (product.measurement ? " " + product.measurement : "");
+                getNumber(product.stock) +
+                (
+                    product.measurement
+                        ? " " + product.measurement
+                        : ""
+                );
+
 
             // Automatically put product price
-            priceInput.value = Number(product.price || 0).toFixed(2);
+            priceInput.value =
+                roundMoney(product.price).toFixed(2);
+
 
             // Calculate immediately
             calculate();
@@ -669,16 +730,21 @@
             const customer = customersData[customerId];
 
             if (!customer) {
+
                 customerInfo.classList.remove("show");
+
                 return;
             }
+
 
             customerInfo.classList.add("show");
 
             customerName.textContent = customer.name;
+
             customerPhone.textContent = customer.phone;
 
-            customerBalance.textContent = formatMoney(customer.balance);
+            customerBalance.textContent =
+                formatMoney(customer.balance);
         }
 
 
@@ -689,16 +755,24 @@
         function checkStock() {
 
             const productId = productSelect.value;
+
             const product = productsData[productId];
 
-            const quantity = parseFloat(quantityInput.value) || 0;
+            const quantity =
+                getNumber(quantityInput.value);
 
-            if (product && quantity > product.stock) {
+
+            if (
+                product &&
+                quantity > getNumber(product.stock) + MONEY_EPSILON
+            ) {
 
                 stockWarning.classList.add("show");
 
                 stockWarning.textContent =
-                    "የቀረው " + product.stock + " ብቻ ነው።";
+                    "የቀረው " +
+                    getNumber(product.stock) +
+                    " ብቻ ነው።";
 
             } else {
 
@@ -714,21 +788,51 @@
         function calculate() {
 
             const quantity =
-                parseFloat(quantityInput.value) || 0;
+                getNumber(quantityInput.value);
 
             const price =
-                parseFloat(priceInput.value) || 0;
+                getNumber(priceInput.value);
 
-            const payment =
-                parseFloat(paymentInput.value) || 0;
-
-            const total = quantity * price;
-
-            const debt = Math.max(total - payment, 0);
+            let payment =
+                getNumber(paymentInput.value);
 
 
-            // Overpayment
-            if (payment > total && total > 0) {
+            // Safe total calculation rounded to 2 decimals
+            const total =
+                calculateTotal(quantity, price);
+
+
+            // IMPORTANT:
+            // If payment is extremely close to total,
+            // treat it as exactly equal.
+            if (isFullyPaid(payment, total)) {
+
+                payment = total;
+            }
+
+
+            // Calculate debt safely
+            let debt =
+                roundMoney(total - payment);
+
+
+            if (
+                Math.abs(debt) <= MONEY_EPSILON ||
+                debt < 0
+            ) {
+
+                debt = 0;
+            }
+
+
+            // =================================================
+            // OVERPAYMENT CHECK
+            // =================================================
+
+            if (
+                total > 0 &&
+                isOverPayment(payment, total)
+            ) {
 
                 overpayWarning.classList.add("show");
 
@@ -738,19 +842,30 @@
             }
 
 
-            // Update summary
-            sumQty.textContent = quantity;
+            // =================================================
+            // UPDATE SUMMARY
+            // =================================================
 
-            sumPrice.textContent = formatMoney(price);
+            sumQty.textContent =
+                quantity;
 
-            sumTotal.textContent = formatMoney(total);
+            sumPrice.textContent =
+                formatMoney(price);
 
-            sumPayment.textContent = formatMoney(payment);
+            sumTotal.textContent =
+                formatMoney(total);
 
-            sumDebt.textContent = formatMoney(debt);
+            sumPayment.textContent =
+                formatMoney(payment);
+
+            sumDebt.textContent =
+                formatMoney(debt);
 
 
-            // Debt badge
+            // =================================================
+            // DEBT BADGE
+            // =================================================
+
             sumBadge.classList.remove(
                 "debt-paid",
                 "debt-partial",
@@ -758,30 +873,48 @@
             );
 
 
-            if (total > 0 && debt === 0 && payment <= total) {
-
-                sumBadge.textContent = "ተከፍሏል ✓";
-
-                sumBadge.classList.add("debt-paid");
-
-            } else if (payment > 0 && debt > 0) {
+            if (
+                total > 0 &&
+                !isOverPayment(payment, total) &&
+                isFullyPaid(payment, total)
+            ) {
 
                 sumBadge.textContent =
-                    "ቀሪ ዕዳ፡ " + formatMoney(debt);
+                    "ተከፍሏል ✓";
 
-                sumBadge.classList.add("debt-partial");
+                sumBadge.classList.add(
+                    "debt-paid"
+                );
+
+            } else if (
+                payment > 0 &&
+                debt > MONEY_EPSILON
+            ) {
+
+                sumBadge.textContent =
+                    "ቀሪ ዕዳ፡ " +
+                    formatMoney(debt);
+
+                sumBadge.classList.add(
+                    "debt-partial"
+                );
 
             } else {
 
                 sumBadge.textContent =
                     "ሙሉ መጠን አልተከፈለም";
 
-                sumBadge.classList.add("debt-full");
+                sumBadge.classList.add(
+                    "debt-full"
+                );
             }
 
 
+            // Check stock
             checkStock();
 
+
+            // Recalculate all sale cards
             recalcGrandTotals();
         }
 
@@ -793,15 +926,24 @@
         function payFullAmount() {
 
             const quantity =
-                parseFloat(quantityInput.value) || 0;
+                getNumber(quantityInput.value);
 
             const price =
-                parseFloat(priceInput.value) || 0;
+                getNumber(priceInput.value);
 
-            const total = quantity * price;
 
-            paymentInput.value = total.toFixed(2);
+            // Calculate the exact same safe total
+            // used everywhere else
+            const total =
+                calculateTotal(quantity, price);
 
+
+            // Put the exact total in the payment field
+            paymentInput.value =
+                total.toFixed(2);
+
+
+            // Recalculate immediately
             calculate();
         }
 
@@ -815,20 +957,24 @@
             updateProduct
         );
 
+
         customerSelect.addEventListener(
             "change",
             updateCustomer
         );
+
 
         quantityInput.addEventListener(
             "input",
             calculate
         );
 
+
         priceInput.addEventListener(
             "input",
             calculate
         );
+
 
         paymentInput.addEventListener(
             "input",
@@ -845,9 +991,14 @@
         }
 
 
-        // Initial state
+        // =====================================================
+        // INITIAL STATE
+        // =====================================================
+
         updateProduct();
+
         updateCustomer();
+
         calculate();
     }
 
@@ -859,64 +1010,113 @@
     function recalcGrandTotals() {
 
         let grandTotal = 0;
+
         let grandPaid = 0;
+
         let grandDebt = 0;
 
 
-        document.querySelectorAll(".sale-card").forEach(card => {
-
-            const quantityInput =
-                card.querySelector(".sale-quantity");
-
-            const priceInput =
-                card.querySelector(".sale-price");
-
-            const paymentInput =
-                card.querySelector(".sale-payment");
+        document
+            .querySelectorAll(".sale-card")
+            .forEach(card => {
 
 
-            const quantity =
-                parseFloat(quantityInput.value) || 0;
+                const quantityInput =
+                    card.querySelector(".sale-quantity");
 
-            const price =
-                parseFloat(priceInput.value) || 0;
+                const priceInput =
+                    card.querySelector(".sale-price");
 
-            const payment =
-                parseFloat(paymentInput.value) || 0;
-
-
-            const total = quantity * price;
-
-            const debt = Math.max(total - payment, 0);
+                const paymentInput =
+                    card.querySelector(".sale-payment");
 
 
-            grandTotal += total;
-            grandPaid += payment;
-            grandDebt += debt;
-        });
+                const quantity =
+                    getNumber(quantityInput.value);
+
+                const price =
+                    getNumber(priceInput.value);
+
+                let payment =
+                    getNumber(paymentInput.value);
+
+
+                // Safe total
+                const total =
+                    calculateTotal(quantity, price);
+
+
+                // Treat nearly equal values as equal
+                if (
+                    isFullyPaid(payment, total)
+                ) {
+
+                    payment = total;
+                }
+
+
+                let debt =
+                    roundMoney(total - payment);
+
+
+                if (
+                    Math.abs(debt) <= MONEY_EPSILON ||
+                    debt < 0
+                ) {
+
+                    debt = 0;
+                }
+
+
+                grandTotal =
+                    roundMoney(
+                        grandTotal + total
+                    );
+
+                grandPaid =
+                    roundMoney(
+                        grandPaid + payment
+                    );
+
+                grandDebt =
+                    roundMoney(
+                        grandDebt + debt
+                    );
+            });
 
 
         const totalElement =
-            document.getElementById("grandTotalAmount");
+            document.getElementById(
+                "grandTotalAmount"
+            );
 
         const paidElement =
-            document.getElementById("grandTotalPaid");
+            document.getElementById(
+                "grandTotalPaid"
+            );
 
         const debtElement =
-            document.getElementById("grandTotalDebt");
+            document.getElementById(
+                "grandTotalDebt"
+            );
 
 
         if (totalElement) {
+
             totalElement.textContent =
                 formatMoney(grandTotal);
         }
 
+
         if (paidElement) {
+
             paidElement.textContent =
                 formatMoney(grandPaid);
         }
 
+
         if (debtElement) {
+
             debtElement.textContent =
                 formatMoney(grandDebt);
         }
@@ -927,9 +1127,13 @@
     // INITIALIZE EXISTING SALE CARDS
     // =========================================================
 
-    document.querySelectorAll(".sale-card").forEach(card => {
-        initSaleCard(card);
-    });
+    document
+        .querySelectorAll(".sale-card")
+        .forEach(card => {
+
+            initSaleCard(card);
+        });
+
 
     recalcGrandTotals();
 
@@ -939,7 +1143,9 @@
     // =========================================================
 
     const addAnotherSaleBtn =
-        document.getElementById("addAnotherSaleBtn");
+        document.getElementById(
+            "addAnotherSaleBtn"
+        );
 
 
     if (addAnotherSaleBtn) {
@@ -948,15 +1154,24 @@
             "click",
             function () {
 
+
                 const container =
-                    document.getElementById("salesContainer");
+                    document.getElementById(
+                        "salesContainer"
+                    );
 
-                const index = saleFormCount;
+
+                const index =
+                    saleFormCount;
 
 
-                // Product options
+                // =================================================
+                // PRODUCT OPTIONS
+                // =================================================
+
                 const productOptions =
-                    Object.entries(productsData)
+                    Object
+                    .entries(productsData)
                     .map(([id, product]) => {
 
                         return `
@@ -969,9 +1184,13 @@
                     .join("");
 
 
-                // Customer options
+                // =================================================
+                // CUSTOMER OPTIONS
+                // =================================================
+
                 const customerOptions =
-                    Object.entries(customersData)
+                    Object
+                    .entries(customersData)
                     .map(([id, customer]) => {
 
                         return `
@@ -987,7 +1206,10 @@
                 const newCard =
                     document.createElement("div");
 
-                newCard.className = "sale-card";
+
+                newCard.className =
+                    "sale-card";
+
 
                 newCard.setAttribute(
                     "data-form-index",
@@ -1165,6 +1387,10 @@
                                 placeholder="0.00"
                                 step="0.01">
 
+                            <div class="helper-text">
+                                የሚሸጠውን ብዛት ያስገቡ።
+                            </div>
+
                         </div>
 
 
@@ -1180,6 +1406,10 @@
                                 name="sales-${index}-unit_price"
                                 placeholder="0.00"
                                 step="0.01">
+
+                            <div class="helper-text">
+                                ለተመረጠው መለኪያ ዋጋ።
+                            </div>
 
                         </div>
 
@@ -1198,6 +1428,10 @@
                             name="sales-${index}-current_payment"
                             placeholder="0.00"
                             step="0.01">
+
+                        <div class="helper-text">
+                            ደንበኛው አሁን ምን ያህል እየከፈለ ነው?
+                        </div>
 
                         <button
                             type="button"
@@ -1274,11 +1508,18 @@
                 `;
 
 
-                container.appendChild(newCard);
+                container.appendChild(
+                    newCard
+                );
 
-                initSaleCard(newCard);
+
+                initSaleCard(
+                    newCard
+                );
+
 
                 saleFormCount++;
+
 
                 recalcGrandTotals();
             }
@@ -1291,7 +1532,9 @@
     // =========================================================
 
     const saleForm =
-        document.getElementById("saleFormWrapper");
+        document.getElementById(
+            "saleFormWrapper"
+        );
 
 
     if (saleForm) {
@@ -1300,20 +1543,79 @@
             "submit",
             function (event) {
 
-                const warnings =
-                    document.querySelectorAll(
-                        ".overpay-warning.show"
-                    );
+
+                let hasOverpayment = false;
 
 
-                if (warnings.length > 0) {
+                document
+                    .querySelectorAll(".sale-card")
+                    .forEach(card => {
+
+
+                        const quantity =
+                            getNumber(
+                                card
+                                .querySelector(".sale-quantity")
+                                .value
+                            );
+
+                        const price =
+                            getNumber(
+                                card
+                                .querySelector(".sale-price")
+                                .value
+                            );
+
+                        const payment =
+                            getNumber(
+                                card
+                                .querySelector(".sale-payment")
+                                .value
+                            );
+
+
+                        const total =
+                            calculateTotal(
+                                quantity,
+                                price
+                            );
+
+
+                        if (
+                            total > 0 &&
+                            isOverPayment(
+                                payment,
+                                total
+                            )
+                        ) {
+
+                            hasOverpayment = true;
+
+                            const warning =
+                                card.querySelector(
+                                    ".overpay-warning"
+                                );
+
+
+                            if (warning) {
+
+                                warning.classList.add(
+                                    "show"
+                                );
+
+
+                                warning.scrollIntoView({
+                                    behavior: "smooth",
+                                    block: "center"
+                                });
+                            }
+                        }
+                    });
+
+
+                if (hasOverpayment) {
 
                     event.preventDefault();
-
-                    warnings[0].scrollIntoView({
-                        behavior: "smooth",
-                        block: "center"
-                    });
                 }
             }
         );

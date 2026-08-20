@@ -1009,7 +1009,7 @@ table tbody tr:hover{
 
         <!-- HOME -->
 
-        <a href="{{ url_for('dashboard') }}"
+        <a href="{{ url_for('home') }}"
            class="home-link">
 
             <i class="bi bi-house-door-fill"></i>
@@ -1115,7 +1115,6 @@ table tbody tr:hover{
             {{
                 users
                 | rejectattr('email', 'equalto', 'menayimge87@gmail.com')
-                | rejectattr('email', 'equalto', 'kedirmuhammed323@gmail.com')
                 | list
                 | length
             }}
@@ -1163,7 +1162,6 @@ table tbody tr:hover{
                     {{
                         users
                         | rejectattr('email', 'equalto', 'menayimge87@gmail.com')
-                        | rejectattr('email', 'equalto', 'kedirmuhammed323@gmail.com')
                         | list
                         | length
                     }}
@@ -1205,7 +1203,6 @@ table tbody tr:hover{
                     {{
                         users
                         | rejectattr('email', 'equalto', 'menayimge87@gmail.com')
-                        | rejectattr('email', 'equalto', 'kedirmuhammed323@gmail.com')
                         | selectattr('is_verified')
                         | list
                         | length
@@ -1248,7 +1245,6 @@ table tbody tr:hover{
                     {{
                         users
                         | rejectattr('email', 'equalto', 'menayimge87@gmail.com')
-                        | rejectattr('email', 'equalto', 'kedirmuhammed323@gmail.com')
                         | rejectattr('is_verified')
                         | list
                         | length
@@ -1291,7 +1287,6 @@ table tbody tr:hover{
                     {{
                         users
                         | rejectattr('email', 'equalto', 'menayimge87@gmail.com')
-                        | rejectattr('email', 'equalto', 'kedirmuhammed323@gmail.com')
                         | selectattr('email', 'in', admin_emails)
                         | list
                         | length
@@ -1429,8 +1424,7 @@ table tbody tr:hover{
 {% for user in users %}
 
 
-{% if user.email != 'menayimge87@gmail.com'
-      and user.email != 'kedirmuhammed323@gmail.com' %}
+{% if user.email != 'menayimge87@gmail.com' %}
 
 
 <tr class="user-row"
@@ -1698,8 +1692,7 @@ else 'bi-x-circle-fill' }}">
 {% for user in users %}
 
 
-{% if user.email != 'menayimge87@gmail.com'
-      and user.email != 'kedirmuhammed323@gmail.com' %}
+{% if user.email != 'menayimge87@gmail.com' %}
 
 
 <div class="mobile-user-card user-row"
@@ -1977,8 +1970,7 @@ else 'ያልተረጋገጠ' }}
 {% for user in users %}
 
 
-{% if user.email != 'menayimge87@gmail.com'
-      and user.email != 'kedirmuhammed323@gmail.com' %}
+{% if user.email != 'menayimge87@gmail.com' %}
 
 
 <div class="modal fade"

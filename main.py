@@ -494,23 +494,44 @@ def inventory():
     form = InventoryForm()
 
     if form.validate_on_submit():
-        print("high")
+
         for stock in form.stocks.data:
+
+            # Check if this stock name already exists for this user
+            existing_product = Product.query.filter_by(
+                name=stock['stock_name'],
+                user_id=current_user.id
+            ).first()
+
+            if existing_product:
+                flash(
+                    f"'{stock['stock_name']}' ቀድሞ ተመዝግቧል።",
+                    "danger"
+                )
+                return redirect(url_for('inventory'))
 
             new_product = Product(
                 name=stock['stock_name'],
                 stock_code=stock['stock_code'],
                 measurement=stock['measurement'],
                 current_quantity=stock['quantity'],
-                unit_price=stock['unit_price'],user_id=current_user.id
+                unit_price=stock['unit_price'],
+                user_id=current_user.id
             )
+
             db.session.add(new_product)
+
             flash("add successfully")
 
         db.session.commit()
+
         return redirect(url_for('inventory'))
 
-    return render_template("inventory.html", form=form, user_id=current_user.id)
+    return render_template(
+        "inventory.html",
+        form=form,
+        user_id=current_user.id
+    )
 
 
 
@@ -1502,116 +1523,343 @@ def dashboard():
         .first()
     )
 
-    last_purchase_cutoff = reset_record.last_purchase_id if reset_record else 0
-    last_sale_cutoff = reset_record.last_sale_id if reset_record else 0
-    last_supplier_payment_cutoff = reset_record.last_supplier_payment_id if reset_record else 0
-    last_customer_payment_cutoff = reset_record.last_customer_payment_id if reset_record else 0
+    last_purchase_cutoff = (
+        reset_record.last_purchase_id if reset_record else 0
+    )
+
+    last_sale_cutoff = (
+        reset_record.last_sale_id if reset_record else 0
+    )
+
+    last_supplier_payment_cutoff = (
+        reset_record.last_supplier_payment_id if reset_record else 0
+    )
+
+    last_customer_payment_cutoff = (
+        reset_record.last_customer_payment_id if reset_record else 0
+    )
 
     activities = []
 
-    # ---- PURCHASES ----
-    purchases = Purchase.query.order_by(Purchase.id.desc()).limit(20).all()
+    # =========================================================
+    # PURCHASES
+    # =========================================================
+
+    purchases = (
+        Purchase.query
+        .order_by(Purchase.id.desc())
+        .all()
+    )
+
     for p in purchases:
+
         try:
-            p_date = datetime.strptime(p.date.strip(), "%m/%d/%Y")
+            p_date = datetime.strptime(
+                p.date.strip(),
+                "%m/%d/%Y"
+            )
         except (ValueError, TypeError, AttributeError):
             continue
 
+        # Do not show activities that existed before the last reset
         if p.id <= last_purchase_cutoff:
             continue
 
         product = Product.query.get(p.product_id)
+
         supplier = Supplier.query.get(p.supplier_id)
-        user = User.query.get(p.user_id) if p.user_id else None
+
+        user = (
+            User.query.get(p.user_id)
+            if p.user_id
+            else None
+        )
+
+        product_measurement = (
+            product.measurement
+            if product and product.measurement
+            else ""
+        )
+
+        product_name = (
+            product.name
+            if product
+            else "ያልታወቀ ምርት"
+        )
+
+        supplier_name = (
+            supplier.name
+            if supplier
+            else "ያልታወቀ አቅራቢ"
+        )
+
+        user_name = (
+            user.name
+            if user
+            else "ያልታወቀ ተጠቃሚ"
+        )
 
         activities.append({
             "type": "purchase",
+
             "icon": "bi-cart-plus",
-            "text": f"Purchased {p.quantity} {product.measurement if product and product.measurement else ''} of {product.name if product else 'Unknown Product'} from {supplier.name if supplier else 'Unknown Supplier'}",
-            "money_label": "Paid",
+
+            "text": (
+                f"{p.quantity} "
+                f"{product_measurement} "
+                f"የሆነ {product_name} "
+                f"ከ {supplier_name} ተገዛ"
+            ),
+
+            "money_label": "የተከፈለ",
+
             "amount": p.payment,
-            "user_name": user.name if user else "Unknown",
+
+            "user_name": user_name,
+
             "date_display": p_date.strftime("%d %b %Y"),
+
             "sort_key": p_date
         })
 
-    # ---- SALES ----
-    sales = Sale.query.order_by(Sale.id.desc()).limit(20).all()
+    # =========================================================
+    # SALES
+    # =========================================================
+
+    sales = (
+        Sale.query
+        .order_by(Sale.id.desc())
+        .all()
+    )
+
     for s in sales:
+
         try:
-            s_date = datetime.strptime(s.date.strip(), "%m/%d/%Y")
+            s_date = datetime.strptime(
+                s.date.strip(),
+                "%m/%d/%Y"
+            )
         except (ValueError, TypeError, AttributeError):
             continue
 
+        # Do not show activities that existed before the last reset
         if s.id <= last_sale_cutoff:
             continue
 
         product = Product.query.get(s.product_id)
+
         customer = Customer.query.get(s.customer_id)
-        user = User.query.get(s.user_id) if s.user_id else None
+
+        user = (
+            User.query.get(s.user_id)
+            if s.user_id
+            else None
+        )
+
+        product_measurement = (
+            product.measurement
+            if product and product.measurement
+            else ""
+        )
+
+        product_name = (
+            product.name
+            if product
+            else "ያልታወቀ ምርት"
+        )
+
+        customer_name = (
+            customer.name
+            if customer
+            else "ያልታወቀ ደንበኛ"
+        )
+
+        user_name = (
+            user.name
+            if user
+            else "ያልታወቀ ተጠቃሚ"
+        )
 
         activities.append({
             "type": "sale",
+
             "icon": "bi-bag-check",
-            "text": f"Sold {s.quantity} {product.measurement if product and product.measurement else ''} of {product.name if product else 'Unknown Product'} to {customer.name if customer else 'Unknown Customer'}",
-            "money_label": "Received",
+
+            "text": (
+                f"{s.quantity} "
+                f"{product_measurement} "
+                f"የሆነ {product_name} "
+                f"ለ {customer_name} ተሸጠ"
+            ),
+
+            "money_label": "የተቀበለ",
+
             "amount": s.current_payment,
-            "user_name": user.name if user else "Unknown",
+
+            "user_name": user_name,
+
             "date_display": s_date.strftime("%d %b %Y"),
+
             "sort_key": s_date
         })
 
-    # ---- SUPPLIER PAYMENTS ----
-    supplier_payments = SupplierPayment.query.order_by(SupplierPayment.id.desc()).limit(20).all()
+    # =========================================================
+    # SUPPLIER PAYMENTS
+    # =========================================================
+
+    supplier_payments = (
+        SupplierPayment.query
+        .order_by(SupplierPayment.id.desc())
+        .all()
+    )
+
     for sp in supplier_payments:
+
+        # Do not show activities that existed before the last reset
         if sp.id <= last_supplier_payment_cutoff:
             continue
 
-        sp_datetime = datetime.combine(sp.date, datetime.min.time())
+        sp_datetime = datetime.combine(
+            sp.date,
+            datetime.min.time()
+        )
 
-        supplier = Supplier.query.get(sp.supplier_id)
-        user = User.query.get(sp.user_id) if sp.user_id else None
+        supplier = Supplier.query.get(
+            sp.supplier_id
+        )
+
+        user = (
+            User.query.get(sp.user_id)
+            if sp.user_id
+            else None
+        )
+
+        supplier_name = (
+            supplier.name
+            if supplier
+            else "ያልታወቀ አቅራቢ"
+        )
+
+        user_name = (
+            user.name
+            if user
+            else "ያልታወቀ ተጠቃሚ"
+        )
 
         activities.append({
             "type": "supplier_payment",
+
             "icon": "bi-cash-stack",
-            "text": f"Paid {supplier.name if supplier else 'Unknown Supplier'}",
+
+            "text": (
+                f"ለ {supplier_name} "
+                f"ክፍያ ተፈጸመ"
+            ),
+
             "money_label": None,
+
             "amount": sp.amount,
-            "user_name": user.name if user else "Unknown",
-            "date_display": sp.date.strftime("%d %b %Y"),
+
+            "user_name": user_name,
+
+            "date_display": sp.date.strftime(
+                "%d %b %Y"
+            ),
+
             "sort_key": sp_datetime
         })
 
-    # ---- CUSTOMER PAYMENTS ----
-    customer_payments = CustomerPayment.query.order_by(CustomerPayment.id.desc()).limit(20).all()
+    # =========================================================
+    # CUSTOMER PAYMENTS
+    # =========================================================
+
+    customer_payments = (
+        CustomerPayment.query
+        .order_by(CustomerPayment.id.desc())
+        .all()
+    )
+
     for cp in customer_payments:
+
+        # Do not show activities that existed before the last reset
         if cp.id <= last_customer_payment_cutoff:
             continue
 
-        cp_datetime = datetime.combine(cp.date, datetime.min.time())
+        cp_datetime = datetime.combine(
+            cp.date,
+            datetime.min.time()
+        )
 
-        customer = Customer.query.get(cp.customer_id)
-        user = User.query.get(cp.user_id) if cp.user_id else None
+        customer = Customer.query.get(
+            cp.customer_id
+        )
+
+        user = (
+            User.query.get(cp.user_id)
+            if cp.user_id
+            else None
+        )
+
+        customer_name = (
+            customer.name
+            if customer
+            else "ያልታወቀ ደንበኛ"
+        )
+
+        user_name = (
+            user.name
+            if user
+            else "ያልታወቀ ተጠቃሚ"
+        )
 
         activities.append({
             "type": "customer_payment",
+
             "icon": "bi-wallet2",
-            "text": f"Received from {customer.name if customer else 'Unknown Customer'}",
+
+            "text": (
+                f"ከ {customer_name} "
+                f"ክፍያ ተቀበለ"
+            ),
+
             "money_label": None,
+
             "amount": cp.amount,
-            "user_name": user.name if user else "Unknown",
-            "date_display": cp.date.strftime("%d %b %Y"),
+
+            "user_name": user_name,
+
+            "date_display": cp.date.strftime(
+                "%d %b %Y"
+            ),
+
             "sort_key": cp_datetime
         })
 
-    # Sort all activity types together, newest first, keep top 5
-    activities.sort(key=lambda x: x["sort_key"], reverse=True)
-    recent_activities = activities[:5]
+    # =========================================================
+    # SORT ALL ACTIVITIES
+    # =========================================================
+
+    activities.sort(
+        key=lambda x: x["sort_key"],
+        reverse=True
+    )
+
+    # =========================================================
+    # IMPORTANT:
+    # SHOW ALL ACTIVITIES
+    #
+    # DO NOT USE:
+    # recent_activities = activities[:5]
+    #
+    # That was the reason only 5 activities were displayed.
+    # =========================================================
+
+    recent_activities = activities
 
     return render_template(
         "dashboard.html",
         recent_activities=recent_activities
+
     )
 
 @app.route("/reset_activity", methods=["POST"])
