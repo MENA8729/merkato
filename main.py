@@ -1167,7 +1167,7 @@ def edit_user(user_id):
 def delete_user(user_id):
     user = db.get_or_404(User, user_id)
     if user.email=='kedirmuhammed323@gmail.com':
-        flash("who are you to do this? ")
+        flash("who are you to do this? ","success")
         return redirect(url_for("users"))
 
     if user.id == current_user.id:
