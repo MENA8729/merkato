@@ -71,7 +71,9 @@ login_manager=LoginManager()
 login_manager.init_app(app)
 class Base(DeclarativeBase):
     pass
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///merkato.db'
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
