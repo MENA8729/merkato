@@ -71,8 +71,10 @@ login_manager=LoginManager()
 login_manager.init_app(app)
 class Base(DeclarativeBase):
     pass
-
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+    'DATABASE_URL',
+    'sqlite:///merkato.db'
+)
 
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
@@ -809,20 +811,31 @@ def Register_customer_and_supplier():
 @emp_allowed
 def Selling():
     sale_form = SaleForm()
-    # Choices MUST be repopulated before validation, or SelectField validation fails
+
+    # Choices MUST be repopulated before validation
     products = Product.query.all()
     customers = Customer.query.all()
+
     product_choices = [(p.id, p.name) for p in products]
     customer_choices = [(c.id, c.name) for c in customers]
+
     for entry in sale_form.sales:
         entry.form.product_id.choices = product_choices
         entry.form.customer_id.choices = customer_choices
 
     if sale_form.validate_on_submit():
-        # ---- PASS 1: validate everything first, fail the whole batch if anything is wrong ----
+
+        # ==========================================================
+        # PASS 1: Validate the entire batch before changing anything
+        # ==========================================================
+
         errors_found = False
 
+        # Keep track of total quantity requested for each product
+        requested_quantities = {}
+
         for entry in sale_form.sales.data:
+
             product = Product.query.get(entry["product_id"])
 
             if not product:
@@ -830,13 +843,34 @@ def Selling():
                 errors_found = True
                 continue
 
-            if entry["quantity"] > product.current_quantity:
+            quantity = entry["quantity"]
+
+            # Add this entry's quantity to the product's total
+            if product.id not in requested_quantities:
+                requested_quantities[product.id] = 0
+
+            requested_quantities[product.id] += quantity
+
+        # ----------------------------------------------------------
+        # Now check the TOTAL requested quantity for each product
+        # ----------------------------------------------------------
+
+        for product_id, total_requested in requested_quantities.items():
+
+            product = Product.query.get(product_id)
+
+            if total_requested > product.current_quantity:
+
                 flash(
-                    f"Insufficient stock for {product.name}. Only {product.current_quantity} available.",
+                    f"Insufficient stock for {product.name}. "
+                    f"Only {product.current_quantity} available, "
+                    f"but {total_requested} requested.",
                     "danger"
                 )
+
                 errors_found = True
 
+        # If ANY error exists, save NOTHING
         if errors_found:
             return render_template(
                 "selling.html",
@@ -845,12 +879,18 @@ def Selling():
                 customers=customers
             )
 
-        # ---- PASS 2: everything validated, now safe to actually create and save ----
+        # ==========================================================
+        # PASS 2: Everything is valid, now create sales
+        # ==========================================================
+
         for entry in sale_form.sales.data:
+
             product = Product.query.get(entry["product_id"])
 
             total_amount = entry["quantity"] * entry["unit_price"]
+
             payment = entry["current_payment"] or 0
+
             debt = total_amount - payment
 
             new_sale = Sale(
@@ -860,18 +900,28 @@ def Selling():
                 unit_price=entry["unit_price"],
                 current_payment=payment,
                 debt=debt,
-                date=date.today().strftime("%m/%d/%Y"),user_id=current_user.id
+                date=date.today().strftime("%m/%d/%Y"),
+                user_id=current_user.id
             )
+
             db.session.add(new_sale)
 
-            # Deduct sold quantity from stock
+            # Deduct stock
             product.current_quantity -= entry["quantity"]
 
+        # Save everything together
         db.session.commit()
+
         flash("Sale(s) recorded successfully.", "success")
+
         return redirect(url_for("Selling"))
 
+    # ==============================================================
+    # Form validation failed
+    # ==============================================================
+
     flash("Please fix the errors below.", "danger")
+
     return render_template(
         "selling.html",
         sale_form=sale_form,
