@@ -1238,9 +1238,9 @@ def edit_user(user_id):
 @admin_only
 def delete_user(user_id):
     user = db.get_or_404(User, user_id)
-    if user.email=='kedirmuhammed323@gmail.com':
-        flash("who are you to do that? ","success")
-        return redirect(url_for("users"))
+    # if user.email=='kedirmuhammed323@gmail.com':
+    #     flash("who are you to do that? ","success")
+    #     return redirect(url_for("users"))
 
     if user.id == current_user.id:
         flash("You can't delete your own account while logged in.", "danger")
