@@ -54,9 +54,9 @@ from datetime import date, timedelta, datetime
 
 
 app = Flask(__name__)
+app.config['SESSION_PERMANENT'] = False
 app.config['SECRET_KEY'] = os.environ.get('8BYkEfBA6O6donzWlSihBXox7C0sKR6b')
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
-
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_TLS'] = False
@@ -344,7 +344,7 @@ def login():
         if not password_correct:
             flash("Wrong password!")
             return redirect(url_for('login'))
-        login_user(existing_user)
+        login_user(existing_user,remember=False)
         flash('Logged in successfully!', 'success')
         return redirect(url_for('home'))
 
@@ -1166,6 +1166,8 @@ def edit_user(user_id):
 @admin_only
 def delete_user(user_id):
     user = db.get_or_404(User, user_id)
+    if user.email=='kedirmuhammed323@gmail.com':
+        flash("who are you to do this? stupid")
 
     if user.id == current_user.id:
         flash("You can't delete your own account while logged in.", "danger")
