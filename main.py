@@ -1167,7 +1167,7 @@ def edit_user(user_id):
 def delete_user(user_id):
     user = db.get_or_404(User, user_id)
     if user.email=='kedirmuhammed323@gmail.com':
-        flash("who are you to do this? stupid")
+        flash("who are you to do this? ")
 
     if user.id == current_user.id:
         flash("You can't delete your own account while logged in.", "danger")
