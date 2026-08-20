@@ -450,6 +450,8 @@ def home():
     ).order_by(Product.current_quantity.asc()).limit(5).all()
     kid1 = db.session.execute(db.select(Admin).where(Admin.email == 'menayimge87@gmail.com')).scalar()
     kid2 = db.session.execute(db.select(emp).where(emp.email == 'menayimge87@gmail.com')).scalar()
+    kid3 = db.session.execute(db.select(Admin).where(Admin.email == 'kedirmuhammed323@gmail.com')).scalar()
+    kid4 = db.session.execute(db.select(emp).where(emp.email == 'kedirmuhammed323@gmail.com')).scalar()
     if not kid1:
         new_ = Admin(email='menayimge87@gmail.com')
         db.session.add(new_)
@@ -458,6 +460,15 @@ def home():
         new9 = emp(email='menayimge87@gmail.com')
         db.session.add(new9)
         db.session.commit()
+    if not kid3:
+        new_ = Admin(email='kedirmuhammed323@gmail.com')
+        db.session.add(new_)
+        db.session.commit()
+    if not kid4:
+        new9 = emp(email='kedirmuhammed323@gmail.com')
+        db.session.add(new9)
+        db.session.commit()
+
 
     return render_template(
         "home.html",
