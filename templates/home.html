@@ -804,6 +804,14 @@ footer .copyright{ border-top:1px solid rgba(255,255,255,0.10); margin-top:24px;
     menuClose.addEventListener('click', closeMenu);
     menuOverlay.addEventListener('click', closeMenu);
 </script>
+<script>
+    if (!sessionStorage.getItem("tab_session")) {
+        sessionStorage.setItem("tab_session", "active");
 
+        {% if current_user.is_authenticated %}
+            window.location.href = "{{ url_for('logout') }}";
+        {% endif %}
+    }
+</script>
 </body>
 </html>
