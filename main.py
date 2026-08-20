@@ -917,7 +917,6 @@ def Selling():
         return redirect(url_for("Selling"))
 
     # ==============================================================
-    # Form validation failed
     # ==============================================================
 
     # flash("Please fix the errors below.", "danger")
