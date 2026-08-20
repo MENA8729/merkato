@@ -6,6 +6,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from flask import make_response
 import io
+import os
 from flask import make_response, render_template, url_for
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
@@ -52,32 +53,17 @@ from datetime import date, timedelta, datetime
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('8BYkEfBA6O6donzWlSihBXox7C0sKR6b')
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = 'menayimge87@gmail.com'
-app.config['MAIL_PASSWORD'] = 'tzjg kehx tbfy afua'
-app.config['MAIL_DEFAULT_SENDER'] = 'menayimge87@gmail.com'
+app.config['MAIL_USERNAME'] = os.environ.get('menayimge87@gmail.com')
+app.config['MAIL_PASSWORD'] = os.environ.get('tzjg kehx tbfy afua')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('menayimge87@gmail.com')
 
 mail = Mail(app)
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
@@ -106,8 +92,8 @@ def admin_only(fun):
             return abort(403)
 
         # Check email verification
-        if not current_user.is_verified:
-            return abort(403)
+        # if not current_user.is_verified:
+        #     return abort(403)
 
         # Check if admin
         is_admin = Admin.query.filter_by(
@@ -132,8 +118,8 @@ def emp_allowed(fun):
             return abort(403)
 
         # Check email verification
-        if not current_user.is_verified:
-            return abort(403)
+        # if not current_user.is_verified:
+        #     return abort(403)
 
         # Check admin or employee
         is_admin = Admin.query.filter_by(
@@ -163,7 +149,7 @@ class User(UserMixin,db.Model):
     email: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(250), nullable=False)
     name: Mapped[str] = mapped_column(String(250), nullable=False)
-    is_verified = db.Column(db.Boolean, default=False, nullable=False)
+    is_verified = db.Column(db.Boolean, default=True, nullable=False)
     is_admin = db.Column(db.Boolean,default=False, nullable=False)
     is_emp=db.Column(db.Boolean,default=False, nullable=False)
 #     posts=db.relationship("BlogPost",back_populates="author")
@@ -332,6 +318,12 @@ with app.app_context():
 
 
 
+with app.app_context():
+    user=db.session.execute(db.select(User)).scalars().all()
+
+    for i in user:
+        print(i.name)
+
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -397,7 +389,6 @@ def register():
     form = RegisterForm()
 
     if form.validate_on_submit():
-
         name = form.username.data
         email = form.email.data
         hashed_password = generate_password_hash(form.password.data)
@@ -410,62 +401,21 @@ def register():
             flash("You are already registered. Please login.", "warning")
             return redirect(url_for('login'))
 
-        # New users are NOT admins
+        # New users are verified and are NOT admins
         data = User(
             email=email,
             password=hashed_password,
             name=name,
-            is_admin=False
+            is_verified=True,
+            is_admin=False,
+            is_emp=False
         )
 
         db.session.add(data)
         db.session.commit()
 
-        # Create verification token
-        token = s.dumps(
-            data.email,
-            salt='email-confirm'
-        )
-
-        link = url_for(
-            'confirm_email',
-            token=token,
-            _external=True
-        )
-
-        msg = Message(
-            subject="Confirm your email",
-            recipients=[data.email]
-        )
-
-        msg.body = (
-            f"Hello {data.name},\n\n"
-            f"Click the link below to verify your email:\n\n"
-            f"{link}\n\n"
-            f"This link will expire in 2 minutes."
-        )
-
-        try:
-            mail.send(msg)
-
-        except Exception as e:
-            # If email sending fails, remove the newly created user
-            db.session.delete(data)
-            db.session.commit()
-
-            print("EMAIL ERROR:", e)
-
-            flash(
-                "Your account could not be created because the "
-                "verification email could not be sent.",
-                "danger"
-            )
-
-            return redirect(url_for('register'))
-
         flash(
-            "Registration successful! "
-            "Please check your email to verify your account.",
+            "Registration successful! You can now login.",
             "success"
         )
 
@@ -475,6 +425,7 @@ def register():
         'register.html',
         form=form
     )
+
 
 
 
