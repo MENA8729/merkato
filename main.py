@@ -920,7 +920,7 @@ def Selling():
     # Form validation failed
     # ==============================================================
 
-    flash("Please fix the errors below.", "danger")
+    # flash("Please fix the errors below.", "danger")
 
     return render_template(
         "selling.html",
