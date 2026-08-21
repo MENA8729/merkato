@@ -1912,20 +1912,53 @@ def edit_user(user_id):
 
     return render_template("edit_user.html", form=form, user=user)
 
-
+#
 @app.route("/users/delete/<int:user_id>", methods=["POST"])
 @login_required
 @admin_only
 def delete_user(user_id):
     user = db.get_or_404(User, user_id)
-    # if user.email=='kedirmuhammed323@gmail.com':
+    # if user.email == 'kedirmuhammed323@gmail.com':
     #     flash("who are you to do that? ","success")
-    #     return redirect(url_for("users"))
+    #         return redirect(url_for("users"))
 
     if user.id == current_user.id:
         flash("You can't delete your own account while logged in.", "danger")
         return redirect(url_for("users"))
 
+    # Keep business records, but disconnect them from this user
+    CustomerPayment.query.filter_by(user_id=user.id).update(
+        {"user_id": None}
+    )
+
+    Product.query.filter_by(user_id=user.id).update(
+        {"user_id": None}
+    )
+
+    Purchase.query.filter_by(user_id=user.id).update(
+        {"user_id": None}
+    )
+
+    Sale.query.filter_by(user_id=user.id).update(
+        {"user_id": None}
+    )
+
+    Supplier.query.filter_by(user_id=user.id).update(
+        {"user_id": None}
+    )
+
+    SupplierPayment.query.filter_by(user_id=user.id).update(
+        {"user_id": None}
+    )
+
+    Customer.query.filter_by(user_id=user.id).update(
+        {"user_id": None}
+    )
+
+    # ActivityReset cannot have NULL user_id, so remove only this tracking record
+    ActivityReset.query.filter_by(user_id=user.id).delete()
+
+    # Now it is safe to delete the user
     db.session.delete(user)
     db.session.commit()
 
