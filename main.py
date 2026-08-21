@@ -1154,6 +1154,120 @@ def edit(item_type, item_id):
 
 
 
+@app.route("/delete/<string:item_type>/<int:item_id>", methods=["POST"])
+@login_required
+@admin_only
+def delete(item_type, item_id):
+
+    # ==========================================
+    # CUSTOMER
+    # ==========================================
+    if item_type == "customer":
+
+        customer = Customer.query.filter_by(
+            id=item_id,
+            user_id=current_user.id
+        ).first_or_404()
+
+        # Delete customer's sales
+        Sale.query.filter_by(
+            customer_id=customer.id,
+            user_id=current_user.id
+        ).delete()
+
+        # Delete customer's payments
+        CustomerPayment.query.filter_by(
+            customer_id=customer.id,
+            user_id=current_user.id
+        ).delete()
+
+        # Delete customer's added debts
+        AddDebt.query.filter_by(
+            customer_id=customer.id
+        ).delete()
+
+        # Delete customer
+        db.session.delete(customer)
+
+        db.session.commit()
+
+        flash("ደንበኛው እና ተያያዥ መረጃዎቹ ተሰርዘዋል።", "success")
+
+
+    # ==========================================
+    # SUPPLIER
+    # ==========================================
+    elif item_type == "supplier":
+
+        supplier = Supplier.query.filter_by(
+            id=item_id,
+            user_id=current_user.id
+        ).first_or_404()
+
+        # Delete supplier purchases
+        Purchase.query.filter_by(
+            supplier_id=supplier.id,
+            user_id=current_user.id
+        ).delete()
+
+        # Delete supplier payments
+        SupplierPayment.query.filter_by(
+            supplier_id=supplier.id,
+            user_id=current_user.id
+        ).delete()
+
+        # Delete supplier
+        db.session.delete(supplier)
+
+        db.session.commit()
+
+        flash("አቅራቢው እና ተያያዥ መረጃዎቹ ተሰርዘዋል።", "success")
+
+
+    # ==========================================
+    # PRODUCT
+    # ==========================================
+    elif item_type == "product":
+
+        product = Product.query.filter_by(
+            id=item_id,
+            user_id=current_user.id
+        ).first_or_404()
+
+        # Delete product purchases
+        Purchase.query.filter_by(
+            product_id=product.id,
+            user_id=current_user.id
+        ).delete()
+
+        # Delete product sales
+        Sale.query.filter_by(
+            product_id=product.id,
+            user_id=current_user.id
+        ).delete()
+
+        # Delete product
+        db.session.delete(product)
+
+        db.session.commit()
+
+        flash("ምርቱ እና ተያያዥ መረጃዎቹ ተሰርዘዋል።", "success")
+
+
+    # ==========================================
+    # WRONG TYPE
+    # ==========================================
+    else:
+        flash("ያልታወቀ የመረጃ አይነት ነው።", "danger")
+
+
+    return redirect(url_for("track"))
+
+
+
+
+
+
 
 @app.route("/users")
 @login_required
@@ -1917,7 +2031,7 @@ def add_debt(customer_id):
         db.session.commit()
 
         flash(f"Successfully added debt of {amount_val:,.2f} ETB for {customer.name}.", "success")
-        return redirect(url_for("Register_customer_and_supplier"))
+        return redirect(url_for('suppliers_customers'))
 
     return render_template("add_debt.html", form=form, customer=customer)
 

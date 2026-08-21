@@ -35,6 +35,7 @@ class InventoryForm(FlaskForm):
     submit = SubmitField("Save Stock")
 
 
+
 class PurchaseForm(Form):          # plain Form — sub-form, lives inside PurchaseListForm.purchase
     product = SelectField("Product", coerce=int, validators=[DataRequired()])
     supplier = SelectField("Supplier", coerce=int, validators=[DataRequired()])
