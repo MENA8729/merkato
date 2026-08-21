@@ -6,7 +6,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from flask import make_response
 import io
-from decimal import Decimal
+from decimal import Decimal,InvalidOperation
 import os
 from flask import make_response, render_template, url_for
 from reportlab.lib.pagesizes import letter
@@ -585,111 +585,149 @@ def purchases():
 
 
 
+from decimal import Decimal, InvalidOperation
+
+
 @app.route("/detail")
 @login_required
 @emp_allowed
 def detail():
 
-    # Get supplier IDs that have purchases
-    supplier_ids = [
-        row[0]
-        for row in db.session.query(Purchase.supplier_id)
+    # ---------------------------------------------------------
+    # Get all supplier IDs from purchases
+    # ---------------------------------------------------------
+    purchase_supplier_ids = (
+        db.session.query(Purchase.supplier_id)
         .filter(Purchase.supplier_id.isnot(None))
         .distinct()
-    ]
+        .all()
+    )
 
-    # Also include suppliers who have an additional balance_owed
+    supplier_ids = {
+        row[0]
+        for row in purchase_supplier_ids
+    }
+
+    # ---------------------------------------------------------
+    # Also include suppliers with balance_owed
+    # ---------------------------------------------------------
     suppliers = db.session.execute(
         db.select(Supplier)
     ).scalars().all()
 
     for supplier in suppliers:
 
-        balance_owed = supplier.balance_owed or 0
+        balance_owed = Decimal(
+            str(supplier.balance_owed or 0)
+        )
 
-        if (
-            supplier.id not in supplier_ids
-            and balance_owed > 0.1
-        ):
-            supplier_ids.append(supplier.id)
-
+        if balance_owed > Decimal("0"):
+            supplier_ids.add(supplier.id)
 
     supplier_details = []
-    grand_total_debt = 0
 
+    grand_total_debt = Decimal("0")
 
+    # ---------------------------------------------------------
+    # Calculate each supplier
+    # ---------------------------------------------------------
     for supplier_id in supplier_ids:
 
-        # Get supplier
-        supplier = db.get_or_404(Supplier, supplier_id)
+        supplier = db.session.get(
+            Supplier,
+            supplier_id
+        )
 
+        if not supplier:
+            continue
 
-        # Get all purchases for this supplier
+        # -----------------------------------------------------
+        # Purchases
+        # -----------------------------------------------------
         purchases = Purchase.query.filter_by(
             supplier_id=supplier_id
         ).all()
 
+        purchase_debt = Decimal("0")
 
-        # Debt from purchases
-        purchase_debt = sum(
-            (purchase.debt or 0)
-            for purchase in purchases
+        for purchase in purchases:
+
+            debt = Decimal(
+                str(purchase.debt or 0)
+            )
+
+            # Never count negative purchase debt
+            if debt > 0:
+                purchase_debt += debt
+
+        # -----------------------------------------------------
+        # Additional supplier balance
+        # -----------------------------------------------------
+        balance_owed = Decimal(
+            str(supplier.balance_owed or 0)
         )
 
+        if balance_owed < 0:
+            balance_owed = Decimal("0")
 
-        # Additional balance owed directly on supplier
-        balance_owed = supplier.balance_owed or 0
-
-
+        # -----------------------------------------------------
         # Total debt before payments
-        total_debt = purchase_debt + balance_owed
+        # -----------------------------------------------------
+        total_debt = (
+            purchase_debt
+            + balance_owed
+        )
 
-
-        # Get all payments made to this supplier
+        # -----------------------------------------------------
+        # Payments
+        # -----------------------------------------------------
         payments = SupplierPayment.query.filter_by(
             supplier_id=supplier_id
         ).all()
 
+        total_paid = Decimal("0")
 
-        total_paid = sum(
-            (payment.amount or 0)
-            for payment in payments
+        for payment in payments:
+
+            paid = Decimal(
+                str(payment.amount or 0)
+            )
+
+            if paid > 0:
+                total_paid += paid
+
+        # -----------------------------------------------------
+        # Remaining debt
+        # -----------------------------------------------------
+        remaining_debt = (
+            total_debt
+            - total_paid
         )
 
+        # Never display negative debt
+        if remaining_debt < 0:
+            remaining_debt = Decimal("0")
 
-        # Calculate remaining debt
-        remaining_debt = total_debt - total_paid
-
-
-        # NEVER allow displayed debt to become negative
-        remaining_debt = max(remaining_debt, 0)
-
-
-        # Add only suppliers who currently have debt
-        if remaining_debt > 0:
+        # -----------------------------------------------------
+        # Only show suppliers who still owe money
+        # -----------------------------------------------------
+        if remaining_debt > Decimal("0"):
 
             supplier_details.append({
-                "supplier_id": supplier_id,
-                "supplier_name": (
-                    supplier.name
-                    if supplier
-                    else "Unknown"
-                ),
+                "supplier_id": supplier.id,
+                "supplier_name": supplier.name or "Unknown",
                 "total_debt": total_debt,
                 "total_paid": total_paid,
                 "remaining_debt": remaining_debt
             })
 
-
             grand_total_debt += remaining_debt
-
 
     # Highest debt first
     supplier_details.sort(
         key=lambda x: x["remaining_debt"],
         reverse=True
     )
-
 
     return render_template(
         "detail.html",
@@ -699,6 +737,9 @@ def detail():
     )
 
 
+# =============================================================
+# PAY SUPPLIER DEBT
+# =============================================================
 
 @app.route("/pay_debt", methods=["POST"])
 @login_required
@@ -710,92 +751,138 @@ def pay_debt():
         type=int
     )
 
-    amount = request.form.get(
-        "amount",
-        type=float
-    )
+    amount_raw = request.form.get("amount")
 
+    # ---------------------------------------------------------
+    # Validate supplier ID
+    # ---------------------------------------------------------
+    if not supplier_id:
+        flash(
+            "Invalid supplier.",
+            "danger"
+        )
+        return redirect(url_for("detail"))
 
-    # Basic validation
-    if (
-        not supplier_id
-        or amount is None
-        or amount <= 0
-    ):
+    # ---------------------------------------------------------
+    # Convert payment to Decimal
+    # ---------------------------------------------------------
+    try:
+
+        amount = Decimal(
+            str(amount_raw)
+        )
+
+    except (InvalidOperation, TypeError, ValueError):
 
         flash(
-            "Invalid payment details.",
+            "Invalid payment amount.",
             "danger"
         )
 
-        return redirect(
-            url_for("detail")
+        return redirect(url_for("detail"))
+
+    # ---------------------------------------------------------
+    # Payment must be positive
+    # ---------------------------------------------------------
+    if amount <= Decimal("0"):
+
+        flash(
+            "Payment amount must be greater than zero.",
+            "danger"
         )
 
+        return redirect(url_for("detail"))
 
+    # ---------------------------------------------------------
     # Get supplier
-    supplier = db.get_or_404(
+    # ---------------------------------------------------------
+    supplier = db.session.get(
         Supplier,
         supplier_id
     )
 
+    if not supplier:
 
+        flash(
+            "Supplier not found.",
+            "danger"
+        )
+
+        return redirect(url_for("detail"))
+
+    # ---------------------------------------------------------
     # Calculate purchase debt
+    # ---------------------------------------------------------
     purchases = Purchase.query.filter_by(
         supplier_id=supplier_id
     ).all()
 
+    purchase_debt = Decimal("0")
 
-    purchase_debt = sum(
-        (purchase.debt or 0)
-        for purchase in purchases
+    for purchase in purchases:
+
+        debt = Decimal(
+            str(purchase.debt or 0)
+        )
+
+        if debt > 0:
+            purchase_debt += debt
+
+    # ---------------------------------------------------------
+    # Additional supplier balance
+    # ---------------------------------------------------------
+    balance_owed = Decimal(
+        str(supplier.balance_owed or 0)
     )
 
+    if balance_owed < 0:
+        balance_owed = Decimal("0")
 
-    # Additional supplier balance
-    balance_owed = supplier.balance_owed or 0
-
-
+    # ---------------------------------------------------------
     # Total debt
+    # ---------------------------------------------------------
     total_debt = (
         purchase_debt
         + balance_owed
     )
 
-
-    # Calculate payments already made
+    # ---------------------------------------------------------
+    # Existing payments
+    # ---------------------------------------------------------
     payments = SupplierPayment.query.filter_by(
         supplier_id=supplier_id
     ).all()
 
+    total_paid = Decimal("0")
 
-    total_paid = sum(
-        (payment.amount or 0)
-        for payment in payments
-    )
+    for payment in payments:
 
+        paid = Decimal(
+            str(payment.amount or 0)
+        )
 
-    # Actual remaining debt
+        if paid > 0:
+            total_paid += paid
+
+    # ---------------------------------------------------------
+    # Remaining debt
+    # ---------------------------------------------------------
     remaining_debt = (
         total_debt
         - total_paid
     )
 
+    if remaining_debt < Decimal("0"):
+        remaining_debt = Decimal("0")
 
-    # Never allow negative debt
-    remaining_debt = max(
-        remaining_debt,
-        0
-    )
-
-
-    # IMPORTANT:
-    # Server-side protection against overpayment
+    # ---------------------------------------------------------
+    # Prevent overpayment
+    # ---------------------------------------------------------
     if amount > remaining_debt:
 
         flash(
-            f"Payment cannot be greater than "
-            f"the remaining debt "
+            f"Payment cannot be greater than the "
+            f"remaining debt "
             f"({remaining_debt:,.2f} ETB).",
             "danger"
         )
@@ -804,8 +891,9 @@ def pay_debt():
             url_for("detail")
         )
 
-
+    # ---------------------------------------------------------
     # Create payment
+    # ---------------------------------------------------------
     new_payment = SupplierPayment(
         supplier_id=supplier_id,
         amount=amount,
@@ -813,23 +901,33 @@ def pay_debt():
         user_id=current_user.id
     )
 
-
     db.session.add(new_payment)
 
-    db.session.commit()
+    try:
 
+        db.session.commit()
+
+    except Exception:
+
+        db.session.rollback()
+
+        flash(
+            "Payment could not be recorded.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("detail")
+        )
 
     flash(
         "Payment recorded successfully.",
         "success"
     )
 
-
     return redirect(
         url_for("detail")
     )
-
-
 
 @app.route("/history")
 @login_required
@@ -978,10 +1076,14 @@ def Register_customer_and_supplier():
 
 
 
-@app.route("/selling", methods=["GET","POST"])
+from decimal import Decimal
+
+
+@app.route("/selling", methods=["GET", "POST"])
 @login_required
 @emp_allowed
 def Selling():
+
     sale_form = SaleForm()
 
     # Choices MUST be repopulated before validation
@@ -1002,34 +1104,53 @@ def Selling():
         # ==========================================================
 
         errors_found = False
-
-        # Keep track of total quantity requested for each product
         requested_quantities = {}
 
         for entry in sale_form.sales.data:
 
-            product = Product.query.get(entry["product_id"])
+            product = db.session.get(
+                Product,
+                entry["product_id"]
+            )
 
             if not product:
-                flash("Selected product not found.", "danger")
+                flash(
+                    "Selected product not found.",
+                    "danger"
+                )
                 errors_found = True
                 continue
 
             quantity = entry["quantity"]
 
-            # Add this entry's quantity to the product's total
+            # Quantity must be positive
+            if quantity <= 0:
+                flash(
+                    f"Quantity for {product.name} must be greater than zero.",
+                    "danger"
+                )
+                errors_found = True
+                continue
+
             if product.id not in requested_quantities:
                 requested_quantities[product.id] = 0
 
             requested_quantities[product.id] += quantity
 
         # ----------------------------------------------------------
-        # Now check the TOTAL requested quantity for each product
+        # Check total requested quantity for every product
         # ----------------------------------------------------------
 
         for product_id, total_requested in requested_quantities.items():
 
-            product = Product.query.get(product_id)
+            product = db.session.get(
+                Product,
+                product_id
+            )
+
+            if not product:
+                errors_found = True
+                continue
 
             if total_requested > product.current_quantity:
 
@@ -1044,6 +1165,7 @@ def Selling():
 
         # If ANY error exists, save NOTHING
         if errors_found:
+
             return render_template(
                 "selling.html",
                 sale_form=sale_form,
@@ -1052,46 +1174,185 @@ def Selling():
             )
 
         # ==========================================================
-        # PASS 2: Everything is valid, now create sales
+        # PASS 2: Validate payments before creating sales
         # ==========================================================
 
         for entry in sale_form.sales.data:
 
-            product = Product.query.get(entry["product_id"])
-
-            total_amount = entry["quantity"] * entry["unit_price"]
-
-            payment = entry["current_payment"] or 0
-
-            debt = total_amount - payment
-
-            new_sale = Sale(
-                product_id=entry["product_id"],
-                customer_id=entry["customer_id"],
-                quantity=entry["quantity"],
-                unit_price=entry["unit_price"],
-                current_payment=payment,
-                debt=debt,
-                date=date.today().strftime("%m/%d/%Y"),
-                user_id=current_user.id
+            product = db.session.get(
+                Product,
+                entry["product_id"]
             )
 
-            db.session.add(new_sale)
+            if not product:
+                flash(
+                    "Selected product not found.",
+                    "danger"
+                )
 
-            # Deduct stock
-            product.current_quantity -= entry["quantity"]
+                return render_template(
+                    "selling.html",
+                    sale_form=sale_form,
+                    products=products,
+                    customers=customers
+                )
 
-        # Save everything together
-        db.session.commit()
+            quantity = entry["quantity"]
 
-        flash("Sale(s) recorded successfully.", "success")
+            # Convert to Decimal for money calculations
+            unit_price = Decimal(
+                str(entry["unit_price"] or 0)
+            )
 
-        return redirect(url_for("Selling"))
+            payment = Decimal(
+                str(entry["current_payment"] or 0)
+            )
 
-    # ==============================================================
-    # ==============================================================
+            # ------------------------------------------------------
+            # Validate price
+            # ------------------------------------------------------
 
-    # flash("Please fix the errors below.", "danger")
+            if unit_price < Decimal("0"):
+
+                flash(
+                    f"Unit price for {product.name} "
+                    f"cannot be negative.",
+                    "danger"
+                )
+
+                return render_template(
+                    "selling.html",
+                    sale_form=sale_form,
+                    products=products,
+                    customers=customers
+                )
+
+            # ------------------------------------------------------
+            # Validate payment
+            # ------------------------------------------------------
+
+            if payment < Decimal("0"):
+
+                flash(
+                    f"Payment for {product.name} "
+                    f"cannot be negative.",
+                    "danger"
+                )
+
+                return render_template(
+                    "selling.html",
+                    sale_form=sale_form,
+                    products=products,
+                    customers=customers
+                )
+
+            # ------------------------------------------------------
+            # Calculate sale total
+            # ------------------------------------------------------
+
+            total_amount = (
+                Decimal(str(quantity)) * unit_price
+            )
+
+            # ------------------------------------------------------
+            # Payment cannot exceed sale total
+            # ------------------------------------------------------
+
+            if payment > total_amount:
+
+                flash(
+                    f"Payment for {product.name} cannot be greater "
+                    f"than the sale total "
+                    f"({total_amount:,.2f} ETB).",
+                    "danger"
+                )
+
+                return render_template(
+                    "selling.html",
+                    sale_form=sale_form,
+                    products=products,
+                    customers=customers
+                )
+
+        # ==========================================================
+        # PASS 3: Everything is valid - create sales
+        # ==========================================================
+
+        try:
+
+            for entry in sale_form.sales.data:
+
+                product = db.session.get(
+                    Product,
+                    entry["product_id"]
+                )
+
+                quantity = entry["quantity"]
+
+                unit_price = Decimal(
+                    str(entry["unit_price"] or 0)
+                )
+
+                payment = Decimal(
+                    str(entry["current_payment"] or 0)
+                )
+
+                total_amount = (
+                    Decimal(str(quantity)) * unit_price
+                )
+
+                debt = total_amount - payment
+
+                # Extra safety
+                debt = max(
+                    debt,
+                    Decimal("0")
+                )
+
+                new_sale = Sale(
+                    product_id=entry["product_id"],
+                    customer_id=entry["customer_id"],
+                    quantity=quantity,
+                    unit_price=unit_price,
+                    current_payment=payment,
+                    debt=debt,
+                    date=date.today().strftime("%m/%d/%Y"),
+                    user_id=current_user.id
+                )
+
+                db.session.add(new_sale)
+
+                # Deduct stock
+                product.current_quantity -= quantity
+
+            # Save everything together
+            db.session.commit()
+
+        except Exception:
+
+            db.session.rollback()
+
+            flash(
+                "The sale could not be recorded. "
+                "Nothing was saved.",
+                "danger"
+            )
+
+            return render_template(
+                "selling.html",
+                sale_form=sale_form,
+                products=products,
+                customers=customers
+            )
+
+        flash(
+            "Sale(s) recorded successfully.",
+            "success"
+        )
+
+        return redirect(
+            url_for("Selling")
+        )
 
     return render_template(
         "selling.html",
