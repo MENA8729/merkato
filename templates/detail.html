@@ -33,7 +33,6 @@
         color:#212529;
     }
 
-    /* NAVBAR */
     .navbar{
         background:#ffffff;
         box-shadow:0 2px 12px rgba(0,0,0,0.06);
@@ -63,7 +62,6 @@
     .nav-link:hover{ color:var(--primary) !important; }
     .nav-link.active{ color:var(--primary) !important; font-weight:600; }
 
-    /* HERO - compact */
     .hero{
         position:relative;
         padding:36px 0 60px;
@@ -113,7 +111,6 @@
         letter-spacing:-0.5px;
     }
 
-    /* SECTION */
     .section-title{
         font-weight:700;
         font-size:clamp(1.1rem, 3vw, 1.3rem);
@@ -123,7 +120,6 @@
         z-index:5;
     }
 
-    /* SUPPLIER CARD - compact */
     .supplier-card{
         background:#fff;
         border:1px solid #eef0f2;
@@ -233,7 +229,6 @@
 
     .btn-pay i{ font-size:0.85em; }
 
-    /* EMPTY STATE */
     .empty-state{
         text-align:center;
         padding:60px 20px;
@@ -259,7 +254,6 @@
         font-size:0.9rem;
     }
 
-    /* MODAL */
     .modal-content{
         border-radius:18px;
         border:none;
@@ -361,7 +355,6 @@
         color:#fff;
     }
 
-    /* TOAST */
     .toast-container{
         z-index:1090;
     }
@@ -371,18 +364,19 @@
         font-size:0.88rem;
     }
 
-    /* MOBILE FINE-TUNING */
     @media (max-width: 430px){
         .supplier-card{
             padding:10px;
             border-radius:12px;
         }
+
         .supplier-avatar{
             width:30px;
             height:30px;
             font-size:0.8rem;
             border-radius:8px;
         }
+
         .supplier-top{ gap:6px; margin-bottom:7px; }
         .debt-row{ padding:2px 0; }
         .remaining-debt-box{ padding:6px 8px; margin-top:6px; }
@@ -398,40 +392,61 @@
     }
 </style>
 </head>
+
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
         <a class="navbar-brand" href="{{ url_for('home') }}">
             <i class="bi bi-boxes"></i>የምርት አስተዳዳሪ
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse justify-content-end" id="navMenu">
             <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">ዋና ገጽ</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('purchases') }}">ግዢዎች</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('suppliers_customers') }}">አቅራቢዎች</a></li>
-                <li class="nav-item"><a class="nav-link active" href="#">የአቅራቢ ዕዳዎች</a></li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('home') }}">ዋና ገጽ</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('purchases') }}">ግዢዎች</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('suppliers_customers') }}">አቅራቢዎች</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link active" href="#">የአቅራቢ ዕዳዎች</a>
+                </li>
             </ul>
         </div>
     </div>
 </nav>
 
-<!-- TOAST CONTAINER -->
 <div class="toast-container position-fixed top-0 end-0 p-3">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
             <div class="toast align-items-center text-white bg-{{ category }} border-0 show"
-                 role="alert" data-bs-delay="3000" data-bs-autohide="true">
+                 role="alert"
+                 data-bs-delay="3000"
+                 data-bs-autohide="true">
+
                 <div class="d-flex">
                     <div class="toast-body">
                         <i class="bi bi-check-circle-fill me-2"></i>{{ message }}
                     </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+
+                    <button type="button"
+                            class="btn-close btn-close-white me-2 m-auto"
+                            data-bs-dismiss="toast">
+                    </button>
                 </div>
             </div>
             {% endfor %}
@@ -439,27 +454,37 @@
     {% endwith %}
 </div>
 
-<!-- HERO -->
 <section class="hero">
     <div class="container">
         <h1>የአቅራቢዎች ዕዳ አስተዳደር</h1>
-        <p>ለአቅራቢዎችዎ የሚከፈል ቀሪ ሂሳብን ይከታተሉ እና ዕዳዎን በአንድ ቦታ ይክፈሉ።</p>
+
+        <p>
+            ለአቅራቢዎችዎ የሚከፈል ቀሪ ሂሳብን ይከታተሉ እና
+            ዕዳዎን በአንድ ቦታ ይክፈሉ።
+        </p>
 
         <div class="total-debt-box">
             <div class="total-debt-label">ጠቅላላ ዕዳ</div>
-            <div class="total-debt-value">{{ "{:,.2f}".format(grand_total_debt) }} ETB</div>
+
+            <div class="total-debt-value">
+                {{ "{:,.2f}".format(grand_total_debt) }} ETB
+            </div>
         </div>
     </div>
 </section>
 
-<!-- SUPPLIER CARDS -->
 <div class="container pb-5">
+
     <h2 class="section-title">ዕዳ ያለባቸው አቅራቢዎች</h2>
 
     {% if supplier_details %}
+
     <div class="row g-2 g-md-3">
+
         {% for supplier in supplier_details %}
+
         <div class="col-6 col-md-6 col-lg-4">
+
             <div class="supplier-card"
                  data-bs-toggle="modal"
                  data-bs-target="#payModal"
@@ -468,70 +493,136 @@
                  data-remaining-debt="{{ supplier.remaining_debt }}">
 
                 <div class="supplier-top">
+
                     <div class="supplier-avatar">
                         {{ supplier.supplier_name[0]|upper }}
                     </div>
+
                     <div class="min-w-0">
-                        <div class="supplier-name">{{ supplier.supplier_name }}</div>
-                        <div class="supplier-id">መለያ: {{ supplier.supplier_id }}</div>
+
+                        <div class="supplier-name">
+                            {{ supplier.supplier_name }}
+                        </div>
+
+                        <div class="supplier-id">
+                            መለያ: {{ supplier.supplier_id }}
+                        </div>
+
                     </div>
                 </div>
 
                 <div class="debt-row">
                     <span>ጠቅላላ</span>
-                    <span>{{ "{:,.2f}".format(supplier.total_debt) }}</span>
+                    <span>
+                        {{ "{:,.2f}".format(supplier.total_debt) }}
+                    </span>
                 </div>
+
                 <div class="debt-row">
                     <span>የተከፈለ</span>
-                    <span>{{ "{:,.2f}".format(supplier.total_paid) }}</span>
+                    <span>
+                        {{ "{:,.2f}".format(supplier.total_paid) }}
+                    </span>
                 </div>
 
                 <div class="remaining-debt-box">
-                    <div class="remaining-debt-label">ቀሪ ዕዳ</div>
-                    <div class="remaining-debt-amount">{{ "{:,.2f}".format(supplier.remaining_debt) }} ETB</div>
+
+                    <div class="remaining-debt-label">
+                        ቀሪ ዕዳ
+                    </div>
+
+                    <div class="remaining-debt-amount">
+                        {{ "{:,.2f}".format(supplier.remaining_debt) }} ETB
+                    </div>
+
                 </div>
 
-                <button type="button" class="btn-pay"
-                    data-bs-toggle="modal"
-                    data-bs-target="#payModal"
-                    data-supplier-id="{{ supplier.supplier_id }}"
-                    data-supplier-name="{{ supplier.supplier_name }}"
-                    data-remaining-debt="{{ supplier.remaining_debt }}">
-                    <i class="bi bi-cash-coin me-1"></i>ዕዳ ይክፈሉ
+                <button type="button"
+                        class="btn-pay"
+                        data-bs-toggle="modal"
+                        data-bs-target="#payModal"
+                        data-supplier-id="{{ supplier.supplier_id }}"
+                        data-supplier-name="{{ supplier.supplier_name }}"
+                        data-remaining-debt="{{ supplier.remaining_debt }}">
+
+                    <i class="bi bi-cash-coin me-1"></i>
+                    ዕዳ ይክፈሉ
+
                 </button>
+
             </div>
+
         </div>
+
         {% endfor %}
+
     </div>
+
     {% else %}
+
     <div class="empty-state">
+
         <i class="bi bi-check-circle"></i>
+
         <h3>ምንም ቀሪ ዕዳ የለም</h3>
-        <p>በአሁኑ ጊዜ ለአቅራቢዎችዎ የሚከፍሉት ገንዘብ የለም።</p>
+
+        <p>
+            በአሁኑ ጊዜ ለአቅራቢዎችዎ የሚከፍሉት ገንዘብ የለም።
+        </p>
+
     </div>
+
     {% endif %}
+
 </div>
 
-<!-- PAYMENT MODAL -->
 <div class="modal fade" id="payModal" tabindex="-1" aria-hidden="true">
+
     <div class="modal-dialog modal-dialog-centered">
+
         <div class="modal-content">
+
             <div class="modal-header">
-                <h5 class="modal-title" id="modalSupplierName">የአቅራቢ ስም</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+                <h5 class="modal-title" id="modalSupplierName">
+                    የአቅራቢ ስም
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+
             </div>
 
-            <form action="{{ url_for('pay_debt') }}" method="POST" id="paymentForm">
+            <form action="{{ url_for('pay_debt') }}"
+                  method="POST"
+                  id="paymentForm">
+
                 <div class="modal-body">
 
                     <div class="modal-remaining-box">
-                        <div class="modal-remaining-label">ቀሪ ዕዳ</div>
-                        <div class="modal-remaining-amount" id="modalRemainingDebt">0.00 ETB</div>
+
+                        <div class="modal-remaining-label">
+                            ቀሪ ዕዳ
+                        </div>
+
+                        <div class="modal-remaining-amount"
+                             id="modalRemainingDebt">
+                            0.00 ETB
+                        </div>
+
                     </div>
 
-                    <input type="hidden" name="supplier_id" id="modalSupplierId">
+                    <input type="hidden"
+                           name="supplier_id"
+                           id="modalSupplierId">
 
-                    <label class="form-label" for="paymentAmount">የሚከፈል መጠን</label>
+                    <label class="form-label"
+                           for="paymentAmount">
+                        የሚከፈል መጠን
+                    </label>
+
                     <input
                         type="number"
                         name="amount"
@@ -541,87 +632,211 @@
                         step="0.01"
                         required
                     >
-                    <div class="max-payable" id="maxPayableText">ከፍተኛው የሚከፈል መጠን: 0.00 ETB</div>
 
-                    <div class="invalid-feedback d-block mt-2" id="paymentError" style="display:none;">
+                    <div class="max-payable"
+                         id="maxPayableText">
+                        ከፍተኛው የሚከፈል መጠን: 0.00 ETB
+                    </div>
+
+                    <div class="invalid-feedback d-block mt-2"
+                         id="paymentError"
+                         style="display:none;">
                         ክፍያው ከቀሪው ዕዳ መብለጥ አይችልም።
                     </div>
 
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn-cancel" data-bs-dismiss="modal">ሰርዝ</button>
-                    <button type="submit" class="btn-confirm-pay">ዕዳ ይክፈሉ</button>
+
+                    <button type="button"
+                            class="btn-cancel"
+                            data-bs-dismiss="modal">
+                        ሰርዝ
+                    </button>
+
+                    <button type="submit"
+                            class="btn-confirm-pay">
+                        ዕዳ ይክፈሉ
+                    </button>
+
                 </div>
+
             </form>
 
         </div>
+
     </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-    const payModal = document.getElementById('payModal');
-    const paymentForm = document.getElementById('paymentForm');
-    const paymentAmountInput = document.getElementById('paymentAmount');
-    const paymentError = document.getElementById('paymentError');
+const payModal = document.getElementById('payModal');
+const paymentForm = document.getElementById('paymentForm');
+const paymentAmountInput = document.getElementById('paymentAmount');
+const paymentError = document.getElementById('paymentError');
 
-    let currentRemainingDebt = 0;
+let currentRemainingDebt = 0;
 
-    payModal.addEventListener('show.bs.modal', function(event){
-        const trigger = event.relatedTarget;
+payModal.addEventListener('show.bs.modal', function(event){
 
-        const supplierId = trigger.getAttribute('data-supplier-id');
-        const supplierName = trigger.getAttribute('data-supplier-name');
-        const remainingDebt = parseFloat(trigger.getAttribute('data-remaining-debt'));
+    const trigger = event.relatedTarget;
 
-        currentRemainingDebt = remainingDebt;
+    const supplierId =
+        trigger.getAttribute('data-supplier-id');
 
-        document.getElementById('modalSupplierName').textContent = supplierName;
-        document.getElementById('modalSupplierId').value = supplierId;
-        document.getElementById('modalRemainingDebt').textContent =
-            remainingDebt.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ETB';
-        document.getElementById('maxPayableText').textContent =
-            'ከፍተኛው የሚከፈል መጠን: ' + remainingDebt.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ETB';
+    const supplierName =
+        trigger.getAttribute('data-supplier-name');
 
-        paymentAmountInput.max = remainingDebt;
-        paymentAmountInput.value = '';
+    let remainingDebt =
+        parseFloat(trigger.getAttribute('data-remaining-debt'));
+
+    /*
+        Prevent an invalid/negative value from being used
+        by the frontend.
+    */
+    if(isNaN(remainingDebt) || remainingDebt < 0){
+        remainingDebt = 0;
+    }
+
+    /*
+        Round to two decimal places so that the frontend
+        does not accidentally allow a value such as
+        100.0000001.
+    */
+    currentRemainingDebt =
+        Math.round((remainingDebt + Number.EPSILON) * 100) / 100;
+
+    document.getElementById('modalSupplierName').textContent =
+        supplierName;
+
+    document.getElementById('modalSupplierId').value =
+        supplierId;
+
+    document.getElementById('modalRemainingDebt').textContent =
+        currentRemainingDebt.toLocaleString(undefined, {
+            minimumFractionDigits:2,
+            maximumFractionDigits:2
+        }) + ' ETB';
+
+    document.getElementById('maxPayableText').textContent =
+        'ከፍተኛው የሚከፈል መጠን: ' +
+        currentRemainingDebt.toLocaleString(undefined, {
+            minimumFractionDigits:2,
+            maximumFractionDigits:2
+        }) + ' ETB';
+
+    paymentAmountInput.max =
+        currentRemainingDebt;
+
+    paymentAmountInput.value = '';
+
+    paymentError.style.display = 'none';
+
+    paymentAmountInput.classList.remove('is-invalid');
+});
+
+
+paymentAmountInput.addEventListener('input', function(){
+
+    let amount =
+        parseFloat(paymentAmountInput.value);
+
+    if(isNaN(amount)){
         paymentError.style.display = 'none';
         paymentAmountInput.classList.remove('is-invalid');
+        return;
+    }
+
+    /*
+        Never allow the frontend value to exceed
+        the currently displayed remaining debt.
+    */
+    if(amount > currentRemainingDebt){
+
+        paymentAmountInput.value =
+            currentRemainingDebt.toFixed(2);
+
+        paymentError.style.display = 'block';
+
+        paymentAmountInput.classList.add('is-invalid');
+
+    }else{
+
+        paymentError.style.display = 'none';
+
+        paymentAmountInput.classList.remove('is-invalid');
+    }
+});
+
+
+paymentForm.addEventListener('submit', function(e){
+
+    const amount =
+        parseFloat(paymentAmountInput.value);
+
+    /*
+        Frontend protection.
+        The backend MUST also perform the same check.
+    */
+    if(
+        isNaN(amount) ||
+        amount <= 0 ||
+        amount > currentRemainingDebt
+    ){
+
+        e.preventDefault();
+
+        paymentError.style.display = 'block';
+
+        paymentAmountInput.classList.add('is-invalid');
+
+        return;
+    }
+
+    /*
+        Prevent floating-point values with more than
+        two decimal places.
+    */
+    const roundedAmount =
+        Math.round((amount + Number.EPSILON) * 100) / 100;
+
+    if(roundedAmount > currentRemainingDebt){
+
+        e.preventDefault();
+
+        paymentError.style.display = 'block';
+
+        paymentAmountInput.classList.add('is-invalid');
+
+        return;
+    }
+
+    paymentAmountInput.value =
+        roundedAmount.toFixed(2);
+
+    paymentError.style.display = 'none';
+
+    paymentAmountInput.classList.remove('is-invalid');
+});
+
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    document.querySelectorAll('.toast').forEach(function(toastEl){
+
+        const toast =
+            new bootstrap.Toast(toastEl, {
+                delay: 3000,
+                autohide: true
+            });
+
+        toast.show();
+
     });
 
-    paymentAmountInput.addEventListener('input', function(){
-        let amount = parseFloat(paymentAmountInput.value);
-
-        if(!isNaN(amount) && amount > currentRemainingDebt){
-            paymentAmountInput.value = currentRemainingDebt;
-            paymentError.style.display = 'block';
-            paymentAmountInput.classList.add('is-invalid');
-        } else {
-            paymentError.style.display = 'none';
-            paymentAmountInput.classList.remove('is-invalid');
-        }
-    });
-
-    paymentForm.addEventListener('submit', function(e){
-        const amount = parseFloat(paymentAmountInput.value);
-
-        if(isNaN(amount) || amount <= 0 || amount > currentRemainingDebt){
-            e.preventDefault();
-            paymentError.style.display = 'block';
-            paymentAmountInput.classList.add('is-invalid');
-        } else {
-            paymentError.style.display = 'none';
-            paymentAmountInput.classList.remove('is-invalid');
-        }
-    });
-
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.toast').forEach(function(toastEl){
-            const toast = new bootstrap.Toast(toastEl, { delay: 3000, autohide: true });
-            toast.show();
-        });
-    });
+});
 </script>
 
 </body>

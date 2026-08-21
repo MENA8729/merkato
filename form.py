@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import (Form, StringField, SelectField,
                      DecimalField, SubmitField, FieldList, FormField,PasswordField,BooleanField)
 from wtforms.fields.numeric import FloatField
-from wtforms.validators import DataRequired, Email, Length, EqualTo,NumberRange
+from wtforms.validators import DataRequired, Email, Length, EqualTo,NumberRange,Optional
 
 class StockForm(FlaskForm):
     class Meta:
@@ -36,12 +36,12 @@ class InventoryForm(FlaskForm):
 
 
 
-class PurchaseForm(Form):          # plain Form — sub-form, lives inside PurchaseListForm.purchase
+class PurchaseForm(Form):
     product = SelectField("Product", coerce=int, validators=[DataRequired()])
     supplier = SelectField("Supplier", coerce=int, validators=[DataRequired()])
     quantity = DecimalField("Quantity", validators=[DataRequired(), NumberRange(min=0)])
     unit_price = DecimalField("Purchase Price", validators=[DataRequired(), NumberRange(min=0)])
-    payment = DecimalField("Current Payment", validators=[NumberRange(min=0)], default=0)
+    payment = DecimalField("Current Payment", validators=[Optional(), NumberRange(min=0)], default=0)
     debt = FloatField()
 
 class PurchaseListForm(FlaskForm):

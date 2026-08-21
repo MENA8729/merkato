@@ -6,6 +6,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from flask import make_response
 import io
+from decimal import Decimal
 import os
 from flask import make_response, render_template, url_for
 from reportlab.lib.pagesizes import letter
@@ -535,22 +536,20 @@ def inventory():
 
 
 
-
-
-
 @app.route("/purchases", methods=["GET", "POST"])
 @login_required
 @emp_allowed
 def purchases():
     form = PurchaseListForm()
-    # populate choices for every currently-rendered sub-form entry
-    for entry in form.purchase:
-        entry.product.choices = [(p.id, p.name) for p in Product.query.all()]
-        entry.supplier.choices = [(s.id, s.name) for s in Supplier.query.all()]
+
+    product_choices = [(p.id, p.name) for p in Product.query.all()]
+    supplier_choices = [(s.id, s.name) for s in Supplier.query.all()]
+
+    for entry in form.purchase.entries:
+        entry.product.choices = product_choices
+        entry.supplier.choices = supplier_choices
 
     if form.validate_on_submit():
-
-        print(form.purchase.data)
         for item in form.purchase.data:
             new_purchase = Purchase(
                 product_id=item['product'],
@@ -559,7 +558,8 @@ def purchases():
                 unit_price=item['unit_price'],
                 payment=item['payment'],
                 debt=item['debt'],
-                date=date.today().strftime("%m/%d/%Y"),user_id=current_user.id
+                date=date.today().strftime("%m/%d/%Y"),
+                user_id=current_user.id
             )
             db.session.add(new_purchase)
             flash("product purchased successfully")
@@ -569,9 +569,14 @@ def purchases():
 
         db.session.commit()
         return redirect(url_for('purchases'))
+    else:
+        print("FORM ERRORS:", form.errors)
 
     purchases_list = Purchase.query.all()
     return render_template("purchase.html", form=form, purchases=purchases_list, user_id=current_user.id)
+
+
+
 
 
 
@@ -584,74 +589,114 @@ def purchases():
 @login_required
 @emp_allowed
 def detail():
-    # Get each supplier ID only once
+
+    # Get supplier IDs that have purchases
     supplier_ids = [
         row[0]
-        for row in db.session.query(Purchase.supplier_id).distinct()
+        for row in db.session.query(Purchase.supplier_id)
+        .filter(Purchase.supplier_id.isnot(None))
+        .distinct()
     ]
-    sup=db.session.execute(db.select(Supplier)).scalars().all()
-    for i in sup:
-        if i.id not in supplier_ids and i.balance_owed and i.balance_owed > 0.1:
-            supplier_ids.append(i.id)
+
+    # Also include suppliers who have an additional balance_owed
+    suppliers = db.session.execute(
+        db.select(Supplier)
+    ).scalars().all()
+
+    for supplier in suppliers:
+
+        balance_owed = supplier.balance_owed or 0
+
+        if (
+            supplier.id not in supplier_ids
+            and balance_owed > 0.1
+        ):
+            supplier_ids.append(supplier.id)
+
 
     supplier_details = []
     grand_total_debt = 0
 
+
     for supplier_id in supplier_ids:
 
-        # Get all purchases belonging to this supplier
+        # Get supplier
+        supplier = db.get_or_404(Supplier, supplier_id)
+
+
+        # Get all purchases for this supplier
         purchases = Purchase.query.filter_by(
             supplier_id=supplier_id
         ).all()
-        supplier = db.get_or_404(Supplier, supplier_id)
-        # Original debt created by all purchases
-        if purchases:
-            total_debt = sum(
-                purchase.debt for purchase in purchases
-            )+supplier.balance_owed
-        else:
-            total_debt=supplier.balance_owed
 
-        # Get all later payments for these purchases
 
+        # Debt from purchases
+        purchase_debt = sum(
+            (purchase.debt or 0)
+            for purchase in purchases
+        )
+
+
+        # Additional balance owed directly on supplier
+        balance_owed = supplier.balance_owed or 0
+
+
+        # Total debt before payments
+        total_debt = purchase_debt + balance_owed
+
+
+        # Get all payments made to this supplier
         payments = SupplierPayment.query.filter_by(
-        supplier_id=supplier_id
+            supplier_id=supplier_id
         ).all()
-        if payments:
-            total_paid = sum(
-                payment.amount for payment in payments
-            )
-        else:
-            total_paid=0
 
 
-        supplier=db.get_or_404(Supplier,supplier_id)
-        # Add all later payments
+        total_paid = sum(
+            (payment.amount or 0)
+            for payment in payments
+        )
 
-        # Current remaining debt
+
+        # Calculate remaining debt
         remaining_debt = total_debt - total_paid
 
-        # Add this supplier's remaining debt to the grand total
-        grand_total_debt += remaining_debt
-        # Find supplier
-        supplier = Supplier.query.get(supplier_id)
-        if remaining_debt:
+
+        # NEVER allow displayed debt to become negative
+        remaining_debt = max(remaining_debt, 0)
+
+
+        # Add only suppliers who currently have debt
+        if remaining_debt > 0:
+
             supplier_details.append({
                 "supplier_id": supplier_id,
-                "supplier_name": supplier.name if supplier else "Unknown",
+                "supplier_name": (
+                    supplier.name
+                    if supplier
+                    else "Unknown"
+                ),
                 "total_debt": total_debt,
                 "total_paid": total_paid,
-                "remaining_debt": remaining_debt })
+                "remaining_debt": remaining_debt
+            })
+
+
+            grand_total_debt += remaining_debt
+
+
+    # Highest debt first
+    supplier_details.sort(
+        key=lambda x: x["remaining_debt"],
+        reverse=True
+    )
 
 
     return render_template(
         "detail.html",
         supplier_details=supplier_details,
-        grand_total_debt=grand_total_debt, user_id=current_user.id)
-
-
-
-
+        grand_total_debt=grand_total_debt,
+        user_id=current_user.id
+    )
 
 
 
@@ -659,24 +704,130 @@ def detail():
 @login_required
 @emp_allowed
 def pay_debt():
-    supplier_id = request.form.get("supplier_id", type=int)
-    amount = request.form.get("amount", type=float)
-    if not supplier_id or amount is None or amount <= 0:
-        flash("Invalid payment details.", "danger")
-        return redirect(url_for('detail'))
+
+    supplier_id = request.form.get(
+        "supplier_id",
+        type=int
+    )
+
+    amount = request.form.get(
+        "amount",
+        type=float
+    )
 
 
+    # Basic validation
+    if (
+        not supplier_id
+        or amount is None
+        or amount <= 0
+    ):
+
+        flash(
+            "Invalid payment details.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("detail")
+        )
+
+
+    # Get supplier
+    supplier = db.get_or_404(
+        Supplier,
+        supplier_id
+    )
+
+
+    # Calculate purchase debt
+    purchases = Purchase.query.filter_by(
+        supplier_id=supplier_id
+    ).all()
+
+
+    purchase_debt = sum(
+        (purchase.debt or 0)
+        for purchase in purchases
+    )
+
+
+    # Additional supplier balance
+    balance_owed = supplier.balance_owed or 0
+
+
+    # Total debt
+    total_debt = (
+        purchase_debt
+        + balance_owed
+    )
+
+
+    # Calculate payments already made
+    payments = SupplierPayment.query.filter_by(
+        supplier_id=supplier_id
+    ).all()
+
+
+    total_paid = sum(
+        (payment.amount or 0)
+        for payment in payments
+    )
+
+
+    # Actual remaining debt
+    remaining_debt = (
+        total_debt
+        - total_paid
+    )
+
+
+    # Never allow negative debt
+    remaining_debt = max(
+        remaining_debt,
+        0
+    )
+
+
+    # IMPORTANT:
+    # Server-side protection against overpayment
+    if amount > remaining_debt:
+
+        flash(
+            f"Payment cannot be greater than "
+            f"the remaining debt "
+            f"({remaining_debt:,.2f} ETB).",
+            "danger"
+        )
+
+        return redirect(
+            url_for("detail")
+        )
+
+
+    # Create payment
     new_payment = SupplierPayment(
         supplier_id=supplier_id,
         amount=amount,
-        date=date.today(),user_id=current_user.id
+        date=date.today(),
+        user_id=current_user.id
     )
+
+
     db.session.add(new_payment)
+
     db.session.commit()
-    flash("Payment recorded successfully.", "success")
-    return redirect(url_for('detail'))
 
 
+    flash(
+        "Payment recorded successfully.",
+        "success"
+    )
+
+
+    return redirect(
+        url_for("detail")
+    )
 
 
 
@@ -953,55 +1104,123 @@ def Selling():
 
 
 
+
+
+
 @app.route("/customer_detail")
 @login_required
 @emp_allowed
 def customer_detail():
+
     sale_customer_ids = [
         row[0]
-        for row in db.session.query(Sale.customer_id).distinct()
+        for row in db.session.query(Sale.customer_id)
+        .filter(Sale.customer_id.isnot(None))
+        .distinct()
     ]
 
     debt_customer_ids = [
         row[0]
-        for row in db.session.query(AddDebt.customer_id).distinct()
+        for row in db.session.query(AddDebt.customer_id)
+        .filter(AddDebt.customer_id.isnot(None))
+        .distinct()
     ]
 
-    # Combine both sources so customers with only AddDebt (no sales) still show
-    customer_ids = list(set(sale_customer_ids) | set(debt_customer_ids))
+    # Combine customers from both Sale and AddDebt
+    customer_ids = list(
+        set(sale_customer_ids) | set(debt_customer_ids)
+    )
 
     customer_details = []
-    grand_total_debt = 0
+
+    # Use Decimal instead of float for money
+    grand_total_debt = Decimal("0")
 
     for customer_id in customer_ids:
-        sales = Sale.query.filter_by(customer_id=customer_id).all()
-        sales_debt = sum(s.debt for s in sales)
 
+        # -------------------------
+        # SALES DEBT
+        # -------------------------
+        sales = Sale.query.filter_by(
+            customer_id=customer_id
+        ).all()
+
+        sales_debt = sum(
+            (
+                max(
+                    Decimal(str(s.debt or 0)),
+                    Decimal("0")
+                )
+            )
+            for s in sales
+        )
+
+        # -------------------------
+        # ADDITIONAL DEBT
+        # -------------------------
         additional_debt_records = AddDebt.query.filter_by(
             customer_id=customer_id
         ).all()
-        additional_debt = sum(d.amount for d in additional_debt_records)
 
+        additional_debt = sum(
+            (
+                max(
+                    Decimal(str(d.amount or 0)),
+                    Decimal("0")
+                )
+            )
+            for d in additional_debt_records
+        )
+
+        # -------------------------
+        # TOTAL DEBT
+        # -------------------------
         total_debt = sales_debt + additional_debt
 
+        # -------------------------
+        # PAYMENTS
+        # -------------------------
         payments = CustomerPayment.query.filter_by(
             customer_id=customer_id
         ).all()
-        total_paid = sum(p.amount for p in payments)
 
-        remaining_debt = total_debt - total_paid
-        grand_total_debt += remaining_debt
+        total_paid = sum(
+            (
+                max(
+                    Decimal(str(p.amount or 0)),
+                    Decimal("0")
+                )
+            )
+            for p in payments
+        )
 
-        customer = Customer.query.get(customer_id)
+        # -------------------------
+        # REMAINING DEBT
+        # -------------------------
+        remaining_debt = max(
+            total_debt - total_paid,
+            Decimal("0")
+        )
+
+        # -------------------------
+        # CUSTOMER
+        # -------------------------
+        customer = db.get_or_404(
+            Customer,
+            customer_id
+        )
 
         customer_details.append({
             "customer_id": customer_id,
-            "customer_name": customer.name if customer else "Unknown",
+            "customer_name": customer.name,
             "total_debt": total_debt,
             "total_paid": total_paid,
             "remaining_debt": remaining_debt
         })
 
+        grand_total_debt += remaining_debt
+
+    # Highest debt first
     customer_details.sort(
         key=lambda x: x["remaining_debt"],
         reverse=True
@@ -1014,30 +1233,128 @@ def customer_detail():
         user_id=current_user.id
     )
 
-
-
-
-
 @app.route("/pay_customer_debt", methods=["POST"])
 @login_required
 @emp_allowed
 def pay_customer_debt():
-    customer_id=request.form.get("customer_id", type=int)
-    amount = request.form.get("amount", type=float)
-    if not customer_id or amount is None or amount <= 0:
-        flash("Invalid payment details.", "danger")
-        return redirect(url_for('detail'))
-    sales = Sale.query.filter_by(customer_id=customer_id).all()
-    total_debt = sum(p.debt for p in sales)
-    payments =CustomerPayment.query.filter_by(customer_id=customer_id).all()
-    total_paid = sum(p.amount for p in payments)
-    remaining_debt = total_debt - total_paid
 
-    new_payment=CustomerPayment(customer_id=customer_id,amount=amount,date=date.today(),user_id=current_user.id)
+    customer_id = request.form.get(
+        "customer_id",
+        type=int
+    )
+
+    amount = request.form.get(
+        "amount",
+        type=float
+    )
+
+    # -------------------------
+    # BASIC VALIDATION
+    # -------------------------
+
+    if not customer_id or amount is None or amount <= 0:
+
+        flash(
+            "Invalid payment details.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("customer_detail")
+        )
+
+    # -------------------------
+    # CALCULATE SALES DEBT
+    # -------------------------
+
+    sales = Sale.query.filter_by(
+        customer_id=customer_id
+    ).all()
+
+    sales_debt = sum(
+        max(float(s.debt or 0), 0)
+        for s in sales
+    )
+
+    # -------------------------
+    # CALCULATE ADDITIONAL DEBT
+    # -------------------------
+
+    additional_debt_records = AddDebt.query.filter_by(
+        customer_id=customer_id
+    ).all()
+
+    additional_debt = sum(
+        max(float(d.amount or 0), 0)
+        for d in additional_debt_records
+    )
+
+    # -------------------------
+    # TOTAL DEBT
+    # -------------------------
+
+    total_debt = sales_debt + additional_debt
+
+    # -------------------------
+    # PREVIOUS PAYMENTS
+    # -------------------------
+
+    payments = CustomerPayment.query.filter_by(
+        customer_id=customer_id
+    ).all()
+
+    total_paid = sum(
+        max(float(p.amount or 0), 0)
+        for p in payments
+    )
+
+    # -------------------------
+    # CURRENT REMAINING DEBT
+    # -------------------------
+
+    remaining_debt = max(
+        total_debt - total_paid,
+        0
+    )
+
+    # -------------------------
+    # DO NOT ALLOW OVERPAYMENT
+    # -------------------------
+
+    if amount > remaining_debt:
+
+        flash(
+            f"Payment cannot exceed the remaining debt of "
+            f"{remaining_debt:.2f} ETB.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("customer_detail")
+        )
+
+    # -------------------------
+    # SAVE PAYMENT
+    # -------------------------
+
+    new_payment = CustomerPayment(
+        customer_id=customer_id,
+        amount=amount,
+        date=date.today(),
+        user_id=current_user.id
+    )
+
     db.session.add(new_payment)
     db.session.commit()
-    flash("Payment recorded successfully.", "success")
-    return redirect(url_for('customer_detail'))
+
+    flash(
+        "Payment recorded successfully.",
+        "success"
+    )
+
+    return redirect(
+        url_for("customer_detail")
+    )
 
 
 @app.route("/edit/<string:item_type>/<int:item_id>", methods=["GET", "POST"])
@@ -1165,20 +1482,17 @@ def delete(item_type, item_id):
     if item_type == "customer":
 
         customer = Customer.query.filter_by(
-            id=item_id,
-            user_id=current_user.id
+            id=item_id
         ).first_or_404()
 
         # Delete customer's sales
         Sale.query.filter_by(
-            customer_id=customer.id,
-            user_id=current_user.id
+            customer_id=customer.id
         ).delete()
 
         # Delete customer's payments
         CustomerPayment.query.filter_by(
-            customer_id=customer.id,
-            user_id=current_user.id
+            customer_id=customer.id
         ).delete()
 
         # Delete customer's added debts
@@ -1200,20 +1514,17 @@ def delete(item_type, item_id):
     elif item_type == "supplier":
 
         supplier = Supplier.query.filter_by(
-            id=item_id,
-            user_id=current_user.id
+            id=item_id
         ).first_or_404()
 
         # Delete supplier purchases
         Purchase.query.filter_by(
-            supplier_id=supplier.id,
-            user_id=current_user.id
+            supplier_id=supplier.id
         ).delete()
 
         # Delete supplier payments
         SupplierPayment.query.filter_by(
-            supplier_id=supplier.id,
-            user_id=current_user.id
+            supplier_id=supplier.id
         ).delete()
 
         # Delete supplier
@@ -1230,20 +1541,17 @@ def delete(item_type, item_id):
     elif item_type == "product":
 
         product = Product.query.filter_by(
-            id=item_id,
-            user_id=current_user.id
+            id=item_id
         ).first_or_404()
 
         # Delete product purchases
         Purchase.query.filter_by(
-            product_id=product.id,
-            user_id=current_user.id
+            product_id=product.id
         ).delete()
 
         # Delete product sales
         Sale.query.filter_by(
-            product_id=product.id,
-            user_id=current_user.id
+            product_id=product.id
         ).delete()
 
         # Delete product
@@ -1262,9 +1570,6 @@ def delete(item_type, item_id):
 
 
     return redirect(url_for("track"))
-
-
-
 
 
 
