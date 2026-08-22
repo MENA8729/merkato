@@ -557,6 +557,16 @@ def purchases():
 
     if form.validate_on_submit():
         for item in form.purchase.data:
+            print(
+                "NEW PURCHASE:",
+                {
+                    "supplier_id": item["supplier"],
+                    "quantity": item["quantity"],
+                    "unit_price": item["unit_price"],
+                    "payment": item["payment"],
+                    "debt": item["debt"]
+                }
+            )
             new_purchase = Purchase(
                 product_id=item['product'],
                 supplier_id=item['supplier'],
