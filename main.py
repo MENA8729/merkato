@@ -8,6 +8,12 @@ from flask import make_response
 import io
 from decimal import Decimal,InvalidOperation
 import os
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from io import BytesIO
 from flask import make_response, render_template, url_for
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
@@ -2637,53 +2643,50 @@ def add_debt(customer_id):
 
 
 
-
-
 @app.route("/customer_debt_statement/<int:customer_id>")
 @login_required
-@emp_allowed
 def customer_debt_statement(customer_id):
-    customer = Customer.query.get_or_404(customer_id)
+    customer = db.get_or_404(Customer, customer_id)
 
     sales = Sale.query.filter_by(customer_id=customer_id).all()
     additional_debts = AddDebt.query.filter_by(customer_id=customer_id).all()
     payments = CustomerPayment.query.filter_by(customer_id=customer_id).all()
 
-    # Compile unified timeline records for the statement table
+    # ---------- Build unified transaction timeline ----------
     statement_records = []
-    for s in sales:
+
+    for sale in sales:
         statement_records.append({
-            "date": s.date or "",
-            "type": "Product Sale",
-            "amount": s.debt,
-            "sort_key": s.date or ""
-        })
-    for d in additional_debts:
-        statement_records.append({
-            "date": d.date.strftime("%m/%d/%Y") if isinstance(d.date, date) else str(d.date),
-            "type": f"Additional Debt ({d.reason or 'General'})",
-            "amount": d.amount,
-            "sort_key": str(d.date)
-        })
-    for p in payments:
-        statement_records.append({
-            "date": p.date.strftime("%m/%d/%Y") if isinstance(p.date, date) else str(p.date),
-            "type": "Payment",
-            "amount": -p.amount,
-            "sort_key": str(p.date)
+            "date": sale.date or "",
+            "type": f"Product Sale - {sale.product.name}" if sale.product else "Product Sale",
+            "amount": sale.debt or 0,
+            "sort_key": str(sale.date or "")
         })
 
-    # Sort records chronologically
+    for debt in additional_debts:
+        statement_records.append({
+            "date": debt.date.strftime("%m/%d/%Y") if isinstance(debt.date, date) else str(debt.date),
+            "type": f"Additional Debt ({debt.reason or 'General'})",
+            "amount": debt.amount or 0,
+            "sort_key": str(debt.date)
+        })
+
+    for payment in payments:
+        statement_records.append({
+            "date": payment.date.strftime("%m/%d/%Y") if isinstance(payment.date, date) else str(payment.date),
+            "type": "Payment",
+            "amount": -(payment.amount or 0),
+            "sort_key": str(payment.date)
+        })
+
     statement_records.sort(key=lambda x: x["sort_key"])
 
-    sales_debt = sum(s.debt for s in sales)
-    additional_debt = sum(d.amount for d in additional_debts)
-    total_debt = sales_debt + additional_debt
-    total_paid = sum(p.amount for p in payments)
+    total_debt = sum(r["amount"] for r in statement_records if r["amount"] > 0)
+    total_paid = sum(-r["amount"] for r in statement_records if r["amount"] < 0)
     remaining_debt = total_debt - total_paid
 
-    # ===================== PDF GENERATION (design upgraded) =====================
-    buffer = io.BytesIO()
+    # ---------- PDF GENERATION ----------
+    buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer, pagesize=letter,
         rightMargin=42, leftMargin=42, topMargin=40, bottomMargin=40
@@ -2700,16 +2703,13 @@ def customer_debt_statement(customer_id):
     GREEN = colors.HexColor('#15803d')
     RED = colors.HexColor('#b91c1c')
 
-    # ---------- Try to register a script-style font for the signature; fall back safely ----------
     signature_font_name = "Helvetica-Oblique"
     try:
-        # Common on many systems; if unavailable, ReportLab keeps the fallback above
         registerFont(TTFont('SignatureFont', '/usr/share/fonts/truetype/dejavu/DejaVuSerif-Italic.ttf'))
         signature_font_name = "SignatureFont"
     except Exception:
         pass
 
-    # ---------- Styles ----------
     business_name_style = ParagraphStyle(
         'BusinessName', parent=styles['Normal'],
         fontName='Helvetica-Bold', fontSize=17, leading=20,
@@ -2718,7 +2718,7 @@ def customer_debt_statement(customer_id):
     doc_title_style = ParagraphStyle(
         'DocTitle', parent=styles['Normal'],
         fontName='Helvetica-Bold', fontSize=10.5, leading=13,
-        alignment=TA_CENTER, textColor=GOLD, tracking=1
+        alignment=TA_CENTER, textColor=GOLD
     )
     tagline_style = ParagraphStyle(
         'Tagline', parent=styles['Normal'],
@@ -2754,7 +2754,7 @@ def customer_debt_statement(customer_id):
         alignment=TA_CENTER, textColor=SLATE
     )
 
-    # ---------- Fake professional KSC logo, built purely with ReportLab shapes/table ----------
+    # ---------- Logo ----------
     logo_cell = Paragraph(
         "<para align='center'><font name='Helvetica-Bold' size='15' color='white'>K</font>"
         "<font name='Helvetica-Bold' size='15' color='#c9a24b'>S</font>"
@@ -2775,10 +2775,7 @@ def customer_debt_statement(customer_id):
         Paragraph("Quality products, trusted service", tagline_style),
     ]
 
-    header_table = Table(
-        [[logo_table, header_text_block]],
-        colWidths=[70, 430]
-    )
+    header_table = Table([[logo_table, header_text_block]], colWidths=[70, 430])
     header_table.setStyle(TableStyle([
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('ALIGN', (1, 0), (1, 0), 'CENTER'),
@@ -2789,7 +2786,7 @@ def customer_debt_statement(customer_id):
     story.append(Spacer(1, 6))
     story.append(HRFlowable(width="100%", thickness=1.4, color=GOLD, spaceAfter=14))
 
-    # ---------- Customer Info Block ----------
+    # ---------- Customer Info ----------
     story.append(Paragraph("CUSTOMER INFORMATION", section_label_style))
     info_data = [
         [Paragraph("Customer Name", info_label_style), Paragraph(customer.name, info_value_style),
@@ -2810,21 +2807,21 @@ def customer_debt_statement(customer_id):
     story.append(info_table)
     story.append(Spacer(1, 18))
 
-    # ---------- Transactions Table ----------
+    # ---------- Transaction History ----------
     story.append(Paragraph("TRANSACTION HISTORY", section_label_style))
 
     table_data = [["Date", "Transaction Type", "Amount"]]
-    row_styles = []  # track which rows are payments vs debts for coloring
-    for idx, rec in enumerate(statement_records, start=1):
+    row_is_payment = []
+
+    for rec in statement_records:
         is_payment = rec['amount'] < 0
         amt_str = f"({abs(rec['amount']):,.2f} ETB)" if is_payment else f"{rec['amount']:,.2f} ETB"
-        label = rec['type']
-        table_data.append([rec['date'], label, amt_str])
-        row_styles.append(is_payment)
+        table_data.append([rec['date'], rec['type'], amt_str])
+        row_is_payment.append(is_payment)
 
     if len(statement_records) == 0:
         table_data.append(["-", "No transactions recorded", "0.00 ETB"])
-        row_styles.append(False)
+        row_is_payment.append(False)
 
     tx_table = Table(table_data, colWidths=[85, 275, 140])
     tx_style = [
@@ -2842,8 +2839,7 @@ def customer_debt_statement(customer_id):
         ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, LIGHT_BG]),
     ]
-    # Color payment rows green, debt rows dark red/navy, for visual distinction only (no logic change)
-    for i, is_payment in enumerate(row_styles, start=1):
+    for i, is_payment in enumerate(row_is_payment, start=1):
         if is_payment:
             tx_style.append(('TEXTCOLOR', (2, i), (2, i), GREEN))
             tx_style.append(('FONTNAME', (2, i), (2, i), 'Helvetica-Bold'))
@@ -2854,7 +2850,7 @@ def customer_debt_statement(customer_id):
     story.append(tx_table)
     story.append(Spacer(1, 20))
 
-    # ---------- Summary Totals ----------
+    # ---------- Account Summary ----------
     story.append(Paragraph("ACCOUNT SUMMARY", section_label_style))
     summary_rows = Table(
         [
@@ -2872,7 +2868,6 @@ def customer_debt_statement(customer_id):
     story.append(summary_rows)
     story.append(Spacer(1, 10))
 
-    # Remaining Debt — most visually prominent
     remaining_box = Table(
         [[Paragraph("REMAINING DEBT", remaining_label_style)],
          [Paragraph(f"{remaining_debt:,.2f} ETB", remaining_value_style)]],
@@ -2891,7 +2886,7 @@ def customer_debt_statement(customer_id):
     story.append(remaining_box)
     story.append(Spacer(1, 36))
 
-    # ---------- Signature Block ----------
+    # ---------- Signature ----------
     sig_style_script = ParagraphStyle(
         'SigScript', parent=styles['Normal'],
         fontName=signature_font_name, fontSize=16, leading=20,
@@ -2922,15 +2917,26 @@ def customer_debt_statement(customer_id):
     response = make_response(buffer.read())
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=customer_statement_{customer_id}.pdf'
-    return response
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
 
-@app.route("/customer_debt_statement/<int:customer_id>/share")
+    return response
+@app.route("/share_statement/<int:customer_id>")
 @login_required
-@emp_allowed
 def customer_debt_statement_share(customer_id):
-    customer = Customer.query.get_or_404(customer_id)
-    pdf_url = url_for('customer_debt_statement', customer_id=customer_id, _external=True)
-    return render_template("share_statement.html", customer=customer, pdf_url=pdf_url)
+    customer = db.get_or_404(Customer, customer_id)
+
+    pdf_url = url_for(
+        "customer_debt_statement",
+        customer_id=customer_id
+    )
+
+    return render_template(
+        "share_statement.html",
+        customer=customer,
+        pdf_url=pdf_url
+    )
 
 
 
