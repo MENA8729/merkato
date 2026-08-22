@@ -700,6 +700,19 @@ def detail():
         payments = SupplierPayment.query.filter_by(
             supplier_id=supplier_id
         ).all()
+        print(
+            "SUPPLIER PAYMENT RECORDS:",
+            [
+                {
+                    "id": payment.id,
+                    "supplier_id": payment.supplier_id,
+                    "amount": payment.amount,
+                    "date": payment.date,
+                    "user_id": payment.user_id
+                }
+                for payment in payments
+            ]
+        )
 
         total_paid = Decimal("0")
 
