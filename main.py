@@ -702,18 +702,20 @@ def detail():
         ).all()
         print(
             "SUPPLIER PAYMENT RECORDS:",
-            [
-                {
-                    "id": payment.id,
-                    "supplier_id": payment.supplier_id,
-                    "amount": payment.amount,
-                    "date": payment.date,
-                    "user_id": payment.user_id
-                }
-                for payment in payments
-            ]
+            {
+                "supplier_id": supplier_id,
+                "payments": [
+                    {
+                        "id": payment.id,
+                        "supplier_id": payment.supplier_id,
+                        "amount": payment.amount,
+                        "date": payment.date,
+                        "user_id": payment.user_id
+                    }
+                    for payment in payments
+                ]
+            }
         )
-
         total_paid = Decimal("0")
 
         for payment in payments:
