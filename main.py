@@ -557,16 +557,6 @@ def purchases():
 
     if form.validate_on_submit():
         for item in form.purchase.data:
-            print(
-                "NEW PURCHASE:",
-                {
-                    "supplier_id": item["supplier"],
-                    "quantity": item["quantity"],
-                    "unit_price": item["unit_price"],
-                    "payment": item["payment"],
-                    "debt": item["debt"]
-                }
-            )
             new_purchase = Purchase(
                 product_id=item['product'],
                 supplier_id=item['supplier'],
@@ -700,22 +690,7 @@ def detail():
         payments = SupplierPayment.query.filter_by(
             supplier_id=supplier_id
         ).all()
-        print(
-            "SUPPLIER PAYMENT RECORDS:",
-            {
-                "supplier_id": supplier_id,
-                "payments": [
-                    {
-                        "id": payment.id,
-                        "supplier_id": payment.supplier_id,
-                        "amount": payment.amount,
-                        "date": payment.date,
-                        "user_id": payment.user_id
-                    }
-                    for payment in payments
-                ]
-            }
-        )
+
         total_paid = Decimal("0")
 
         for payment in payments:
@@ -733,18 +708,6 @@ def detail():
         remaining_debt = (
             total_debt
             - total_paid
-        )
-        print(
-            "DEBT CALCULATION:",
-            {
-                "supplier_id": supplier_id,
-                "purchase_debt": purchase_debt,
-                "balance_owed": balance_owed,
-                "total_debt": total_debt,
-                "total_paid": total_paid,
-                "remaining_before_zero_fix": total_debt - total_paid,
-                "remaining_debt": remaining_debt
-            }
         )
 
         # Never display negative debt
@@ -771,48 +734,6 @@ def detail():
         key=lambda x: x["remaining_debt"],
         reverse=True
     )
-    print("===== DETAIL DEBUG =====")
-    print("SUPPLIER IDS:", supplier_ids)
-    print("SUPPLIER DETAILS:", supplier_details)
-    print("GRAND TOTAL DEBT:", grand_total_debt)
-
-    for supplier_id in supplier_ids:
-
-        supplier = db.session.get(
-            Supplier,
-            supplier_id
-        )
-
-        if supplier:
-            print(
-                "SUPPLIER:",
-                supplier.id,
-                supplier.name,
-                "balance_owed=",
-                supplier.balance_owed
-            )
-
-        purchases = Purchase.query.filter_by(
-            supplier_id=supplier_id
-        ).all()
-
-        print(
-            "PURCHASES:",
-            [
-                {
-                    "id": p.id,
-                    "supplier_id": p.supplier_id,
-                    "debt": p.debt
-                }
-                for p in purchases
-            ]
-        )
-
-        payments = SupplierPayment.query.filter_by(
-            supplier_id=supplier_id
-        ).all()
-
-
 
     return render_template(
         "detail.html",
@@ -1885,27 +1806,7 @@ def delete(item_type, item_id):
     # PRODUCT
     # ==========================================
     elif item_type == "product":
-
-        product = Product.query.filter_by(
-            id=item_id
-        ).first_or_404()
-
-        # Delete product purchases
-        Purchase.query.filter_by(
-            product_id=product.id
-        ).delete()
-
-        # Delete product sales
-        Sale.query.filter_by(
-            product_id=product.id
-        ).delete()
-
-        # Delete product
-        db.session.delete(product)
-
-        db.session.commit()
-
-        flash("ምርቱ እና ተያያዥ መረጃዎቹ ተሰርዘዋል።", "success")
+        flash("you can't edit the product either make it 0 amount or edit it ።", "success")
 
 
     # ==========================================
