@@ -734,6 +734,60 @@ def detail():
         key=lambda x: x["remaining_debt"],
         reverse=True
     )
+    print("===== DETAIL DEBUG =====")
+    print("SUPPLIER IDS:", supplier_ids)
+    print("SUPPLIER DETAILS:", supplier_details)
+    print("GRAND TOTAL DEBT:", grand_total_debt)
+
+    for supplier_id in supplier_ids:
+
+        supplier = db.session.get(
+            Supplier,
+            supplier_id
+        )
+
+        if supplier:
+            print(
+                "SUPPLIER:",
+                supplier.id,
+                supplier.name,
+                "balance_owed=",
+                supplier.balance_owed
+            )
+
+        purchases = Purchase.query.filter_by(
+            supplier_id=supplier_id
+        ).all()
+
+        print(
+            "PURCHASES:",
+            [
+                {
+                    "id": p.id,
+                    "supplier_id": p.supplier_id,
+                    "debt": p.debt
+                }
+                for p in purchases
+            ]
+        )
+
+        payments = SupplierPayment.query.filter_by(
+            supplier_id=supplier_id
+        ).all()
+
+        print(
+            "PAYMENTS:",
+            [
+                {
+                    "id": p.id,
+                    "supplier_id": p.supplier_id,
+                    "amount": p.amount
+                }
+                for p in payments
+            ]
+        )
+
+    print("========================")
 
     return render_template(
         "detail.html",
@@ -2641,6 +2695,18 @@ def add_debt(customer_id):
     return render_template("add_debt.html", form=form, customer=customer)
 
 
+
+
+
+from io import BytesIO
+from datetime import date
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
+from reportlab.pdfbase.pdfmetrics import registerFont
+from reportlab.pdfbase.ttfonts import TTFont
 
 
 @app.route("/customer_debt_statement/<int:customer_id>")
