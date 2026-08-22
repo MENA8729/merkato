@@ -719,6 +719,18 @@ def detail():
             total_debt
             - total_paid
         )
+        print(
+            "DEBT CALCULATION:",
+            {
+                "supplier_id": supplier_id,
+                "purchase_debt": purchase_debt,
+                "balance_owed": balance_owed,
+                "total_debt": total_debt,
+                "total_paid": total_paid,
+                "remaining_before_zero_fix": total_debt - total_paid,
+                "remaining_debt": remaining_debt
+            }
+        )
 
         # Never display negative debt
         if remaining_debt < 0:
@@ -785,19 +797,7 @@ def detail():
             supplier_id=supplier_id
         ).all()
 
-        print(
-            "PAYMENTS:",
-            [
-                {
-                    "id": p.id,
-                    "supplier_id": p.supplier_id,
-                    "amount": p.amount
-                }
-                for p in payments
-            ]
-        )
 
-    print("========================")
 
     return render_template(
         "detail.html",
