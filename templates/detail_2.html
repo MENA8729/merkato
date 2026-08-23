@@ -30,6 +30,22 @@
         color:#212529;
     }
 
+    /* ============================================================
+       NEW: sticky wrapper so header + hero stay fixed while only
+       the customer list area scrolls. No existing rules changed.
+       ============================================================ */
+    .page-fixed-top{
+        position:sticky;
+        top:0;
+        z-index:1030;
+    }
+
+    .scroll-area{
+        max-height:calc(100vh - 0px);
+        overflow-y:auto;
+    }
+    /* ============================================================ */
+
     .navbar{
         background:#ffffff;
         box-shadow:0 2px 12px rgba(0,0,0,0.06);
@@ -51,6 +67,47 @@
     }
 
     .nav-link:hover, .nav-link.active{ color:var(--primary) !important; }
+
+    /* ============================================================
+       NEW: search bar placed in the header/navbar
+       ============================================================ */
+    .navbar-search{
+        display:flex;
+        align-items:center;
+        gap:6px;
+        margin-left:12px;
+    }
+
+    .navbar-search input{
+        border-radius:10px 0 0 10px;
+        border:1px solid #dee2e6;
+        padding:7px 12px;
+        font-size:0.85rem;
+        min-width:160px;
+    }
+
+    .navbar-search input:focus{
+        outline:none;
+        border-color:var(--primary);
+        box-shadow:0 0 0 0.15rem rgba(109,40,217,0.15);
+    }
+
+    .navbar-search button{
+        border-radius:0 10px 10px 0;
+        border:1px solid var(--primary);
+        background:var(--primary);
+        color:#fff;
+        padding:7px 12px;
+        font-size:0.85rem;
+    }
+
+    .navbar-search button:hover{ background:var(--primary-dark); border-color:var(--primary-dark); }
+
+    @media (max-width: 991.98px){
+        .navbar-search{ margin:10px 0 0; width:100%; }
+        .navbar-search input{ flex:1; min-width:0; }
+    }
+    /* ============================================================ */
 
     .hero{
         position:relative;
@@ -218,6 +275,22 @@
         margin-bottom:14px;
     }
 
+    /* NEW: shown only when a search yields nothing */
+    .search-empty-state{
+        display:none;
+        text-align:center;
+        padding:60px 20px;
+        background:#fff;
+        border-radius:18px;
+        box-shadow:0 4px 18px rgba(0,0,0,0.05);
+    }
+
+    .search-empty-state i{
+        font-size:3rem;
+        color:var(--text-muted);
+        margin-bottom:14px;
+    }
+
     .modal-content{
         border-radius:18px;
         border:none;
@@ -306,19 +379,30 @@
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg sticky-top">
-    <div class="container">
+<!-- ============================================================
+     NEW: wrapper makes navbar + hero stay fixed (sticky),
+     only the customer list below scrolls.
+     ============================================================ -->
+<div class="page-fixed-top">
+
+<nav class="navbar navbar-expand-lg">
+    <div class="container flex-wrap">
         <a class="navbar-brand" href="#"><i class="bi bi-boxes"></i>የእቃ አስተዳደር</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navMenu">
-            <ul class="navbar-nav">
+            <ul class="navbar-nav align-items-lg-center">
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">ዋና ገጽ</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('Selling') }}">ሽያጭ</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('suppliers_customers') }}">ደንበኞች</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">logout</a></li>
                 <li class="nav-item"><a class="nav-link active" href="#">የደንበኞች ዕዳ</a></li>
+                <!-- NEW: search bar in header -->
+                <li class="nav-item navbar-search">
+                    <input type="text" id="customerSearchInput" placeholder="በስም ይፈልጉ..." autocomplete="off">
+                    <button type="button" id="customerSearchBtn"><i class="bi bi-search"></i></button>
+                </li>
             </ul>
         </div>
     </div>
@@ -354,13 +438,19 @@
     </div>
 </section>
 
-<div class="container pb-5">
+</div>
+<!-- ============================================================
+     END sticky wrapper. Everything below this is the scrollable
+     content area.
+     ============================================================ -->
+
+<div class="container pb-5 scroll-area">
     <h2 class="section-title">ዕዳ ያለባቸው ደንበኞች</h2>
 
     {% if customer_details %}
-    <div class="row g-2 g-md-3">
+    <div class="row g-2 g-md-3" id="customerGrid">
         {% for customer in customer_details %}
-        <div class="col-6 col-md-6 col-lg-4">
+        <div class="col-6 col-md-6 col-lg-4 customer-grid-item" data-search-name="{{ customer.customer_name|lower }}">
             <div class="customer-card"
                  data-bs-toggle="modal"
                  data-bs-target="#payCustomerModal"
@@ -402,6 +492,14 @@
         </div>
         {% endfor %}
     </div>
+
+    <!-- NEW: shown when search matches nothing -->
+    <div class="search-empty-state" id="searchEmptyState">
+        <i class="bi bi-search"></i>
+        <h4>ምንም ደንበኛ አልተገኘም</h4>
+        <p class="text-muted mb-0">የፈለጉት ስም ካለ ደንበኞች ጋር አልተዛመደም።</p>
+    </div>
+
     {% else %}
     <div class="empty-state">
         <i class="bi bi-check-circle"></i>
@@ -503,6 +601,44 @@
             new bootstrap.Toast(toastEl, { delay: 3000, autohide: true }).show();
         });
     });
+
+    // ============================================================
+    // NEW: customer search (by name only), client-side, no reload
+    // ============================================================
+    (function(){
+        const searchInput = document.getElementById('customerSearchInput');
+        const searchBtn = document.getElementById('customerSearchBtn');
+        const grid = document.getElementById('customerGrid');
+        const emptyState = document.getElementById('searchEmptyState');
+
+        if (!searchInput || !grid) return;
+
+        function runSearch(){
+            const query = searchInput.value.trim().toLowerCase();
+            const items = grid.querySelectorAll('.customer-grid-item');
+            let visibleCount = 0;
+
+            items.forEach(function(item){
+                const name = item.getAttribute('data-search-name') || '';
+                const matches = query === '' || name.includes(query);
+                item.style.display = matches ? '' : 'none';
+                if (matches) visibleCount++;
+            });
+
+            if (emptyState) {
+                emptyState.style.display = (visibleCount === 0) ? 'block' : 'none';
+            }
+        }
+
+        searchInput.addEventListener('input', runSearch);
+        searchBtn.addEventListener('click', runSearch);
+        searchInput.addEventListener('keydown', function(e){
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                runSearch();
+            }
+        });
+    })();
 </script>
 
 </body>

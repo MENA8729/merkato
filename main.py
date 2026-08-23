@@ -68,9 +68,9 @@ app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('menayimge87@gmail.com')
-app.config['MAIL_PASSWORD'] = os.environ.get('tzjg kehx tbfy afua')
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('menayimge87@gmail.com')
+app.config['MAIL_USERNAME'] = os.environ.get('shoppingwithkedir@gmail.com')
+app.config['MAIL_PASSWORD'] = os.environ.get('nbpe uzrf zxjh dylc')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('shoppingwithkedir@gmail.com')
 
 mail = Mail(app)
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
@@ -1806,7 +1806,7 @@ def delete(item_type, item_id):
     # PRODUCT
     # ==========================================
     elif item_type == "product":
-        flash("you can't edit the product either make it 0 amount or edit it ።", "success")
+        flash("you can't delete the product either make it 0 amount or edit it ።", "success")
 
 
     # ==========================================
