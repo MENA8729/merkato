@@ -303,6 +303,14 @@ a{
     pointer-events:none;
 }
 
+/* NEW: pay-full button under Current Payment field */
+.pay-full-btn{
+    border-radius:10px;
+    font-weight:600;
+    font-size:0.82rem;
+    margin-top:8px;
+}
+
 .calc-summary{
     background:var(--green-soft);
     border-radius:12px;
@@ -767,6 +775,11 @@ a{
 
                             </div>
 
+                            <button type="button"
+                                    class="btn btn-outline-success btn-sm pay-full-btn pay-full-trigger">
+                                <i class="bi bi-check2-circle me-1"></i>ሙሉ መጠን ይክፈሉ
+                            </button>
+
                         </div>
 
 
@@ -1173,6 +1186,30 @@ function calculateGrandTotals(){
 }
 
 
+/* ===== PAY FULL AMOUNT ===== */
+
+function payFullAmount(card){
+
+    const qty =
+        parseFloat(
+            card.querySelector('.item-quantity').value
+        ) || 0;
+
+    const price =
+        parseFloat(
+            card.querySelector('.item-price').value
+        ) || 0;
+
+    const total = qty * price;
+
+    card.querySelector('.item-payment').value =
+        total.toFixed(2);
+
+    calculateGrandTotals();
+
+}
+
+
 /* ===== CHECK DUPLICATE PRODUCTS ===== */
 
 function checkDuplicateProducts(){
@@ -1324,6 +1361,24 @@ function attachCardEvents(card){
 
         }
     );
+
+
+    const payFullBtn =
+        card.querySelector('.pay-full-trigger');
+
+
+    if(payFullBtn){
+
+        payFullBtn.addEventListener(
+            'click',
+            () => {
+
+                payFullAmount(card);
+
+            }
+        );
+
+    }
 
 
     const removeBtn =
@@ -1508,6 +1563,11 @@ function createPurchaseCard(index){
                     </span>
 
                 </div>
+
+                <button type="button"
+                        class="btn btn-outline-success btn-sm pay-full-btn pay-full-trigger">
+                    <i class="bi bi-check2-circle me-1"></i>ሙሉ መጠን ይክፈሉ
+                </button>
 
             </div>
 
