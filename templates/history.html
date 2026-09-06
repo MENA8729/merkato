@@ -156,6 +156,13 @@
     .empty-state i{ font-size:2.6rem; color:#cbd5e1; margin-bottom:14px; }
     .empty-state h5{ font-weight:700; }
     .empty-state p{ color:var(--muted); }
+
+    /* EDIT FORM INSIDE MODAL */
+    .edit-toggle-btn{ font-size:0.82rem; }
+    .edit-fields{ display:none; }
+    .edit-fields.show{ display:block; }
+    .edit-fields .form-label{ font-size:0.8rem; font-weight:600; color:var(--muted); }
+    .edit-fields .form-control{ font-size:0.9rem; }
 </style>
 </head>
 <body>
@@ -422,14 +429,45 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="row-line"><span>ምርት</span><span>{{ products[purchase.product_id].name if purchase.product_id in products else 'ያልታወቀ' }}</span></div>
-                <div class="row-line"><span>አቅራቢ</span><span>{{ suppliers[purchase.supplier_id].name if purchase.supplier_id in suppliers else 'ያልታወቀ' }}</span></div>
-                <div class="row-line"><span>ብዛት</span><span>{{ purchase.quantity }}</span></div>
-                <div class="row-line"><span>የአንዱ ዋጋ</span><span>{{ "{:,.2f}".format(purchase.unit_price) }} ETB</span></div>
-                <div class="row-line"><span>ጠቅላላ መጠን</span><span>{{ "{:,.2f}".format(purchase.total_price) }} ETB</span></div>
-                <div class="row-line"><span>የመጀመሪያ ክፍያ</span><span>{{ "{:,.2f}".format(purchase.payment) }} ETB</span></div>
-                <div class="row-line"><span>ዕዳ</span><span class="debt-text">{{ "{:,.2f}".format(purchase.debt) }} ETB</span></div>
-                <div class="row-line"><span>ቀን</span><span>{{ purchase.date }}</span></div>
+
+                <!-- VIEW MODE -->
+                <div class="view-fields">
+                    <div class="row-line"><span>ምርት</span><span>{{ products[purchase.product_id].name if purchase.product_id in products else 'ያልታወቀ' }}</span></div>
+                    <div class="row-line"><span>አቅራቢ</span><span>{{ suppliers[purchase.supplier_id].name if purchase.supplier_id in suppliers else 'ያልታወቀ' }}</span></div>
+                    <div class="row-line"><span>ብዛት</span><span>{{ purchase.quantity }}</span></div>
+                    <div class="row-line"><span>የአንዱ ዋጋ</span><span>{{ "{:,.2f}".format(purchase.unit_price) }} ETB</span></div>
+                    <div class="row-line"><span>ጠቅላላ መጠን</span><span>{{ "{:,.2f}".format(purchase.total_price) }} ETB</span></div>
+                    <div class="row-line"><span>የመጀመሪያ ክፍያ</span><span>{{ "{:,.2f}".format(purchase.payment) }} ETB</span></div>
+                    <div class="row-line"><span>ዕዳ</span><span class="debt-text">{{ "{:,.2f}".format(purchase.debt) }} ETB</span></div>
+                    <div class="row-line"><span>ቀን</span><span>{{ purchase.date }}</span></div>
+                </div>
+
+                <!-- EDIT MODE (hidden until Edit clicked) -->
+                <form class="edit-fields" id="editPurchaseForm{{ purchase.id }}"
+                      method="POST" action="{{ url_for('edit_purchase', purchase_id=purchase.id) }}">
+                    <div class="mb-2">
+                        <label class="form-label">ብዛት</label>
+                        <input type="number" step="0.01" min="0.01" name="quantity" class="form-control" value="{{ purchase.quantity }}" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">የአንዱ ዋጋ</label>
+                        <input type="number" step="0.01" min="0" name="unit_price" class="form-control" value="{{ purchase.unit_price }}" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">የመጀመሪያ ክፍያ</label>
+                        <input type="number" step="0.01" min="0" name="payment" class="form-control" value="{{ purchase.payment }}" required>
+                    </div>
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill cancel-edit-btn">ይቅር</button>
+                        <button type="submit" class="btn btn-primary btn-sm flex-fill">አረጋግጥ እና አስቀምጥ</button>
+                    </div>
+                </form>
+
+                <div class="text-end mt-2 view-fields">
+                    <button type="button" class="btn btn-outline-primary btn-sm edit-toggle-btn" data-target="editPurchaseForm{{ purchase.id }}">
+                        <i class="bi bi-pencil me-1"></i>አስተካክል
+                    </button>
+                </div>
 
                 <hr>
                 <h6 class="fw-bold mb-1">ለዚህ አቅራቢ የተደረጉ ሁሉም ክፍያዎች</h6>
@@ -461,14 +499,45 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="row-line"><span>ምርት</span><span>{{ products[sale.product_id].name if sale.product_id in products else 'ያልታወቀ' }}</span></div>
-                <div class="row-line"><span>ደንበኛ</span><span>{{ customers[sale.customer_id].name if sale.customer_id in customers else 'ያልታወቀ' }}</span></div>
-                <div class="row-line"><span>ብዛት</span><span>{{ sale.quantity }}</span></div>
-                <div class="row-line"><span>የሽያጭ ዋጋ</span><span>{{ "{:,.2f}".format(sale.unit_price) }} ETB</span></div>
-                <div class="row-line"><span>ጠቅላላ ሽያጭ</span><span>{{ "{:,.2f}".format(sale.quantity * sale.unit_price) }} ETB</span></div>
-                <div class="row-line"><span>የአሁኑ ክፍያ</span><span>{{ "{:,.2f}".format(sale.current_payment) }} ETB</span></div>
-                <div class="row-line"><span>ዕዳ</span><span class="debt-text">{{ "{:,.2f}".format(sale.debt) }} ETB</span></div>
-                <div class="row-line"><span>ቀን</span><span>{{ sale.date }}</span></div>
+
+                <!-- VIEW MODE -->
+                <div class="view-fields">
+                    <div class="row-line"><span>ምርት</span><span>{{ products[sale.product_id].name if sale.product_id in products else 'ያልታወቀ' }}</span></div>
+                    <div class="row-line"><span>ደንበኛ</span><span>{{ customers[sale.customer_id].name if sale.customer_id in customers else 'ያልታወቀ' }}</span></div>
+                    <div class="row-line"><span>ብዛት</span><span>{{ sale.quantity }}</span></div>
+                    <div class="row-line"><span>የሽያጭ ዋጋ</span><span>{{ "{:,.2f}".format(sale.unit_price) }} ETB</span></div>
+                    <div class="row-line"><span>ጠቅላላ ሽያጭ</span><span>{{ "{:,.2f}".format(sale.quantity * sale.unit_price) }} ETB</span></div>
+                    <div class="row-line"><span>የአሁኑ ክፍያ</span><span>{{ "{:,.2f}".format(sale.current_payment) }} ETB</span></div>
+                    <div class="row-line"><span>ዕዳ</span><span class="debt-text">{{ "{:,.2f}".format(sale.debt) }} ETB</span></div>
+                    <div class="row-line"><span>ቀን</span><span>{{ sale.date }}</span></div>
+                </div>
+
+                <!-- EDIT MODE (hidden until Edit clicked) -->
+                <form class="edit-fields" id="editSaleForm{{ sale.id }}"
+                      method="POST" action="{{ url_for('edit_sale', sale_id=sale.id) }}">
+                    <div class="mb-2">
+                        <label class="form-label">ብዛት</label>
+                        <input type="number" step="0.01" min="0.01" name="quantity" class="form-control" value="{{ sale.quantity }}" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">የሽያጭ ዋጋ</label>
+                        <input type="number" step="0.01" min="0" name="unit_price" class="form-control" value="{{ sale.unit_price }}" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">የአሁኑ ክፍያ</label>
+                        <input type="number" step="0.01" min="0" name="current_payment" class="form-control" value="{{ sale.current_payment }}" required>
+                    </div>
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill cancel-edit-btn">ይቅር</button>
+                        <button type="submit" class="btn btn-primary btn-sm flex-fill">አረጋግጥ እና አስቀምጥ</button>
+                    </div>
+                </form>
+
+                <div class="text-end mt-2 view-fields">
+                    <button type="button" class="btn btn-outline-primary btn-sm edit-toggle-btn" data-target="editSaleForm{{ sale.id }}">
+                        <i class="bi bi-pencil me-1"></i>አስተካክል
+                    </button>
+                </div>
 
                 <hr>
                 <h6 class="fw-bold mb-1">ከዚህ ደንበኛ የተደረጉ ሁሉም ክፍያዎች</h6>
@@ -542,6 +611,38 @@
     [searchInput, typeFilter, statusFilter, fromDate, toDate].forEach(el => {
         el.addEventListener('input', applyFilters);
         el.addEventListener('change', applyFilters);
+    });
+
+    // ===== EDIT TOGGLE WITH CONFIRMATION =====
+    document.querySelectorAll('.edit-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', function(){
+            const modalBody = this.closest('.modal-body');
+            const form = modalBody.querySelector('#' + this.getAttribute('data-target'));
+            const viewFieldsBlocks = modalBody.querySelectorAll('.view-fields');
+
+            viewFieldsBlocks.forEach(el => el.style.display = 'none');
+            form.classList.add('show');
+        });
+    });
+
+    document.querySelectorAll('.cancel-edit-btn').forEach(btn => {
+        btn.addEventListener('click', function(){
+            const form = this.closest('.edit-fields');
+            const modalBody = this.closest('.modal-body');
+            const viewFieldsBlocks = modalBody.querySelectorAll('.view-fields');
+
+            form.classList.remove('show');
+            viewFieldsBlocks.forEach(el => el.style.display = '');
+        });
+    });
+
+    document.querySelectorAll('.edit-fields').forEach(form => {
+        form.addEventListener('submit', function(e){
+            const confirmed = confirm('ይህን መዝገብ ማስተካከል ይፈልጋሉ? ይህ ድርጊት ነባር መረጃውን ይቀይራል።');
+            if(!confirmed){
+                e.preventDefault();
+            }
+        });
     });
 </script>
 

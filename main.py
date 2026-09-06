@@ -1104,6 +1104,7 @@ def Selling():
         entry.form.customer_id.choices = customer_choices
 
     if sale_form.validate_on_submit():
+        print("he")
 
         # ==========================================================
         # PASS 1: Validate the entire batch before changing anything
@@ -2929,6 +2930,95 @@ def customer_debt_statement_share(customer_id):
         customer=customer,
         pdf_url=pdf_url
     )
+
+
+
+@app.route("/edit_purchase/<int:purchase_id>", methods=["POST"])
+@login_required
+@emp_allowed
+def edit_purchase(purchase_id):
+    purchase = Purchase.query.get_or_404(purchase_id)
+
+    quantity = request.form.get("quantity", type=float)
+    unit_price = request.form.get("unit_price", type=float)
+    payment = request.form.get("payment", type=float)
+
+    if quantity is None or unit_price is None or payment is None:
+        flash("Invalid data submitted.", "danger")
+        return redirect(url_for("history"))
+
+    if quantity <= 0 or unit_price < 0 or payment < 0:
+        flash("Values must be valid positive numbers.", "danger")
+        return redirect(url_for("history"))
+
+    product = Product.query.get(purchase.product_id)
+
+    # Adjust stock: remove old quantity's effect, apply new quantity's effect
+    old_quantity = purchase.quantity or 0
+    quantity_diff = quantity - old_quantity
+
+    if product:
+        product.current_quantity += quantity_diff
+
+    purchase.quantity = quantity
+    purchase.unit_price = unit_price
+    purchase.payment = payment
+    purchase.debt = (quantity * unit_price) - payment
+
+    db.session.commit()
+
+    flash("Purchase updated successfully.", "success")
+    return redirect(url_for("history"))
+
+
+@app.route("/edit_sale/<int:sale_id>", methods=["POST"])
+@login_required
+@emp_allowed
+def edit_sale(sale_id):
+    sale = Sale.query.get_or_404(sale_id)
+
+    quantity = request.form.get("quantity", type=float)
+    unit_price = request.form.get("unit_price", type=float)
+    current_payment = request.form.get("current_payment", type=float)
+
+    if quantity is None or unit_price is None or current_payment is None:
+        flash("Invalid data submitted.", "danger")
+        return redirect(url_for("history"))
+
+    if quantity <= 0 or unit_price < 0 or current_payment < 0:
+        flash("Values must be valid positive numbers.", "danger")
+        return redirect(url_for("history"))
+
+    product = Product.query.get(sale.product_id)
+
+    old_quantity = sale.quantity or 0
+    quantity_diff = quantity - old_quantity
+
+    # If quantity increased, that much more stock must be deducted
+    if product and quantity_diff > 0:
+        if quantity_diff > product.current_quantity:
+            flash(
+                f"Insufficient stock. Only {product.current_quantity} available.",
+                "danger"
+            )
+            return redirect(url_for("history"))
+
+    if product:
+        product.current_quantity -= quantity_diff
+
+    sale.quantity = quantity
+    sale.unit_price = unit_price
+    sale.current_payment = current_payment
+    sale.debt = (quantity * unit_price) - current_payment
+
+    db.session.commit()
+
+    flash("Sale updated successfully.", "success")
+    return redirect(url_for("history"))
+
+
+
+
 
 
 
