@@ -2942,8 +2942,9 @@ def edit_purchase(purchase_id):
     quantity = request.form.get("quantity", type=float)
     unit_price = request.form.get("unit_price", type=float)
     payment = request.form.get("payment", type=float)
+    new_supplier_id = request.form.get("supplier_id", type=int)
 
-    if quantity is None or unit_price is None or payment is None:
+    if quantity is None or unit_price is None or payment is None or new_supplier_id is None:
         flash("Invalid data submitted.", "danger")
         return redirect(url_for("history"))
 
@@ -2951,9 +2952,79 @@ def edit_purchase(purchase_id):
         flash("Values must be valid positive numbers.", "danger")
         return redirect(url_for("history"))
 
-    product = Product.query.get(purchase.product_id)
+    new_supplier = Supplier.query.get(new_supplier_id)
+    if not new_supplier:
+        flash("Selected supplier does not exist.", "danger")
+        return redirect(url_for("history"))
 
-    # Adjust stock: remove old quantity's effect, apply new quantity's effect
+    old_supplier_id = purchase.supplier_id
+    new_debt = (quantity * unit_price) - payment
+    is_moving = old_supplier_id != new_supplier_id
+
+    def supplier_remaining_debt(supplier_id, exclude_purchase_id=None, extra_debt=0):
+        purchases = Purchase.query.filter(
+            Purchase.supplier_id == supplier_id,
+            Purchase.id != exclude_purchase_id
+        ).all()
+
+        total_debt = sum(p.debt or 0 for p in purchases if (p.debt or 0) > 0)
+        total_debt += max(extra_debt, 0)
+
+        supplier = Supplier.query.get(supplier_id)
+        if supplier and supplier.balance_owed and supplier.balance_owed > 0:
+            total_debt += supplier.balance_owed
+
+        payments = SupplierPayment.query.filter_by(supplier_id=supplier_id).all()
+        total_paid = sum(pay.amount or 0 for pay in payments if (pay.amount or 0) > 0)
+
+        return total_debt - total_paid
+
+    # ---------------------------------------------------------
+    # Check ORIGIN supplier — removing/changing this purchase's debt
+    # must not make their remaining debt negative
+    # ---------------------------------------------------------
+    if old_supplier_id:
+        # If staying with the same supplier, this purchase's new debt still counts.
+        # If moving away, this purchase's debt is entirely removed from origin (extra_debt=0).
+        origin_extra_debt = new_debt if not is_moving else 0
+
+        origin_remaining = supplier_remaining_debt(
+            old_supplier_id,
+            exclude_purchase_id=purchase.id,
+            extra_debt=origin_extra_debt
+        )
+
+        if origin_remaining < 0:
+            old_supplier = Supplier.query.get(old_supplier_id)
+            flash(
+                f"Cannot save — this change would make {old_supplier.name if old_supplier else 'the original supplier'}'s "
+                f"remaining debt negative ({origin_remaining:,.2f} ETB).",
+                "danger"
+            )
+            return redirect(url_for("history"))
+
+    # ---------------------------------------------------------
+    # Check DESTINATION supplier — only relevant if actually moving
+    # ---------------------------------------------------------
+    if is_moving:
+        destination_remaining = supplier_remaining_debt(
+            new_supplier_id,
+            exclude_purchase_id=purchase.id,
+            extra_debt=new_debt
+        )
+
+        if destination_remaining < 0:
+            flash(
+                f"Cannot move this purchase to {new_supplier.name} — it would make their remaining debt negative "
+                f"({destination_remaining:,.2f} ETB).",
+                "danger"
+            )
+            return redirect(url_for("history"))
+
+    # ---------------------------------------------------------
+    # Safe to save — apply changes
+    # ---------------------------------------------------------
+    product = Product.query.get(purchase.product_id)
     old_quantity = purchase.quantity or 0
     quantity_diff = quantity - old_quantity
 
@@ -2963,12 +3034,20 @@ def edit_purchase(purchase_id):
     purchase.quantity = quantity
     purchase.unit_price = unit_price
     purchase.payment = payment
-    purchase.debt = (quantity * unit_price) - payment
+    purchase.debt = new_debt
+    purchase.supplier_id = new_supplier_id
 
     db.session.commit()
 
-    flash("Purchase updated successfully.", "success")
+    if is_moving:
+        flash(f"Purchase updated and moved to {new_supplier.name} successfully.", "success")
+    else:
+        flash("Purchase updated successfully.", "success")
+
     return redirect(url_for("history"))
+
+
+
 
 
 @app.route("/edit_sale/<int:sale_id>", methods=["POST"])
@@ -2980,8 +3059,9 @@ def edit_sale(sale_id):
     quantity = request.form.get("quantity", type=float)
     unit_price = request.form.get("unit_price", type=float)
     current_payment = request.form.get("current_payment", type=float)
+    new_customer_id = request.form.get("customer_id", type=int)
 
-    if quantity is None or unit_price is None or current_payment is None:
+    if quantity is None or unit_price is None or current_payment is None or new_customer_id is None:
         flash("Invalid data submitted.", "danger")
         return redirect(url_for("history"))
 
@@ -2989,12 +3069,80 @@ def edit_sale(sale_id):
         flash("Values must be valid positive numbers.", "danger")
         return redirect(url_for("history"))
 
-    product = Product.query.get(sale.product_id)
+    new_customer = Customer.query.get(new_customer_id)
+    if not new_customer:
+        flash("Selected customer does not exist.", "danger")
+        return redirect(url_for("history"))
 
+    old_customer_id = sale.customer_id
+    new_debt = (quantity * unit_price) - current_payment
+    is_moving = old_customer_id != new_customer_id
+
+    def customer_remaining_debt(customer_id, exclude_sale_id=None, extra_debt=0):
+        sales = Sale.query.filter(
+            Sale.customer_id == customer_id,
+            Sale.id != exclude_sale_id
+        ).all()
+
+        sales_debt = sum(s.debt or 0 for s in sales if (s.debt or 0) > 0)
+        sales_debt += max(extra_debt, 0)
+
+        additional_debt_records = AddDebt.query.filter_by(customer_id=customer_id).all()
+        additional_debt = sum(d.amount or 0 for d in additional_debt_records)
+
+        total_debt = sales_debt + additional_debt
+
+        payments = CustomerPayment.query.filter_by(customer_id=customer_id).all()
+        total_paid = sum(p.amount or 0 for p in payments if (p.amount or 0) > 0)
+
+        return total_debt - total_paid
+
+    # ---------------------------------------------------------
+    # Check ORIGIN customer
+    # ---------------------------------------------------------
+    if old_customer_id:
+        origin_extra_debt = new_debt if not is_moving else 0
+
+        origin_remaining = customer_remaining_debt(
+            old_customer_id,
+            exclude_sale_id=sale.id,
+            extra_debt=origin_extra_debt
+        )
+
+        if origin_remaining < 0:
+            old_customer = Customer.query.get(old_customer_id)
+            flash(
+                f"Cannot save — this change would make {old_customer.name if old_customer else 'the original customer'}'s "
+                f"remaining debt negative ({origin_remaining:,.2f} ETB).",
+                "danger"
+            )
+            return redirect(url_for("history"))
+
+    # ---------------------------------------------------------
+    # Check DESTINATION customer — only relevant if actually moving
+    # ---------------------------------------------------------
+    if is_moving:
+        destination_remaining = customer_remaining_debt(
+            new_customer_id,
+            exclude_sale_id=sale.id,
+            extra_debt=new_debt
+        )
+
+        if destination_remaining < 0:
+            flash(
+                f"Cannot move this sale to {new_customer.name} — it would make their remaining debt negative "
+                f"({destination_remaining:,.2f} ETB).",
+                "danger"
+            )
+            return redirect(url_for("history"))
+
+    # ---------------------------------------------------------
+    # Check stock availability if quantity increased
+    # ---------------------------------------------------------
+    product = Product.query.get(sale.product_id)
     old_quantity = sale.quantity or 0
     quantity_diff = quantity - old_quantity
 
-    # If quantity increased, that much more stock must be deducted
     if product and quantity_diff > 0:
         if quantity_diff > product.current_quantity:
             flash(
@@ -3003,19 +3151,26 @@ def edit_sale(sale_id):
             )
             return redirect(url_for("history"))
 
+    # ---------------------------------------------------------
+    # Safe to save — apply changes
+    # ---------------------------------------------------------
     if product:
         product.current_quantity -= quantity_diff
 
     sale.quantity = quantity
     sale.unit_price = unit_price
     sale.current_payment = current_payment
-    sale.debt = (quantity * unit_price) - current_payment
+    sale.debt = new_debt
+    sale.customer_id = new_customer_id
 
     db.session.commit()
 
-    flash("Sale updated successfully.", "success")
-    return redirect(url_for("history"))
+    if is_moving:
+        flash(f"Sale updated and moved to {new_customer.name} successfully.", "success")
+    else:
+        flash("Sale updated successfully.", "success")
 
+    return redirect(url_for("history"))
 
 
 
