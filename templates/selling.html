@@ -1,1626 +1,690 @@
+<!-- ============================================================= -->
+<!-- SELLING PAGE — inline dropdowns, live validation, sticky footer -->
+<!-- ============================================================= -->
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}
-            <div class="alert alert-success alert-dismissible fade show flash-message" role="alert">
+            <div class="alert alert-{{ 'danger' if category == 'danger' else category }} alert-dismissible fade show flash-message" role="alert">
                 {{ message }}
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert">
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         {% endfor %}
     {% endif %}
 {% endwith %}
-<style>
-    .flash-message {
-        font-family: 'Inter', 'Segoe UI', sans-serif;
-        font-size: 13px;
-        font-weight: 500;
-        letter-spacing: 0.1px;
-        padding: 8px 12px;
-        margin: 10px auto;
-        max-width: 500px;
-        border-radius: 7px;
-    }
-</style>
+
+<style>.flash-message{font-family:'Inter','Segoe UI',sans-serif;font-size:13px;font-weight:500;padding:8px 12px;margin:10px auto;max-width:500px;border-radius:7px;}</style>
+
 <!DOCTYPE html>
 <html lang="am">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>አዲስ ሽያጭ</title>
-
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-    :root{
-        --primary:#3730a3;
-        --primary-dark:#2c2582;
-        --success:#16a34a;
-        --warning:#d97706;
-        --danger:#dc2626;
-        --muted:#64748b;
-        --bg:#f4f6f8;
-        --dark:#1e293b;
-    }
+:root{--blue:#2563eb;--green:#16a34a;--red:#dc2626;--dark:#1e293b;--muted:#64748b;--bg:#f4f6f8;}
+*{box-sizing:border-box;} html,body{overflow-x:hidden;max-width:100%;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);}
 
-    body{
-        font-family:'Inter', 'Noto Sans Ethiopic', sans-serif;
-        background:var(--bg);
-        color:var(--dark);
-    }
+.navbar{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:12px 0;}
+.navbar-brand{font-weight:800;color:var(--blue)!important;font-size:1.1rem;}
+.nav-link{font-weight:500;color:#475569!important;font-size:.86rem;}
+.nav-link.active{color:var(--blue)!important;}
 
-    /* HEADER / NAVBAR */
-    .navbar{
-        background:#fff;
-        box-shadow:0 2px 10px rgba(0,0,0,0.06);
-        padding:12px 0;
-    }
-    .navbar-brand{
-        font-weight:800;
-        color:var(--primary) !important;
-        font-size:1.2rem;
-        font-family:'Noto Sans Ethiopic', 'Inter', sans-serif;
-    }
-    .navbar-brand i{ margin-right:6px; }
-    .navbar .nav-link{
-        font-weight:600;
-        color:#475569 !important;
-        font-family:'Noto Sans Ethiopic', 'Inter', sans-serif;
-        font-size:0.92rem;
-    }
-    .navbar .nav-link:hover, .navbar .nav-link.active{ color:var(--primary) !important; }
-    .navbar .nav-link i{ margin-right:6px; }
+.page-header{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;padding:18px 0;}
+.page-header h1{font-weight:800;font-size:1.15rem;margin:0;}
+.page-header p{color:#dbeafe;font-size:.8rem;margin:2px 0 0;}
 
-    /* HERO */
-    .hero{
-        position:relative;
-        height:280px;
-        overflow:hidden;
-        display:flex;
-        align-items:center;
-        color:#fff;
-    }
+.page-wrap{padding:16px 0 190px;max-width:600px;margin:0 auto;}
 
-    .hero::before{
-        content:"";
-        position:absolute;
-        inset:0;
-        background:
-            linear-gradient(135deg, rgba(30,20,80,0.88), rgba(55,48,163,0.85)),
-            url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=80');
-        background-size:cover;
-        background-position:center;
-    }
+.sale-card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 4px 14px rgba(0,0,0,.05);margin-bottom:16px;position:relative;}
+.form-badge-num{position:absolute;top:-9px;left:14px;background:var(--blue);color:#fff;font-size:.66rem;font-weight:700;padding:2px 10px;border-radius:14px;}
+.card-title-main{font-weight:700;font-size:.98rem;margin:6px 0 10px;}
 
-    .hero-content{
-        position:relative;
-        z-index:2;
-    }
+.form-label{font-weight:600;font-size:.8rem;margin-bottom:4px;}
 
-    .hero .badge-pill{
-        background:rgba(255,255,255,0.15);
-        border:1px solid rgba(255,255,255,0.3);
-        padding:5px 16px;
-        border-radius:30px;
-        font-size:0.78rem;
-        font-weight:600;
-        letter-spacing:0.5px;
-        display:inline-block;
-        margin-bottom:12px;
-    }
+.dropdown-wrap{position:relative;}
+.picker-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #dee2e6;border-radius:10px;padding:10px 12px;font-size:.88rem;cursor:pointer;}
+.picker-trigger.filled{border-color:var(--blue);color:var(--dark);font-weight:600;}
+.picker-trigger.invalid{border-color:var(--red);}
+.picker-trigger .placeholder-text{color:var(--muted);}
+.picker-trigger i{color:var(--muted);font-size:.85rem;}
 
-    .hero h1{
-        font-weight:800;
-        font-size:2.1rem;
-        margin-bottom:8px;
-    }
+.inline-dropdown{position:absolute;top:100%;left:0;right:0;z-index:60;background:#fff;border:1px solid #dee2e6;border-radius:10px;margin-top:4px;box-shadow:0 10px 24px rgba(0,0,0,.1);max-height:270px;display:flex;flex-direction:column;overflow:hidden;}
+.dropdown-search{padding:8px 10px;position:relative;border-bottom:1px solid #f1f5f9;flex-shrink:0;}
+.dropdown-search i{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.78rem;}
+.dropdown-search input{width:100%;padding:7px 10px 7px 28px;border:1px solid #dee2e6;border-radius:8px;font-size:.85rem;}
+.dropdown-search input:focus{outline:none;border-color:var(--blue);}
+.dropdown-list{overflow-y:auto;flex:1;}
+.dropdown-option{padding:10px 12px;cursor:pointer;font-size:.87rem;display:flex;justify-content:space-between;align-items:center;}
+.dropdown-option:hover{background:#f8fafc;}
+.dropdown-option .opt-name{font-weight:600;color:var(--dark);}
+.dropdown-option .opt-stock{font-size:.74rem;font-weight:700;color:var(--green);}
+.dropdown-empty{padding:14px;text-align:center;color:var(--muted);font-size:.8rem;}
 
-    .hero p{
-        color:#e0e7ff;
-        max-width:520px;
-        font-size:0.92rem;
-        margin-bottom:10px;
-    }
+.item-card{border:1px solid #e5e7eb;border-radius:12px;margin-bottom:12px;overflow:visible;position:relative;}
+.item-header{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;cursor:pointer;background:#fff;border-radius:12px 12px 0 0;}
+.item-header .item-name{font-weight:700;font-size:.9rem;}
+.item-header .item-name.placeholder{color:var(--muted);font-weight:500;}
+.item-delete{background:none;border:none;color:var(--red);font-size:1rem;padding:0;}
+.item-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 12px 10px;background:#fff;}
+.item-fields label{font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:3px;display:block;}
+.item-fields label .req{color:var(--red);}
+.item-fields input{height:40px;font-size:.9rem;border-radius:8px;border:1.3px solid #dee2e6;padding:6px 10px;width:100%;}
+.item-fields input:focus{border-color:var(--blue);outline:none;}
+.item-fields input.invalid{border-color:var(--red);background:#fff5f5;}
+.item-line-total{text-align:right;padding:0 12px 12px;font-size:.9rem;font-weight:800;color:var(--dark);}
+.item-line-total .unit-label{color:var(--muted);font-size:.72rem;font-weight:500;margin-right:4px;}
 
-    .hero .stat-line{
-        font-size:0.82rem;
-        font-weight:600;
-        letter-spacing:0.5px;
-        color:#c7d2fe;
-    }
+.section-head-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.section-head-row .form-label{margin:0;}
 
-    /* FORM CARD */
-    .form-wrap{ margin-top:-60px; position:relative; z-index:5; }
+/* ---- Add item button now sits BELOW the items list ---- */
+.add-item-wrap{text-align:right;margin-top:4px;}
+.add-item-btn-sm{background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:700;font-size:.8rem;display:inline-flex;align-items:center;gap:6px;}
+.add-item-btn-sm:hover{background:#128a3e;color:#fff;}
 
-    .sale-card{
-        background:#fff;
-        border-radius:18px;
-        padding:30px;
-        box-shadow:0 14px 34px rgba(0,0,0,0.1);
-        border:1px solid #eef0f2;
-        margin-bottom:22px;
-        position:relative;
-        transition:box-shadow .2s ease;
-    }
+.card-grand-total{display:flex;justify-content:space-between;align-items:center;padding:12px 2px 0;font-size:.9rem;}
+.card-grand-total .g-label{color:var(--muted);font-weight:600;}
+.card-grand-total .g-value{font-weight:800;font-size:1.05rem;color:var(--dark);}
 
-    .sale-card:hover{ box-shadow:0 18px 40px rgba(0,0,0,0.12); }
+.helper-text{font-size:.72rem;color:var(--muted);margin-top:3px;}
 
-    .sale-card .form-badge-num{
-        position:absolute;
-        top:-12px;
-        left:26px;
-        background:var(--primary);
-        color:#fff;
-        font-size:0.75rem;
-        font-weight:700;
-        padding:4px 14px;
-        border-radius:20px;
-    }
+.pay-full-btn{border-radius:8px;font-weight:600;font-size:.74rem;}
 
-    .card-title-main{
-        font-weight:800;
-        font-size:1.3rem;
-        margin-bottom:2px;
-    }
+.add-sale-wrap{text-align:center;margin:6px 0 20px;}
+.add-sale-btn{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px dashed var(--blue);color:var(--blue);font-weight:600;font-size:.85rem;padding:9px 20px;border-radius:40px;cursor:pointer;}
+.add-sale-btn:hover{background:#eef4ff;}
 
-    .card-subtitle{
-        color:var(--muted);
-        font-size:0.88rem;
-        margin-bottom:24px;
-    }
+.empty-state{text-align:center;padding:40px 18px;background:#fff;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.05);margin-bottom:16px;}
+.empty-state i{font-size:2.2rem;color:#cbd5e1;margin-bottom:10px;}
+.remove-sale-btn{border-radius:8px;font-weight:600;font-size:.76rem;}
 
-    .form-label{
-        font-weight:600;
-        font-size:0.85rem;
-    }
-
-    .form-select, .form-control{
-        border-radius:10px;
-        padding:11px 14px;
-        border:1px solid #dee2e6;
-        transition:border-color .2s ease, box-shadow .2s ease;
-    }
-
-    .form-select:focus, .form-control:focus{
-        border-color:var(--primary);
-        box-shadow:0 0 0 0.2rem rgba(55,48,163,0.15);
-    }
-
-    .helper-text{
-        font-size:0.78rem;
-        color:var(--muted);
-        margin-top:4px;
-    }
-
-    /* STOCK / CUSTOMER INFO PANELS */
-    .info-panel{
-        background:var(--bg);
-        border-radius:12px;
-        padding:12px 16px;
-        margin-top:10px;
-        font-size:0.85rem;
-        display:none;
-    }
-
-    .info-panel.show{ display:block; }
-
-    .stock-warning{
-        color:var(--danger);
-        font-weight:600;
-        font-size:0.82rem;
-        margin-top:6px;
-        display:none;
-    }
-
-    .stock-warning.show{ display:block; }
-
-    /* SUMMARY CARD */
-    .summary-card{
-        background:linear-gradient(135deg, #eef2ff, #f5f7ff);
-        border-radius:14px;
-        padding:20px;
-        margin-top:22px;
-        border:1px solid #e0e7ff;
-    }
-
-    .summary-title{
-        font-size:0.78rem;
-        text-transform:uppercase;
-        letter-spacing:1px;
-        font-weight:700;
-        color:var(--primary);
-        margin-bottom:14px;
-    }
-
-    .summary-row{
-        display:flex;
-        justify-content:space-between;
-        font-size:0.9rem;
-        padding:6px 0;
-        color:var(--muted);
-    }
-
-    .summary-row.total{
-        border-top:1px dashed #c7d2fe;
-        margin-top:8px;
-        padding-top:12px;
-        font-weight:800;
-        font-size:1.05rem;
-        color:var(--dark);
-    }
-
-    .summary-row.debt-row{
-        font-weight:700;
-    }
-
-    .debt-badge{
-        display:inline-block;
-        padding:4px 14px;
-        border-radius:20px;
-        font-size:0.82rem;
-        font-weight:700;
-        margin-top:8px;
-    }
-
-    .debt-paid{ background:#dcfce7; color:var(--success); }
-    .debt-partial{ background:#fef3c7; color:var(--warning); }
-    .debt-full{ background:#fee2e2; color:var(--danger); }
-
-    .overpay-warning{
-        background:#fee2e2;
-        color:var(--danger);
-        border-radius:10px;
-        padding:10px 14px;
-        font-size:0.85rem;
-        font-weight:600;
-        margin-top:10px;
-        display:none;
-    }
-
-    .overpay-warning.show{ display:block; }
-
-    .remove-sale-btn{
-        border-radius:10px;
-        font-weight:600;
-        font-size:0.82rem;
-    }
-
-    .pay-full-btn{
-        border-radius:10px;
-        font-weight:600;
-        font-size:0.82rem;
-    }
-
-    /* GRAND TOTAL CARD */
-    .grand-total-card{
-        background:var(--dark);
-        color:#fff;
-        border-radius:16px;
-        padding:24px;
-        margin-bottom:22px;
-        box-shadow:0 10px 24px rgba(0,0,0,0.15);
-    }
-
-    .grand-total-title{
-        font-size:0.78rem;
-        text-transform:uppercase;
-        letter-spacing:1px;
-        font-weight:700;
-        color:#c7d2fe;
-        margin-bottom:16px;
-    }
-
-    .grand-total-row{
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        padding:8px 0;
-        font-size:0.95rem;
-        border-bottom:1px solid rgba(255,255,255,0.1);
-    }
-
-    .grand-total-row:last-child{ border-bottom:none; }
-
-    .grand-total-row .g-label{ color:#c7d2fe; }
-    .grand-total-row .g-value{ font-weight:800; font-size:1.1rem; }
-
-    .grand-total-row.grand-debt .g-value{ color:#fca5a5; }
-    .grand-total-row.grand-paid .g-value{ color:#86efac; }
-
-    /* ACTION AREA */
-    .action-note{
-        font-size:0.8rem;
-        color:var(--muted);
-    }
-
-    .btn-primary-custom{
-        background:var(--primary);
-        border:none;
-        border-radius:10px;
-        font-weight:700;
-        padding:12px 28px;
-        transition:background .2s ease;
-    }
-
-    .btn-primary-custom:hover{
-        background:var(--primary-dark);
-    }
-
-    .empty-state{
-        text-align:center;
-        padding:50px 20px;
-        background:#fff;
-        border-radius:16px;
-        box-shadow:0 4px 14px rgba(0,0,0,0.05);
-        margin-bottom:20px;
-    }
-
-    .empty-state i{
-        font-size:2.6rem;
-        color:#cbd5e1;
-        margin-bottom:12px;
-    }
-
-    @media (max-width: 767.98px){
-        .hero{ height:220px; }
-        .hero h1{ font-size:1.6rem; }
-        .sale-card{ padding:20px; }
-    }
+/* ---- Sticky bottom footer (Grand total + Save) ---- */
+.sticky-footer{position:fixed;bottom:0;left:0;right:0;background:#fff;box-shadow:0 -4px 16px rgba(0,0,0,.08);z-index:80;}
+.sticky-footer-inner{max-width:600px;margin:0 auto;padding:10px 16px 12px;}
+.sticky-total-row{display:flex;justify-content:space-between;font-size:.78rem;padding:2px 0;}
+.sticky-total-row .g-label{color:var(--muted);}
+.sticky-total-row .g-value{font-weight:800;color:var(--dark);}
+.sticky-total-row.grand-debt .g-value{color:var(--red);}
+.sticky-total-row.grand-paid .g-value{color:var(--green);}
+.sticky-actions{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;}
+.btn-primary-custom{background:var(--blue);border:none;border-radius:9px;font-weight:700;padding:9px 22px;font-size:.86rem;}
+.action-note{font-size:.7rem;color:var(--muted);}
 </style>
 </head>
 <body>
 
-
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
-        <a class="navbar-brand" href="#"><i class="bi bi-shop"></i>ስቶክ ማኔጅመንት</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <a class="navbar-brand" href="#"><i class="bi bi-shop"></i> ስቶክ ማኔጅመንት</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavMenu"><span class="navbar-toggler-icon"></span></button>
         <div class="collapse navbar-collapse justify-content-end" id="mainNavMenu">
             <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{{url_for('home')}}"><i class="bi bi-house"></i>መነሻ</a></li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-speedometer2"></i>ዳሽቦርድ</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{url_for('track')}}"><i class="bi bi-box-seam"></i>ምርቶች</a></li>
-                <li class="nav-item"><a class="nav-link active" href="{{url_for('Selling')}}"><i class="bi bi-cash-coin"></i>ሽያጭ</a></li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-people"></i>ደንበኞች</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{url_for('logout')}}"><i class="bi bi-box-arrow-right"></i>ውጣ</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{url_for('new_action')}}">መነሻ</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{url_for('products_page')}}">ምርቶች</a></li>
+                <li class="nav-item"><a class="nav-link " href="{{url_for('purchases')}}">ግዢ</a></li>
+
+
             </ul>
         </div>
     </div>
 </nav>
 
-<!-- HERO -->
-<section class="hero">
-    <div class="container hero-content">
-        <span class="badge-pill">የሽያጭ አስተዳደር</span>
+<section class="page-header">
+    <div class="container">
         <h1>አዲስ ሽያጭ ይመዝግቡ</h1>
-        <p>ምርቶችን ይሽጡ፣ የደንበኛ ክፍያዎችን ይመዝግቡ፣ እንዲሁም የክምችትዎን እና የደንበኞችዎን ሂሳብ የተደራጀ ያድርጉ።</p>
-        <div class="stat-line">ምርቶች • ደንበኞች • ክፍያዎች</div>
+        <p>ደንበኛ ይምረጡ፣ ምርት ይጨምሩ፣ ክፍያ ይመዝግቡ።</p>
     </div>
 </section>
 
-<div class="container form-wrap pb-5">
+<div class="container page-wrap">
 
     {% if not products %}
-    <div class="empty-state">
-        <i class="bi bi-box-seam"></i>
-        <h5>ምንም ምርት አልተገኘም።</h5>
-        <p class="text-muted mb-0">ሽያጭ ከመመዝገብዎ በፊት ምርት ይጨምሩ።</p>
-    </div>
+    <div class="empty-state"><i class="bi bi-box-seam"></i><h6 class="fw-bold">ምንም ምርት አልተገኘም።</h6><p class="text-muted mb-0 small">ሽያጭ ከመመዝገብዎ በፊት ምርት ይጨምሩ።</p></div>
     {% elif not customers %}
-    <div class="empty-state">
-        <i class="bi bi-person-x"></i>
-        <h5>ምንም ደንበኛ አልተገኘም።</h5>
-        <p class="text-muted mb-0">ሽያጭ ከመመዝገብዎ በፊት ደንበኛ ይጨምሩ።</p>
-    </div>
+    <div class="empty-state"><i class="bi bi-person-x"></i><h6 class="fw-bold">ምንም ደንበኛ አልተገኘም።</h6><p class="text-muted mb-0 small">ሽያጭ ከመመዝገብዎ በፊት ደንበኛ ይጨምሩ።</p></div>
     {% else %}
 
     <form method="POST" action="{{ url_for('Selling') }}" novalidate id="saleFormWrapper">
         {{ sale_form.hidden_tag() }}
+        <div id="realFieldsContainer" style="display:none;"></div>
 
         <div id="salesContainer">
-            {% for entry in sale_form.sales %}
-            <div class="sale-card" data-form-index="{{ loop.index }}">
-                <span class="form-badge-num">ሽያጭ #{{ loop.index }}</span>
+            <div class="sale-card" data-card-index="0">
+                <span class="form-badge-num">ሽያጭ #<span class="card-num-label">1</span></span>
                 <div class="card-title-main">አዲስ ሽያጭ</div>
-                <p class="card-subtitle">ከታች የምርት እና የደንበኛ መረጃውን ያስገቡ።</p>
-
-                <div class="row g-3 mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">ምርት ይምረጡ</label>
-                        {{ entry.form.product_id(class="form-select sale-product-select") }}
-                        <div class="info-panel stock-info">
-                            <i class="bi bi-box-seam me-1"></i>ያለው ክምችት፡ <strong class="stock-value">-</strong>
-                        </div>
-                        <div class="stock-warning">በቂ ክምችት የለም።</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">ደንበኛ ይምረጡ</label>
-                        {{ entry.form.customer_id(class="form-select sale-customer-select") }}
-                        <div class="info-panel customer-info">
-                            <i class="bi bi-person me-1"></i><span class="customer-name">-</span><br>
-                            <i class="bi bi-telephone me-1"></i><span class="customer-phone">-</span><br>
-                            <i class="bi bi-wallet2 me-1"></i>የአሁኑ ሂሳብ፡ <span class="customer-balance">-</span>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="mb-3">
-                    <label class="form-label">መለኪያ</label>
-                    {{ entry.form.measurement(class="form-select sale-measurement") }}
-                </div>
-
-                <div class="row g-3 mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">ብዛት</label>
-                        {{ entry.form.quantity(class="form-control sale-quantity", placeholder="0.00", step="0.01") }}
-                        <div class="helper-text">የሚሸጠውን ብዛት ያስገቡ።</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">የሽያጭ ዋጋ</label>
-                        {{ entry.form.unit_price(class="form-control sale-price", placeholder="0.00", step="0.01") }}
-                        <div class="helper-text">ለተመረጠው መለኪያ ዋጋ።</div>
+                    <label class="form-label">ደንበኛ ይምረጡ</label>
+                    <div class="dropdown-wrap">
+                        <div class="picker-trigger customer-trigger" data-customer-id="">
+                            <span class="placeholder-text trigger-text">ደንበኛ ይምረጡ...</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
                     </div>
                 </div>
 
-                <div class="mb-2">
+                <label class="form-label">ምርቶች</label>
+                <div class="items-container"></div>
+                <div class="add-item-wrap">
+                    <button type="button" class="add-item-btn-sm"><i class="bi bi-plus-lg"></i>ጨምር</button>
+                </div>
+
+                <div class="card-grand-total">
+                    <span class="g-label">ጠቅላላ</span>
+                    <span class="g-value card-total-display">0.00 ETB</span>
+                </div>
+
+                <div class="mb-2 mt-3">
                     <label class="form-label">የአሁኑ ክፍያ</label>
-                    {{ entry.form.current_payment(class="form-control sale-payment", placeholder="0.00", step="0.01") }}
+                    <input type="number" class="form-control sale-payment" placeholder="0.00" step="0.01" value="0">
                     <div class="helper-text">ደንበኛው አሁን ምን ያህል እየከፈለ ነው?</div>
-                    <button type="button" class="btn btn-outline-success btn-sm pay-full-btn mt-2 pay-full-trigger">
-                        <i class="bi bi-check2-circle me-1"></i>ሙሉ መጠን ይክፈሉ
-                    </button>
+                    <button type="button" class="btn btn-outline-success btn-sm pay-full-btn mt-2 pay-full-trigger"><i class="bi bi-check2-circle me-1"></i>ሙሉ መጠን ይክፈሉ</button>
                 </div>
-
-                <!-- LIVE SUMMARY -->
-                <div class="summary-card">
-                    <div class="summary-title">የሽያጭ ማጠቃለያ</div>
-                    <div class="summary-row">
-                        <span>ብዛት</span>
-                        <span class="sum-quantity">0</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>የሽያጭ ዋጋ</span>
-                        <span class="sum-price">0.00 ETB</span>
-                    </div>
-                    <div class="summary-row total">
-                        <span>ጠቅላላ መጠን</span>
-                        <span class="sum-total">0.00 ETB</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>የአሁኑ ክፍያ</span>
-                        <span class="sum-payment">0.00 ETB</span>
-                    </div>
-                    <div class="summary-row debt-row">
-                        <span>ቀሪ ዕዳ</span>
-                        <span class="sum-debt">0.00 ETB</span>
-                    </div>
-                    <span class="debt-badge debt-full sum-badge">ሙሉ መጠን አልተከፈለም</span>
-                    <div class="overpay-warning">ክፍያ ከጠቅላላ መጠን መብለጥ አይችልም።</div>
-                </div>
-
-                {% if loop.index > 1 %}
-                <button type="button" class="btn btn-outline-danger btn-sm remove-sale-btn mt-3" onclick="this.closest('.sale-card').remove(); recalcGrandTotals();">
-                    <i class="bi bi-x-lg me-1"></i>ሽያጭ አስወግድ
-                </button>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-
-        <!-- GRAND TOTAL SUMMARY (across all sale cards) -->
-        <div class="grand-total-card">
-            <div class="grand-total-title"><i class="bi bi-calculator me-1"></i>ጠቅላላ የሽያጭ ማጠቃለያ</div>
-            <div class="grand-total-row">
-                <span class="g-label">ጠቅላላ መጠን (ሁሉም ሽያጮች)</span>
-                <span class="g-value" id="grandTotalAmount">0.00 ETB</span>
-            </div>
-            <div class="grand-total-row grand-paid">
-                <span class="g-label">ጠቅላላ የተከፈለ</span>
-                <span class="g-value" id="grandTotalPaid">0.00 ETB</span>
-            </div>
-            <div class="grand-total-row grand-debt">
-                <span class="g-label">ጠቅላላ ቀሪ ዕዳ</span>
-                <span class="g-value" id="grandTotalDebt">0.00 ETB</span>
             </div>
         </div>
 
-        <div class="d-flex justify-content-between flex-wrap gap-2 mb-3">
-            <button type="button" class="btn btn-outline-primary" id="addAnotherSaleBtn">
-                <i class="bi bi-plus-lg me-1"></i>ሌላ ምርት ይሽጡ
-            </button>
+        <div class="add-sale-wrap">
+            <button type="button" class="add-sale-btn" id="addAnotherSaleBtn"><i class="bi bi-plus-circle"></i>ተጨማሪ ሽያጭ ጨምር (ሌላ ደንበኛ)</button>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <button type="button" class="btn btn-outline-secondary me-2">ይቅር</button>
-                {{ sale_form.submit(class="btn btn-primary-custom text-white") }}
-            </div>
-            <div class="action-note"><i class="bi bi-shield-check me-1"></i>ሽያጭዎ በግብይት ታሪክ ውስጥ ይመዘገባል።</div>
-        </div>
     </form>
+
+    <!-- STICKY FOOTER -->
+    <div class="sticky-footer">
+        <div class="sticky-footer-inner">
+            <div class="sticky-total-row"><span class="g-label">ጠቅላላ መጠን</span><span class="g-value" id="grandTotalAmount">0.00 ETB</span></div>
+            <div class="sticky-total-row grand-paid"><span class="g-label">ጠቅላላ የተከፈለ</span><span class="g-value" id="grandTotalPaid">0.00 ETB</span></div>
+            <div class="sticky-total-row grand-debt"><span class="g-label">ጠቅላላ ቀሪ ዕዳ</span><span class="g-value" id="grandTotalDebt">0.00 ETB</span></div>
+            <div class="sticky-actions">
+                <span class="action-note"><i class="bi bi-shield-check me-1"></i>ሽያጭዎ ይመዘገባል።</span>
+                <button type="submit" form="saleFormWrapper" class="btn btn-primary-custom text-white">{{ sale_form.submit.label.text if sale_form.submit and sale_form.submit.label else 'አስቀምጥ' }}</button>
+            </div>
+        </div>
+    </div>
 
     {% endif %}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // =========================================================
-    // DATA FROM FLASK
-    // =========================================================
-
-    const productsData = {
-        {% for product in products %}
-        {{ product.id }}: {
-            name: {{ product.name|tojson }},
-            stock: {{ product.current_quantity|default(0, true)|tojson }},
-            measurement: {{ (product.measurement or '')|tojson }},
-            price: {{ product.unit_price|default(0, true)|tojson }}
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-    };
-
-    const customersData = {
-        {% for customer in customers %}
-        {{ customer.id }}: {
-            name: {{ customer.name|tojson }},
-            phone: {{ (customer.phone or 'N/A')|tojson }},
-            balance: {{ customer.balance_owed|default(0, true)|tojson }}
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-    };
-
-
-    // =========================================================
-    // VARIABLES
-    // =========================================================
-
-    let saleFormCount = document.querySelectorAll(".sale-card").length;
-
-    // Small tolerance for floating-point comparisons
-    const MONEY_EPSILON = 0.00001;
-
-
-    // =========================================================
-    // SAFE NUMBER FUNCTIONS
-    // =========================================================
-
-    function getNumber(value) {
-
-        const number = Number.parseFloat(value);
-
-        return Number.isFinite(number) ? number : 0;
-    }
-
-
-    function roundMoney(value) {
-
-        return Math.round(
-            (getNumber(value) + Number.EPSILON) * 100
-        ) / 100;
-    }
-
-
-    function calculateTotal(quantity, price) {
-
-        const safeQuantity = getNumber(quantity);
-        const safePrice = getNumber(price);
-
-        return roundMoney(safeQuantity * safePrice);
-    }
-
-
-    function isOverPayment(payment, total) {
-
-        return getNumber(payment) > getNumber(total) + MONEY_EPSILON;
-    }
-
-
-    function isFullyPaid(payment, total) {
-
-        return Math.abs(
-            getNumber(payment) - getNumber(total)
-        ) <= MONEY_EPSILON;
-    }
-
-
-    // =========================================================
-    // FORMAT MONEY
-    // =========================================================
-
-    function formatMoney(value) {
-
-        const safeValue = roundMoney(value);
-
-        return safeValue.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }) + " ETB";
-    }
-
-
-    // =========================================================
-    // INITIALIZE EACH SALE CARD
-    // =========================================================
-
-    function initSaleCard(card) {
-
-        const productSelect = card.querySelector(".sale-product-select");
-        const customerSelect = card.querySelector(".sale-customer-select");
-
-        const quantityInput = card.querySelector(".sale-quantity");
-        const priceInput = card.querySelector(".sale-price");
-        const paymentInput = card.querySelector(".sale-payment");
-
-        const payFullBtn = card.querySelector(".pay-full-trigger");
-
-        const stockInfo = card.querySelector(".stock-info");
-        const stockValue = card.querySelector(".stock-value");
-        const stockWarning = card.querySelector(".stock-warning");
-
-        const customerInfo = card.querySelector(".customer-info");
-        const customerName = card.querySelector(".customer-name");
-        const customerPhone = card.querySelector(".customer-phone");
-        const customerBalance = card.querySelector(".customer-balance");
-
-        const sumQty = card.querySelector(".sum-quantity");
-        const sumPrice = card.querySelector(".sum-price");
-        const sumTotal = card.querySelector(".sum-total");
-        const sumPayment = card.querySelector(".sum-payment");
-        const sumDebt = card.querySelector(".sum-debt");
-
-        const sumBadge = card.querySelector(".sum-badge");
-        const overpayWarning = card.querySelector(".overpay-warning");
-
-
-        // =====================================================
-        // UPDATE PRODUCT
-        // =====================================================
-
-        function updateProduct() {
-
-            const productId = productSelect.value;
-            const product = productsData[productId];
-
-            if (!product) {
-
-                stockInfo.classList.remove("show");
-
-                stockWarning.classList.remove("show");
-
-                return;
-            }
-
-
-            // Show stock
-            stockInfo.classList.add("show");
-
-            stockValue.textContent =
-                getNumber(product.stock) +
-                (
-                    product.measurement
-                        ? " " + product.measurement
-                        : ""
-                );
-
-
-            // Automatically put product price
-            priceInput.value =
-                roundMoney(product.price).toFixed(2);
-
-
-            // Calculate immediately
-            calculate();
-        }
-
-
-        // =====================================================
-        // UPDATE CUSTOMER
-        // =====================================================
-
-        function updateCustomer() {
-
-            const customerId = customerSelect.value;
-            const customer = customersData[customerId];
-
-            if (!customer) {
-
-                customerInfo.classList.remove("show");
-
-                return;
-            }
-
-
-            customerInfo.classList.add("show");
-
-            customerName.textContent = customer.name;
-
-            customerPhone.textContent = customer.phone;
-
-            customerBalance.textContent =
-                formatMoney(customer.balance);
-        }
-
-
-        // =====================================================
-        // CHECK STOCK
-        // =====================================================
-
-        function checkStock() {
-
-            const productId = productSelect.value;
-
-            const product = productsData[productId];
-
-            const quantity =
-                getNumber(quantityInput.value);
-
-
-            if (
-                product &&
-                quantity > getNumber(product.stock) + MONEY_EPSILON
-            ) {
-
-                stockWarning.classList.add("show");
-
-                stockWarning.textContent =
-                    "የቀረው " +
-                    getNumber(product.stock) +
-                    " ብቻ ነው።";
-
-            } else {
-
-                stockWarning.classList.remove("show");
-            }
-        }
-
-
-        // =====================================================
-        // CALCULATE SALE
-        // =====================================================
-
-        function calculate() {
-
-            const quantity =
-                getNumber(quantityInput.value);
-
-            const price =
-                getNumber(priceInput.value);
-
-            let payment =
-                getNumber(paymentInput.value);
-
-
-            // Safe total calculation rounded to 2 decimals
-            const total =
-                calculateTotal(quantity, price);
-
-
-            // IMPORTANT:
-            // If payment is extremely close to total,
-            // treat it as exactly equal.
-            if (isFullyPaid(payment, total)) {
-
-                payment = total;
-            }
-
-
-            // Calculate debt safely
-            let debt =
-                roundMoney(total - payment);
-
-
-            if (
-                Math.abs(debt) <= MONEY_EPSILON ||
-                debt < 0
-            ) {
-
-                debt = 0;
-            }
-
-
-            // =================================================
-            // OVERPAYMENT CHECK
-            // =================================================
-
-            if (
-                total > 0 &&
-                isOverPayment(payment, total)
-            ) {
-
-                overpayWarning.classList.add("show");
-
-            } else {
-
-                overpayWarning.classList.remove("show");
-            }
-
-
-            // =================================================
-            // UPDATE SUMMARY
-            // =================================================
-
-            sumQty.textContent =
-                quantity;
-
-            sumPrice.textContent =
-                formatMoney(price);
-
-            sumTotal.textContent =
-                formatMoney(total);
-
-            sumPayment.textContent =
-                formatMoney(payment);
-
-            sumDebt.textContent =
-                formatMoney(debt);
-
-
-            // =================================================
-            // DEBT BADGE
-            // =================================================
-
-            sumBadge.classList.remove(
-                "debt-paid",
-                "debt-partial",
-                "debt-full"
-            );
-
-
-            if (
-                total > 0 &&
-                !isOverPayment(payment, total) &&
-                isFullyPaid(payment, total)
-            ) {
-
-                sumBadge.textContent =
-                    "ተከፍሏል ✓";
-
-                sumBadge.classList.add(
-                    "debt-paid"
-                );
-
-            } else if (
-                payment > 0 &&
-                debt > MONEY_EPSILON
-            ) {
-
-                sumBadge.textContent =
-                    "ቀሪ ዕዳ፡ " +
-                    formatMoney(debt);
-
-                sumBadge.classList.add(
-                    "debt-partial"
-                );
-
-            } else {
-
-                sumBadge.textContent =
-                    "ሙሉ መጠን አልተከፈለም";
-
-                sumBadge.classList.add(
-                    "debt-full"
-                );
-            }
-
-
-            // Check stock
-            checkStock();
-
-
-            // Recalculate all sale cards
-            recalcGrandTotals();
-        }
-
-
-        // =====================================================
-        // PAY FULL AMOUNT
-        // =====================================================
-
-        function payFullAmount() {
-
-            const quantity =
-                getNumber(quantityInput.value);
-
-            const price =
-                getNumber(priceInput.value);
-
-
-            // Calculate the exact same safe total
-            // used everywhere else
-            const total =
-                calculateTotal(quantity, price);
-
-
-            // Put the exact total in the payment field
-            paymentInput.value =
-                total.toFixed(2);
-
-
-            // Recalculate immediately
-            calculate();
-        }
-
-
-        // =====================================================
-        // EVENT LISTENERS
-        // =====================================================
-
-        productSelect.addEventListener(
-            "change",
-            updateProduct
-        );
-
-
-        customerSelect.addEventListener(
-            "change",
-            updateCustomer
-        );
-
-
-        quantityInput.addEventListener(
-            "input",
-            calculate
-        );
-
-
-        priceInput.addEventListener(
-            "input",
-            calculate
-        );
-
-
-        paymentInput.addEventListener(
-            "input",
-            calculate
-        );
-
-
-        if (payFullBtn) {
-
-            payFullBtn.addEventListener(
-                "click",
-                payFullAmount
-            );
-        }
-
-
-        // =====================================================
-        // INITIAL STATE
-        // =====================================================
-
-        updateProduct();
-
-        updateCustomer();
-
-        calculate();
-    }
-
-
-    // =========================================================
-    // GRAND TOTALS
-    // =========================================================
-
-    function recalcGrandTotals() {
-
-        let grandTotal = 0;
-
-        let grandPaid = 0;
-
-        let grandDebt = 0;
-
-
-        document
-            .querySelectorAll(".sale-card")
-            .forEach(card => {
-
-
-                const quantityInput =
-                    card.querySelector(".sale-quantity");
-
-                const priceInput =
-                    card.querySelector(".sale-price");
-
-                const paymentInput =
-                    card.querySelector(".sale-payment");
-
-
-                const quantity =
-                    getNumber(quantityInput.value);
-
-                const price =
-                    getNumber(priceInput.value);
-
-                let payment =
-                    getNumber(paymentInput.value);
-
-
-                // Safe total
-                const total =
-                    calculateTotal(quantity, price);
-
-
-                // Treat nearly equal values as equal
-                if (
-                    isFullyPaid(payment, total)
-                ) {
-
-                    payment = total;
-                }
-
-
-                let debt =
-                    roundMoney(total - payment);
-
-
-                if (
-                    Math.abs(debt) <= MONEY_EPSILON ||
-                    debt < 0
-                ) {
-
-                    debt = 0;
-                }
-
-
-                grandTotal =
-                    roundMoney(
-                        grandTotal + total
-                    );
-
-                grandPaid =
-                    roundMoney(
-                        grandPaid + payment
-                    );
-
-                grandDebt =
-                    roundMoney(
-                        grandDebt + debt
-                    );
-            });
-
-
-        const totalElement =
-            document.getElementById(
-                "grandTotalAmount"
-            );
-
-        const paidElement =
-            document.getElementById(
-                "grandTotalPaid"
-            );
-
-        const debtElement =
-            document.getElementById(
-                "grandTotalDebt"
-            );
-
-
-        if (totalElement) {
-
-            totalElement.textContent =
-                formatMoney(grandTotal);
-        }
-
-
-        if (paidElement) {
-
-            paidElement.textContent =
-                formatMoney(grandPaid);
-        }
-
-
-        if (debtElement) {
-
-            debtElement.textContent =
-                formatMoney(grandDebt);
-        }
-    }
-
-
-    // =========================================================
-    // INITIALIZE EXISTING SALE CARDS
-    // =========================================================
-
-    document
-        .querySelectorAll(".sale-card")
-        .forEach(card => {
-
-            initSaleCard(card);
+if (window.__sellingPageInitialized) { console.warn("already initialized"); } else {
+window.__sellingPageInitialized = true;
+
+const EPSILON = 0.01;
+
+const productsData = {
+    {% for product in products %}
+    {{ product.id }}: { name: {{ product.name|tojson }}, stock: {{ product.current_quantity|default(0, true)|tojson }}, price: {{ product.unit_price|default(0, true)|tojson }} }{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
+const customersData = {
+    {% for customer in customers %}
+    {{ customer.id }}: { name: {{ customer.name|tojson }} }{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
+
+const salesContainer = document.getElementById("salesContainer");
+const addAnotherSaleBtn = document.getElementById("addAnotherSaleBtn");
+const saleForm = document.getElementById("saleFormWrapper");
+const realFieldsContainer = document.getElementById("realFieldsContainer");
+const grandTotalEl = document.getElementById("grandTotalAmount");
+const grandPaidEl = document.getElementById("grandTotalPaid");
+const grandDebtEl = document.getElementById("grandTotalDebt");
+
+let cardIndex = 1;
+
+function getNumber(v){ const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+function round2(v){ return Math.round((getNumber(v)+Number.EPSILON)*100)/100; }
+function formatMoney(v){ return round2(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) + " ETB"; }
+
+/* ===== GENERIC INLINE DROPDOWN (opens under its trigger) ===== */
+
+function closeAllDropdowns(){
+    document.querySelectorAll('.inline-dropdown').forEach(p => {
+        if(p._outsideHandler) document.removeEventListener('click', p._outsideHandler);
+        p.remove();
+    });
+}
+
+function openDropdown(triggerEl, options, onSelect, showStock){
+    const alreadyOpenForThis = triggerEl.parentElement.querySelector('.inline-dropdown');
+    closeAllDropdowns();
+    if(alreadyOpenForThis) return;
+
+    const panel = document.createElement('div');
+    panel.className = 'inline-dropdown';
+    panel.innerHTML = `
+        <div class="dropdown-search"><i class="bi bi-search"></i><input type="text" placeholder="ይፈልጉ..."></div>
+        <div class="dropdown-list"></div>
+        <div class="dropdown-empty" style="display:none;">ምንም አልተገኘም።</div>
+    `;
+    triggerEl.parentElement.appendChild(panel);
+
+    const listEl = panel.querySelector('.dropdown-list');
+    const searchInput = panel.querySelector('.dropdown-search input');
+    const emptyEl = panel.querySelector('.dropdown-empty');
+
+    function renderList(filter=''){
+        listEl.innerHTML = '';
+        let any = false;
+        options.forEach(opt => {
+            if(filter && !opt.name.toLowerCase().includes(filter)) return;
+            any = true;
+            const row = document.createElement('div');
+            row.className = 'dropdown-option';
+            row.innerHTML = showStock
+                ? `<span class="opt-name">${opt.name}</span><span class="opt-stock">Available: ${opt.stock} pc</span>`
+                : `<span class="opt-name">${opt.name}</span>`;
+            row.addEventListener('click', () => { onSelect(opt.id, opt.name); closeAllDropdowns(); });
+            listEl.appendChild(row);
         });
+        emptyEl.style.display = any ? 'none' : 'block';
+    }
+    renderList();
+    searchInput.addEventListener('input', () => renderList(searchInput.value.toLowerCase().trim()));
+    setTimeout(() => searchInput.focus(), 30);
 
+    function outsideHandler(e){
+        if(!panel.contains(e.target) && e.target !== triggerEl && !triggerEl.contains(e.target)){
+            closeAllDropdowns();
+        }
+    }
+    panel._outsideHandler = outsideHandler;
+    setTimeout(() => document.addEventListener('click', outsideHandler), 0);
+}
+
+
+/* ===== ITEM CARD (product line item) ===== */
+
+function createItemCard(){
+    const card = document.createElement("div");
+    card.className = "item-card";
+    card.dataset.productId = "";
+    card.innerHTML = `
+        <div class="item-header">
+            <div class="dropdown-wrap flex-grow-1">
+                <span class="item-name placeholder">ምርት ይምረጡ <i class="bi bi-chevron-down"></i></span>
+            </div>
+            <button type="button" class="item-delete"><i class="bi bi-trash"></i></button>
+        </div>
+        <div class="item-fields">
+            <div>
+                <label>ብዛት <span class="req">*</span></label>
+                <input type="number" class="item-quantity" min="0.01" step="0.01" placeholder="0">
+            </div>
+            <div>
+                <label>የሽያጭ ዋጋ <span class="req">*</span></label>
+                <input type="number" class="item-price" min="0.01" step="0.01" placeholder="0.00">
+            </div>
+        </div>
+        <div class="item-line-total"><span class="unit-label">ድምር</span><span class="item-total-value">0.00 ETB</span></div>
+    `;
+    return card;
+}
+
+function calcItemTotal(card){
+    const qty = getNumber(card.querySelector(".item-quantity").value);
+    const price = getNumber(card.querySelector(".item-price").value);
+    const total = round2(qty * price);
+    card.querySelector(".item-total-value").textContent = formatMoney(total);
+    return total;
+}
+
+function validateItemInputs(card){
+    const qtyInput = card.querySelector(".item-quantity");
+    const priceInput = card.querySelector(".item-price");
+    const qty = getNumber(qtyInput.value);
+    const price = getNumber(priceInput.value);
+
+    qtyInput.classList.toggle("invalid", card.dataset.productId !== "" && (qtyInput.value === "" || qty <= 0));
+    priceInput.classList.toggle("invalid", card.dataset.productId !== "" && (priceInput.value === "" || price <= 0));
+}
+
+function initItemCard(itemCard, cardEl){
+
+    const nameEl = itemCard.querySelector(".item-name");
+    const qtyInput = itemCard.querySelector(".item-quantity");
+    const priceInput = itemCard.querySelector(".item-price");
+    const deleteBtn = itemCard.querySelector(".item-delete");
+
+    nameEl.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const options = Object.entries(productsData).map(([id,p]) => ({id, name:p.name, stock:p.stock}));
+        openDropdown(nameEl, options, (id, name) => {
+            const stock = productsData[id] ? productsData[id].stock : 0;
+            const price = productsData[id] ? productsData[id].price : 0;
+            itemCard.dataset.productId = id;
+            itemCard.dataset.productName = name;
+            itemCard.dataset.productStock = stock;
+            nameEl.classList.remove("placeholder");
+            nameEl.innerHTML = `${name} <i class="bi bi-chevron-down"></i>`;
+            if(!priceInput.value){ priceInput.value = price; }
+            if(!qtyInput.value){ qtyInput.value = 1; }
+            qtyInput.dataset.lastValid = qtyInput.value;
+            validateItemInputs(itemCard);
+            recalcCard(cardEl);
+        }, true);
+    });
+
+    deleteBtn.addEventListener("click", () => {
+        itemCard.remove();
+        recalcCard(cardEl);
+    });
+
+    qtyInput.dataset.lastValid = qtyInput.value || "0";
+    qtyInput.addEventListener("input", () => {
+        const stock = getNumber(itemCard.dataset.productStock);
+        const qty = getNumber(qtyInput.value);
+
+        if(itemCard.dataset.productId && stock && qty > stock){
+            alert(`"${itemCard.dataset.productName}" ውስጥ በክምችት ውስጥ ${stock} ብቻ አለ። እባክዎ ትክክለኛ ብዛት ያስገቡ ወይም ወደ ግዢ ገጽ ሄደው ክምችት ይጨምሩ።`);
+        }
+
+        validateItemInputs(itemCard);
+        recalcCard(cardEl);
+    });
+
+    priceInput.addEventListener("input", () => {
+        validateItemInputs(itemCard);
+        recalcCard(cardEl);
+    });
+
+    validateItemInputs(itemCard);
+}
+
+
+/* ===== SALE CARD LOGIC ===== */
+
+function getCardEls(card){
+    return {
+        customerTrigger: card.querySelector(".customer-trigger"),
+        itemsContainer: card.querySelector(".items-container"),
+        addItemBtn: card.querySelector(".add-item-btn-sm"),
+        cardTotalDisplay: card.querySelector(".card-total-display"),
+        paymentInput: card.querySelector(".sale-payment"),
+        payFullBtn: card.querySelector(".pay-full-trigger")
+    };
+}
+
+function recalcCard(card){
+    const els = getCardEls(card);
+    let totalAmount = 0;
+    els.itemsContainer.querySelectorAll(".item-card").forEach(item => {
+        totalAmount += calcItemTotal(item);
+    });
+    totalAmount = round2(totalAmount);
+    els.cardTotalDisplay.textContent = formatMoney(totalAmount);
+
+    let payment = getNumber(els.paymentInput.value);
+    els.paymentInput.classList.toggle("invalid", els.paymentInput.value !== "" && payment < 0);
+    if(payment < 0) payment = 0;
+
+    let debt = round2(totalAmount - payment);
+    if(debt < EPSILON) debt = 0;
+
+    card.dataset.totalAmount = totalAmount;
+    card.dataset.payment = payment;
+    card.dataset.debt = debt;
 
     recalcGrandTotals();
-
-
-    // =========================================================
-    // ADD ANOTHER SALE
-    // =========================================================
-
-    const addAnotherSaleBtn =
-        document.getElementById(
-            "addAnotherSaleBtn"
-        );
-
-
-    if (addAnotherSaleBtn) {
-
-        addAnotherSaleBtn.addEventListener(
-            "click",
-            function () {
-
-
-                const container =
-                    document.getElementById(
-                        "salesContainer"
-                    );
-
-
-                const index =
-                    saleFormCount;
-
-
-                // =================================================
-                // PRODUCT OPTIONS
-                // =================================================
-
-                const productOptions =
-                    Object
-                    .entries(productsData)
-                    .map(([id, product]) => {
-
-                        return `
-                            <option value="${id}">
-                                ${product.name}
-                            </option>
-                        `;
-
-                    })
-                    .join("");
-
-
-                // =================================================
-                // CUSTOMER OPTIONS
-                // =================================================
-
-                const customerOptions =
-                    Object
-                    .entries(customersData)
-                    .map(([id, customer]) => {
-
-                        return `
-                            <option value="${id}">
-                                ${customer.name}
-                            </option>
-                        `;
-
-                    })
-                    .join("");
-
-
-                const newCard =
-                    document.createElement("div");
-
-
-                newCard.className =
-                    "sale-card";
-
-
-                newCard.setAttribute(
-                    "data-form-index",
-                    index + 1
-                );
-
-
-                newCard.innerHTML = `
-
-                    <span class="form-badge-num">
-                        ሽያጭ #${index + 1}
-                    </span>
-
-                    <div class="card-title-main">
-                        አዲስ ሽያጭ
-                    </div>
-
-                    <p class="card-subtitle">
-                        ከታች የምርት እና የደንበኛ መረጃውን ያስገቡ።
-                    </p>
-
-
-                    <div class="row g-3 mb-3">
-
-                        <div class="col-md-6">
-
-                            <label class="form-label">
-                                ምርት ይምረጡ
-                            </label>
-
-                            <select
-                                class="form-select sale-product-select"
-                                name="sales-${index}-product_id">
-
-                                <option value="">
-                                    ምርት ይምረጡ
-                                </option>
-
-                                ${productOptions}
-
-                            </select>
-
-
-                            <div class="info-panel stock-info">
-
-                                <i class="bi bi-box-seam me-1"></i>
-
-                                ያለው ክምችት፡
-
-                                <strong class="stock-value">
-                                    -
-                                </strong>
-
-                            </div>
-
-
-                            <div class="stock-warning">
-                                በቂ ክምችት የለም።
-                            </div>
-
-                        </div>
-
-
-                        <div class="col-md-6">
-
-                            <label class="form-label">
-                                ደንበኛ ይምረጡ
-                            </label>
-
-                            <select
-                                class="form-select sale-customer-select"
-                                name="sales-${index}-customer_id">
-
-                                <option value="">
-                                    ደንበኛ ይምረጡ
-                                </option>
-
-                                ${customerOptions}
-
-                            </select>
-
-
-                            <div class="info-panel customer-info">
-
-                                <i class="bi bi-person me-1"></i>
-
-                                <span class="customer-name">
-                                    -
-                                </span>
-
-                                <br>
-
-                                <i class="bi bi-telephone me-1"></i>
-
-                                <span class="customer-phone">
-                                    -
-                                </span>
-
-                                <br>
-
-                                <i class="bi bi-wallet2 me-1"></i>
-
-                                የአሁኑ ሂሳብ፡
-
-                                <span class="customer-balance">
-                                    -
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="mb-3">
-
-                        <label class="form-label">
-                            መለኪያ
-                        </label>
-
-                        <select
-                            class="form-select sale-measurement"
-                            name="sales-${index}-measurement">
-
-                            <option value="">
-                                መለኪያ ይምረጡ (አማራጭ)
-                            </option>
-
-                            <option value="piece">
-                                ቁራጭ
-                            </option>
-
-                            <option value="kg">
-                                ኪ.ግ
-                            </option>
-
-                            <option value="liter">
-                                ሊትር
-                            </option>
-
-                            <option value="package">
-                                ጥቅል
-                            </option>
-
-                            <option value="box">
-                                ካርቶን
-                            </option>
-
-                            <option value="meter">
-                                ሜትር
-                            </option>
-
-                            <option value="other">
-                                ሌላ
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="row g-3 mb-3">
-
-                        <div class="col-md-6">
-
-                            <label class="form-label">
-                                ብዛት
-                            </label>
-
-                            <input
-                                type="number"
-                                class="form-control sale-quantity"
-                                name="sales-${index}-quantity"
-                                placeholder="0.00"
-                                step="0.01">
-
-                            <div class="helper-text">
-                                የሚሸጠውን ብዛት ያስገቡ።
-                            </div>
-
-                        </div>
-
-
-                        <div class="col-md-6">
-
-                            <label class="form-label">
-                                የሽያጭ ዋጋ
-                            </label>
-
-                            <input
-                                type="number"
-                                class="form-control sale-price"
-                                name="sales-${index}-unit_price"
-                                placeholder="0.00"
-                                step="0.01">
-
-                            <div class="helper-text">
-                                ለተመረጠው መለኪያ ዋጋ።
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="mb-2">
-
-                        <label class="form-label">
-                            የአሁኑ ክፍያ
-                        </label>
-
-                        <input
-                            type="number"
-                            class="form-control sale-payment"
-                            name="sales-${index}-current_payment"
-                            placeholder="0.00"
-                            step="0.01">
-
-                        <div class="helper-text">
-                            ደንበኛው አሁን ምን ያህል እየከፈለ ነው?
-                        </div>
-
-                        <button
-                            type="button"
-                            class="btn btn-outline-success btn-sm pay-full-btn mt-2 pay-full-trigger">
-
-                            <i class="bi bi-check2-circle me-1"></i>
-
-                            ሙሉ መጠን ይክፈሉ
-
-                        </button>
-
-                    </div>
-
-
-                    <div class="summary-card">
-
-                        <div class="summary-title">
-                            የሽያጭ ማጠቃለያ
-                        </div>
-
-
-                        <div class="summary-row">
-                            <span>ብዛት</span>
-                            <span class="sum-quantity">0</span>
-                        </div>
-
-
-                        <div class="summary-row">
-                            <span>የሽያጭ ዋጋ</span>
-                            <span class="sum-price">0.00 ETB</span>
-                        </div>
-
-
-                        <div class="summary-row total">
-                            <span>ጠቅላላ መጠን</span>
-                            <span class="sum-total">0.00 ETB</span>
-                        </div>
-
-
-                        <div class="summary-row">
-                            <span>የአሁኑ ክፍያ</span>
-                            <span class="sum-payment">0.00 ETB</span>
-                        </div>
-
-
-                        <div class="summary-row debt-row">
-                            <span>ቀሪ ዕዳ</span>
-                            <span class="sum-debt">0.00 ETB</span>
-                        </div>
-
-
-                        <span class="debt-badge debt-full sum-badge">
-                            ሙሉ መጠን አልተከፈለም
-                        </span>
-
-
-                        <div class="overpay-warning">
-                            ክፍያ ከጠቅላላ መጠን መብለጥ አይችልም።
-                        </div>
-
-                    </div>
-
-
-                    <button
-                        type="button"
-                        class="btn btn-outline-danger btn-sm remove-sale-btn mt-3"
-                        onclick="this.closest('.sale-card').remove(); recalcGrandTotals();">
-
-                        <i class="bi bi-x-lg me-1"></i>
-
-                        ሽያጭ አስወግድ
-
-                    </button>
-                `;
-
-
-                container.appendChild(
-                    newCard
-                );
-
-
-                initSaleCard(
-                    newCard
-                );
-
-
-                saleFormCount++;
-
-
-                recalcGrandTotals();
-            }
-        );
+}
+
+function recalcGrandTotals(){
+    let grandTotal = 0, grandPaid = 0, grandDebt = 0;
+    document.querySelectorAll(".sale-card").forEach(card => {
+        grandTotal += getNumber(card.dataset.totalAmount);
+        grandPaid += getNumber(card.dataset.payment);
+        grandDebt += getNumber(card.dataset.debt);
+    });
+    grandTotalEl.textContent = formatMoney(grandTotal);
+    grandPaidEl.textContent = formatMoney(grandPaid);
+    grandDebtEl.textContent = formatMoney(grandDebt);
+}
+
+function initSaleCard(card){
+    if(card.dataset.initialized) return;
+    card.dataset.initialized = "true";
+
+    const els = getCardEls(card);
+
+    els.customerTrigger.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const options = Object.entries(customersData).map(([id,c]) => ({id, name:c.name}));
+        openDropdown(els.customerTrigger, options, (id, name) => {
+            els.customerTrigger.dataset.customerId = id;
+            els.customerTrigger.querySelector(".trigger-text").textContent = name;
+            els.customerTrigger.querySelector(".trigger-text").classList.remove("placeholder-text");
+            els.customerTrigger.classList.add("filled");
+            els.customerTrigger.classList.remove("invalid");
+        }, false);
+    });
+
+    els.addItemBtn.addEventListener("click", () => {
+        const itemCard = createItemCard();
+        els.itemsContainer.appendChild(itemCard);
+        initItemCard(itemCard, card);
+        recalcCard(card);
+        itemCard.querySelector(".item-name").click();
+    });
+
+    els.paymentInput.dataset.lastValid = "0";
+    els.paymentInput.addEventListener("input", () => {
+        const total = getNumber(card.dataset.totalAmount);
+        const payment = getNumber(els.paymentInput.value);
+
+        if(payment > total + EPSILON){
+            alert("ክፍያ ከጠቅላላ መጠን መብለጥ አይችልም። እባክዎ ትክክለኛ መጠን ያስገቡ።");
+            els.paymentInput.value = els.paymentInput.dataset.lastValid || "0";
+            recalcCard(card);
+            return;
+        }
+
+        els.paymentInput.dataset.lastValid = els.paymentInput.value;
+        recalcCard(card);
+    });
+
+    els.payFullBtn.addEventListener("click", () => {
+        let total = 0;
+        els.itemsContainer.querySelectorAll(".item-card").forEach(item => { total += calcItemTotal(item); });
+        els.paymentInput.value = round2(total).toFixed(2);
+        els.paymentInput.dataset.lastValid = els.paymentInput.value;
+        recalcCard(card);
+    });
+
+    recalcCard(card);
+}
+
+
+/* ===== ADD ANOTHER SALE (new customer) ===== */
+
+function createSaleCard(index){
+    const card = document.createElement("div");
+    card.className = "sale-card";
+    card.dataset.cardIndex = index;
+
+    card.innerHTML = `
+        <span class="form-badge-num">ሽያጭ #<span class="card-num-label">${index+1}</span></span>
+        <div class="card-title-main">አዲስ ሽያጭ</div>
+
+        <div class="mb-3">
+            <label class="form-label">ደንበኛ ይምረጡ</label>
+            <div class="dropdown-wrap">
+                <div class="picker-trigger customer-trigger" data-customer-id="">
+                    <span class="placeholder-text trigger-text">ደንበኛ ይምረጡ...</span>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+            </div>
+        </div>
+
+        <label class="form-label">ምርቶች</label>
+        <div class="items-container"></div>
+        <div class="add-item-wrap">
+            <button type="button" class="add-item-btn-sm"><i class="bi bi-plus-lg"></i>ጨምር</button>
+        </div>
+
+        <div class="card-grand-total">
+            <span class="g-label">ጠቅላላ</span>
+            <span class="g-value card-total-display">0.00 ETB</span>
+        </div>
+
+        <div class="mb-2 mt-3">
+            <label class="form-label">የአሁኑ ክፍያ</label>
+            <input type="number" class="form-control sale-payment" placeholder="0.00" step="0.01" value="0">
+            <div class="helper-text">ደንበኛው አሁን ምን ያህል እየከፈለ ነው?</div>
+            <button type="button" class="btn btn-outline-success btn-sm pay-full-btn mt-2 pay-full-trigger"><i class="bi bi-check2-circle me-1"></i>ሙሉ መጠን ይክፈሉ</button>
+        </div>
+
+        <button type="button" class="btn btn-outline-danger btn-sm remove-sale-btn mt-3"><i class="bi bi-x-lg me-1"></i>ሽያጭ አስወግድ</button>
+    `;
+    return card;
+}
+
+addAnotherSaleBtn.addEventListener("click", () => {
+    const newCard = createSaleCard(cardIndex);
+    salesContainer.appendChild(newCard);
+    newCard.querySelector(".remove-sale-btn").addEventListener("click", () => {
+        newCard.remove();
+        updateCardIndices();
+        recalcGrandTotals();
+    });
+    cardIndex++;
+    updateCardIndices();
+    initSaleCard(newCard);
+    recalcGrandTotals();
+});
+
+function updateCardIndices(){
+    document.querySelectorAll(".sale-card").forEach((card, idx) => {
+        card.dataset.cardIndex = idx;
+        const label = card.querySelector(".card-num-label");
+        if(label) label.textContent = idx + 1;
+    });
+}
+
+
+/* ===== STOCK PRE-CHECK ===== */
+
+function checkStockBeforeSubmit(){
+    const totalsByProduct = {};
+    document.querySelectorAll(".sale-card").forEach(card => {
+        card.querySelectorAll(".item-card").forEach(item => {
+            const pid = item.dataset.productId;
+            if(!pid) return;
+            const name = item.dataset.productName;
+            const qty = getNumber(item.querySelector(".item-quantity").value);
+            if(!totalsByProduct[pid]) totalsByProduct[pid] = { name, qty: 0 };
+            totalsByProduct[pid].qty += qty;
+        });
+    });
+    const problems = [];
+    Object.entries(totalsByProduct).forEach(([pid, data]) => {
+        const stock = productsData[pid] ? getNumber(productsData[pid].stock) : 0;
+        if(data.qty > stock) problems.push(`${data.name}: ${stock} ብቻ አለ፣ ${data.qty} ተጠይቋል።`);
+    });
+    return problems;
+}
+
+/* ===== FULL RE-VALIDATION BEFORE SUBMIT ===== */
+
+function fullValidateBeforeSubmit(){
+    let hasMissingCustomer = false;
+    let hasEmptyItem = false;
+    let hasInvalidQtyOrPrice = false;
+    let hasInvalidPayment = false;
+    let anyItems = false;
+
+    document.querySelectorAll(".sale-card").forEach(card => {
+        const customerId = card.querySelector(".customer-trigger").dataset.customerId;
+        const itemCards = card.querySelectorAll(".item-card");
+        const validItems = Array.from(itemCards).filter(i => i.dataset.productId);
+
+        if(itemCards.length !== validItems.length) hasEmptyItem = true;
+        if(validItems.length > 0){
+            anyItems = true;
+            if(!customerId) hasMissingCustomer = true;
+        }
+
+        validItems.forEach(item => {
+            const qty = getNumber(item.querySelector(".item-quantity").value);
+            const price = getNumber(item.querySelector(".item-price").value);
+            if(qty <= 0 || price <= 0) hasInvalidQtyOrPrice = true;
+        });
+
+        const total = getNumber(card.dataset.totalAmount);
+        const payment = getNumber(card.querySelector(".sale-payment").value);
+        if(payment < 0 || payment > total + EPSILON) hasInvalidPayment = true;
+    });
+
+    if(!anyItems) return "እባክዎ ቢያንስ አንድ ምርት ይምረጡ።";
+    if(hasEmptyItem) return "እባክዎ ለተጨመሩ ሁሉም እቃዎች ምርት ይምረጡ።";
+    if(hasInvalidQtyOrPrice) return "ብዛት እና ዋጋ ከዜሮ በላይ መሆን አለባቸው።";
+    if(hasMissingCustomer) return "ምርት ለተመረጠበት ካርድ እባክዎ ደንበኛ ይምረጡ።";
+    if(hasInvalidPayment) return "ክፍያ አሉታዊ ወይም ከጠቅላላ መጠን በላይ ሊሆን አይችልም።";
+
+    const stockProblems = checkStockBeforeSubmit();
+    if(stockProblems.length > 0) return "በቂ ክምችት የለም፡\n\n" + stockProblems.join("\n");
+
+    return null;
+}
+
+
+/* ===== SUBMIT: FLATTEN INTO HIDDEN FIELDS (waterfall payment) ===== */
+
+saleForm.addEventListener("submit", function(e){
+    realFieldsContainer.innerHTML = "";
+
+    const errorMsg = fullValidateBeforeSubmit();
+    if(errorMsg){
+        e.preventDefault();
+        alert(errorMsg);
+        return;
     }
 
+    let flatIndex = 0;
 
-    // =========================================================
-    // PREVENT SUBMISSION WITH OVERPAYMENT
-    // =========================================================
+    document.querySelectorAll(".sale-card").forEach(card => {
+        const customerId = card.querySelector(".customer-trigger").dataset.customerId;
+        const validItems = Array.from(card.querySelectorAll(".item-card")).filter(i => i.dataset.productId);
 
-    const saleForm =
-        document.getElementById(
-            "saleFormWrapper"
-        );
+        let remainingPayment = getNumber(card.querySelector(".sale-payment").value);
 
+        validItems.forEach(item => {
+            const productId = item.dataset.productId;
+            const qty = item.querySelector(".item-quantity").value;
+            const price = item.querySelector(".item-price").value;
+            const rowTotal = round2(getNumber(qty) * getNumber(price));
+            const appliedPayment = Math.min(remainingPayment, rowTotal);
+            remainingPayment = round2(remainingPayment - appliedPayment);
 
-    if (saleForm) {
-
-        saleForm.addEventListener(
-            "submit",
-            function (event) {
-
-
-                let hasOverpayment = false;
-
-
-                document
-                    .querySelectorAll(".sale-card")
-                    .forEach(card => {
-
-
-                        const quantity =
-                            getNumber(
-                                card
-                                .querySelector(".sale-quantity")
-                                .value
-                            );
-
-                        const price =
-                            getNumber(
-                                card
-                                .querySelector(".sale-price")
-                                .value
-                            );
-
-                        const payment =
-                            getNumber(
-                                card
-                                .querySelector(".sale-payment")
-                                .value
-                            );
+            const createHidden = (suffix, val) => {
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = `sales-${flatIndex}-${suffix}`;
+                input.value = val;
+                realFieldsContainer.appendChild(input);
+            };
+            createHidden("product_id", productId);
+            createHidden("customer_id", customerId);
+            createHidden("quantity", qty);
+            createHidden("unit_price", price);
+            createHidden("current_payment", appliedPayment.toFixed(2));
+            flatIndex++;
+        });
+    });
+});
 
 
-                        const total =
-                            calculateTotal(
-                                quantity,
-                                price
-                            );
+/* ===== INITIAL STATE ===== */
+document.querySelectorAll(".sale-card").forEach(initSaleCard);
+updateCardIndices();
+recalcGrandTotals();
 
-
-                        if (
-                            total > 0 &&
-                            isOverPayment(
-                                payment,
-                                total
-                            )
-                        ) {
-
-                            hasOverpayment = true;
-
-                            const warning =
-                                card.querySelector(
-                                    ".overpay-warning"
-                                );
-
-
-                            if (warning) {
-
-                                warning.classList.add(
-                                    "show"
-                                );
-
-
-                                warning.scrollIntoView({
-                                    behavior: "smooth",
-                                    block: "center"
-                                });
-                            }
-                        }
-                    });
-
-
-                if (hasOverpayment) {
-
-                    event.preventDefault();
-                }
-            }
-        );
-    }
-
+}
 </script>
 </body>
 </html>

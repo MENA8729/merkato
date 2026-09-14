@@ -1,0 +1,1622 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for category, message in messages %}
+    <div class="alert alert-success alert-dismissible fade show flash-message" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}{% endif %}
+{% endwith %}
+
+<style>
+.flash-message{
+    font-family:'Inter','Segoe UI',sans-serif;
+    font-size:13px;
+    font-weight:500;
+    padding:8px 12px;
+    margin:10px auto;
+    max-width:500px;
+    border-radius:7px;
+}
+</style>
+
+<!DOCTYPE html>
+<html lang="am">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>አቅራቢዎች</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet">
+
+
+<style>
+
+:root{
+    --blue:#2563eb;
+    --green:#16a34a;
+    --orange:#ea580c;
+    --red:#dc2626;
+    --dark:#1e293b;
+    --muted:#64748b;
+    --bg:#f4f6f8;
+
+    --purple:#6d28d9;
+    --purple-dark:#3b147d;
+    --purple-light:#8b5cf6;
+}
+
+
+*{
+    box-sizing:border-box;
+}
+
+html,
+body{
+    overflow-x:hidden;
+    max-width:100%;
+}
+
+
+body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg);
+    color:var(--dark);
+}
+
+
+/* ================= NAVBAR ================= */
+
+.navbar{
+    background:#fff;
+    box-shadow:0 2px 10px rgba(0,0,0,.06);
+    padding:14px 0;
+}
+
+.navbar-brand{
+    font-weight:800;
+    color:var(--blue)!important;
+    font-size:1.3rem;
+}
+
+.navbar-brand i{
+    margin-right:6px;
+}
+
+.nav-link{
+    font-weight:500;
+    color:#475569!important;
+}
+
+.nav-link:hover,
+.nav-link.active{
+    color:var(--blue)!important;
+}
+
+
+/* ================= HERO ================= */
+
+.hero{
+    background:linear-gradient(135deg,#1e3a5f,#2563eb);
+    color:#fff;
+    padding:40px 0 55px;
+    text-align:center;
+}
+
+.hero .badge-pill{
+    background:rgba(255,255,255,.15);
+    border:1px solid rgba(255,255,255,.3);
+    padding:5px 16px;
+    border-radius:30px;
+    font-size:.78rem;
+    font-weight:600;
+    display:inline-block;
+    margin-bottom:12px;
+}
+
+.hero h1{
+    font-weight:800;
+    font-size:2rem;
+    margin-bottom:10px;
+}
+
+.hero p{
+    color:#dbeafe;
+    max-width:560px;
+    margin:0 auto;
+    font-size:.95rem;
+}
+
+
+/* ================= SUMMARY ================= */
+
+.summary-wrap{
+    margin-top:-30px;
+    text-align:center;
+}
+
+.stat-inline{
+    display:inline-flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    padding:14px 0;
+}
+
+.stat-inline-icon{
+    font-size:1.4rem;
+    color:var(--red);
+    margin-bottom:4px;
+}
+
+.stat-inline-number{
+    font-size:2.4rem;
+    font-weight:800;
+    color:var(--red);
+    line-height:1;
+    max-width:100%;
+    overflow-wrap:anywhere;
+}
+
+.stat-inline-label{
+    color:var(--muted);
+    font-size:.85rem;
+    font-weight:500;
+    margin-top:4px;
+}
+
+
+/* ================= SECTION ================= */
+
+.section-title{
+    font-weight:800;
+    font-size:1.4rem;
+    margin-bottom:4px;
+}
+
+.section-desc{
+    color:var(--muted);
+    margin-bottom:22px;
+    font-size:.92rem;
+}
+
+.section-block{
+    margin-top:30px;
+}
+
+.filter-bar{
+    background:#fff;
+    border-radius:14px;
+    padding:16px;
+    box-shadow:0 4px 14px rgba(0,0,0,.05);
+    margin-bottom:22px;
+}
+
+
+/* ================= STATUS ================= */
+
+.badge-status-paid{
+    background:#dcfce7;
+    color:var(--green);
+}
+
+.badge-status-partial{
+    background:#fef3c7;
+    color:#b45309;
+}
+
+.badge-status-unpaid{
+    background:#fee2e2;
+    color:var(--red);
+}
+
+
+/* ================= CONTACT LIST ================= */
+
+.contact-list{
+    background:#fff;
+    border-radius:16px;
+    box-shadow:0 4px 14px rgba(0,0,0,.05);
+    overflow:hidden;
+}
+
+.contact-row{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    padding:14px 18px;
+    border-bottom:1px solid #eef1f4;
+    cursor:pointer;
+    transition:background .15s ease;
+}
+
+.contact-row:last-child{
+    border-bottom:none;
+}
+
+.contact-row:hover{
+    background:#f8fafc;
+}
+
+
+.contact-top{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+
+.contact-avatar{
+    width:44px;
+    height:44px;
+    min-width:44px;
+    border-radius:50%;
+    background:var(--blue);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    font-size:1rem;
+}
+
+
+.contact-info{
+    flex:1;
+    min-width:0;
+}
+
+.contact-name{
+    font-weight:600;
+    font-size:.95rem;
+    color:var(--dark);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.contact-sub{
+    font-size:.78rem;
+    color:var(--muted);
+    margin-top:1px;
+}
+
+.contact-status{
+    flex-shrink:0;
+}
+
+
+.contact-details{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px 14px;
+    padding-left:56px;
+}
+
+.contact-detail{
+    font-size:.78rem;
+    color:var(--muted);
+}
+
+.contact-detail .detail-label{
+    color:var(--muted);
+}
+
+.contact-detail .detail-value{
+    font-weight:700;
+    color:var(--dark);
+    margin-left:3px;
+}
+
+.contact-detail.debt .detail-value{
+    color:var(--red);
+}
+
+
+@media (max-width:430px){
+
+    .contact-details{
+        padding-left:0;
+        gap:6px 10px;
+    }
+
+    .contact-detail{
+        font-size:.72rem;
+    }
+
+}
+
+
+/* ================= EMPTY STATE ================= */
+
+.empty-state{
+    text-align:center;
+    padding:60px 20px;
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 4px 14px rgba(0,0,0,.05);
+}
+
+.empty-state i{
+    font-size:3rem;
+    color:#cbd5e1;
+    margin-bottom:14px;
+}
+
+
+/* =========================================================
+   SUPPLIER ACTION SHEET
+   ========================================================= */
+
+.action-modal .modal-dialog{
+
+    position:fixed;
+
+    left:50%;
+
+    bottom:0;
+
+    margin:0;
+
+    width:100%;
+
+    max-width:620px;
+
+    transform:translate(-50%,100%);
+
+    transition:transform .30s ease-out;
+}
+
+
+.action-modal.show .modal-dialog{
+
+    transform:translate(-50%,0);
+
+}
+
+
+.action-modal .modal-content{
+
+    border:none;
+
+    border-radius:24px 24px 0 0;
+
+    overflow:hidden;
+
+    padding-bottom:env(safe-area-inset-bottom,12px);
+
+    background:#fff;
+
+    box-shadow:
+        0 -12px 40px rgba(36,18,75,.25);
+
+}
+
+
+/* Purple top line */
+
+.action-modal .modal-content::before{
+
+    content:"";
+
+    display:block;
+
+    height:7px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #3b147d,
+            #6d28d9,
+            #8b5cf6
+        );
+
+}
+
+
+/* Handle */
+
+.sheet-handle{
+
+    width:46px;
+
+    height:5px;
+
+    background:#d7d9df;
+
+    border-radius:20px;
+
+    margin:10px auto 2px;
+
+}
+
+
+/* ================= MODAL HEADER ================= */
+
+.action-modal .modal-header{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    border:none;
+
+    padding:12px 22px 8px;
+
+}
+
+
+.action-modal .modal-header .btn-close{
+
+    margin:0;
+
+    opacity:.55;
+
+}
+
+
+.action-modal .modal-title{
+
+    font-size:1.15rem;
+
+    font-weight:800;
+
+    color:#24103f;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+}
+
+
+/* Supplier icon */
+
+.action-modal .modal-title::before{
+
+    content:"\F4DA";
+
+    font-family:"bootstrap-icons";
+
+    width:40px;
+
+    height:40px;
+
+    border-radius:13px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#fff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #4c1d95,
+            #7c3aed
+        );
+
+    box-shadow:
+        0 5px 14px rgba(91,33,182,.25);
+
+    font-size:1.1rem;
+
+}
+
+
+/* ================= MODAL BODY ================= */
+
+.action-modal .modal-body{
+
+    padding:8px 22px 22px;
+
+}
+
+
+/* ================= THREE ACTION BUTTONS ================= */
+
+.square-actions{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:14px;
+
+    padding:4px 0 0;
+
+}
+
+
+.square-actions .sq-btn{
+
+    min-height:118px;
+
+    border-radius:18px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:10px;
+
+    font-size:.82rem;
+
+    font-weight:700;
+
+    text-decoration:none;
+
+    border:1px solid #edf0f5;
+
+    background:#f8f9fc;
+
+    color:#263142;
+
+    transition:
+        transform .18s ease,
+        box-shadow .18s ease,
+        background .18s ease;
+
+}
+
+
+.square-actions .sq-btn:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:
+        0 8px 20px rgba(0,0,0,.08);
+
+    background:#fff;
+
+}
+
+
+.square-actions .sq-btn:active{
+
+    transform:scale(.97);
+
+}
+
+
+/* ================= ACTION ICONS ================= */
+
+.square-actions .sq-btn i{
+
+    width:50px;
+
+    height:50px;
+
+    border-radius:15px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:1.35rem;
+
+    color:#fff;
+
+}
+
+
+/* History - Green */
+
+.square-actions .sq-btn:nth-child(1) i{
+
+    background:
+        linear-gradient(
+            135deg,
+            #16803c,
+            #22a55a
+        );
+
+    box-shadow:
+        0 6px 14px rgba(22,128,60,.20);
+
+}
+
+
+/* Edit - Purple */
+
+.square-actions .sq-btn:nth-child(2) i{
+
+    background:
+        linear-gradient(
+            135deg,
+            #6d28d9,
+            #8b5cf6
+        );
+
+    box-shadow:
+        0 6px 14px rgba(109,40,217,.20);
+
+}
+
+
+/* Delete - Red */
+
+.square-actions .sq-btn:nth-child(3) i{
+
+    background:
+        linear-gradient(
+            135deg,
+            #dc2626,
+            #ef4444
+        );
+
+    box-shadow:
+        0 6px 14px rgba(220,38,38,.20);
+
+}
+
+
+/* ================= HISTORY CHOICE ================= */
+
+.history-choice{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:12px;
+
+}
+
+
+.history-choice a{
+
+    border-radius:16px;
+
+    padding:20px 10px;
+
+    text-align:center;
+
+    border:1px solid #e8eaf0;
+
+    background:#f8f9fc;
+
+    text-decoration:none;
+
+    color:#263142;
+
+    font-weight:700;
+
+    font-size:.9rem;
+
+    transition:.18s ease;
+
+}
+
+
+.history-choice a i{
+
+    display:block;
+
+    font-size:1.6rem;
+
+    margin-bottom:8px;
+
+    color:#6d28d9;
+
+}
+
+
+.history-choice a:hover{
+
+    background:#fff;
+
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 7px 18px rgba(0,0,0,.07);
+
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width:768px){
+
+    .action-modal .modal-dialog{
+
+        max-width:100%;
+
+    }
+
+
+    .action-modal .modal-content{
+
+        border-radius:22px 22px 0 0;
+
+    }
+
+
+    .action-modal .modal-body{
+
+        padding-left:18px;
+
+        padding-right:18px;
+
+    }
+
+
+    .square-actions{
+
+        gap:10px;
+
+    }
+
+
+    .square-actions .sq-btn{
+
+        min-height:105px;
+
+    }
+
+
+    .square-actions .sq-btn i{
+
+        width:46px;
+
+        height:46px;
+
+        font-size:1.2rem;
+
+    }
+
+
+    /* Smaller summary number on tablet */
+
+    .stat-inline-number{
+
+        font-size:2rem;
+
+    }
+
+}
+
+
+/* =========================================================
+   PHONE
+   ========================================================= */
+
+@media (max-width:430px){
+
+    .action-modal .modal-content{
+
+        border-radius:20px 20px 0 0;
+
+    }
+
+
+    .action-modal .modal-header{
+
+        padding:10px 18px 6px;
+
+    }
+
+
+    .action-modal .modal-body{
+
+        padding:6px 14px 18px;
+
+    }
+
+
+    .action-modal .modal-title{
+
+        font-size:1rem;
+
+    }
+
+
+    .action-modal .modal-title::before{
+
+        width:36px;
+
+        height:36px;
+
+        border-radius:11px;
+
+        font-size:.95rem;
+
+    }
+
+
+    .square-actions{
+
+        gap:8px;
+
+    }
+
+
+    .square-actions .sq-btn{
+
+        min-height:98px;
+
+        border-radius:15px;
+
+        font-size:.72rem;
+
+        gap:7px;
+
+    }
+
+
+    .square-actions .sq-btn i{
+
+        width:42px;
+
+        height:42px;
+
+        border-radius:12px;
+
+        font-size:1.05rem;
+
+    }
+
+
+    /* Smaller large number on phone */
+
+    .stat-inline-number{
+
+        font-size:1.55rem;
+
+        line-height:1.15;
+
+        max-width:100%;
+
+        overflow-wrap:anywhere;
+
+    }
+
+
+    .stat-inline{
+
+        padding:10px 0;
+
+    }
+
+
+    .stat-inline-label{
+
+        font-size:.75rem;
+
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- ================= NAVBAR ================= -->
+
+<nav class="navbar navbar-expand-lg sticky-top">
+
+    <div class="container">
+
+        <a class="navbar-brand" href="{{ url_for('home') }}">
+            <i class="bi bi-boxes"></i>StockManager
+        </a>
+
+
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navMenu">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+
+        <div class="collapse navbar-collapse justify-content-end"
+             id="navMenu">
+
+            <ul class="navbar-nav">
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="{{ url_for('home') }}">
+                        Home
+                    </a>
+                </li>
+
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="{{ url_for('products_page') }}">
+                        ምርቶች
+                    </a>
+                </li>
+
+
+                <li class="nav-item">
+                    <a class="nav-link active"
+                       href="{{ url_for('suppliers_customers') }}">
+                        አቅራቢዎች
+                    </a>
+                </li>
+
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="{{ url_for('logout') }}">
+                        ውጣ
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+
+<!-- ================ SUMMARY ================= -->
+
+<div class="container summary-wrap mb-4">
+
+    <div class="stat-inline">
+
+        <div class="stat-inline-icon">
+            <i class="bi bi-truck"></i>
+        </div>
+
+
+        <div class="stat-inline-number">
+            {{ suppliers|length }}
+        </div>
+
+
+        <div class="stat-inline-label">
+            ጠቅላላ አቅራቢዎች
+        </div>
+
+    </div>
+
+</div>
+
+
+
+    <div class="filter-bar">
+
+        <input type="text"
+               class="form-control"
+               id="supplierSearch"
+               placeholder="አቅራቢዎችን ይፈልጉ...">
+
+    </div>
+
+
+    {% if suppliers %}
+
+    <div class="contact-list"
+         id="supplierList">
+
+
+        {% for supplier in suppliers %}
+
+
+        <div class="contact-row supplier-row"
+
+             data-search="{{ supplier.name|lower }} {{ supplier.phone if supplier.phone else '' }}"
+
+             onclick='openSupplierAction(
+                 {{ supplier.id }},
+                 {{ supplier.name|tojson }},
+                 {{ (url_for("supplier_purchase_history", supplier_id=supplier.id))|tojson }},
+                 {{ (url_for("supplier_payment_history", supplier_id=supplier.id))|tojson }}
+             )'>
+
+
+            <div class="contact-top">
+
+
+                <div class="contact-avatar">
+                    {{ supplier.name[0]|upper }}
+                </div>
+
+
+                <div class="contact-info">
+
+                    <div class="contact-name">
+                        {{ supplier.name }}
+                    </div>
+
+                    <div class="contact-sub">
+                        {{ supplier.phone if supplier.phone else 'ስልክ: N/A' }}
+                    </div>
+
+                </div>
+
+
+                <div class="contact-status">
+
+                    {% if supplier.remaining_debt is defined %}
+
+                        {% if supplier.remaining_debt == 0 %}
+
+                            <span class="badge badge-status-paid">
+                                ተከፍሏል
+                            </span>
+
+                        {% elif supplier.total_paid is defined and supplier.total_paid > 0 %}
+
+                            <span class="badge badge-status-partial">
+                                በከፊል
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge badge-status-unpaid">
+                                ያልተከፈለ
+                            </span>
+
+                        {% endif %}
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <div class="contact-details">
+
+
+                <div class="contact-detail">
+
+                    <span class="detail-label">
+                        ግዢዎች:
+                    </span>
+
+                    <span class="detail-value">
+                        {{ supplier.purchase_count if supplier.purchase_count is defined else 'N/A' }}
+                    </span>
+
+                </div>
+
+
+                <div class="contact-detail">
+
+                    <span class="detail-label">
+                        ጠቅላላ ዕዳ:
+                    </span>
+
+                    <span class="detail-value">
+                        {{ "{:,.2f}".format(supplier.total_debt) if supplier.total_debt is defined else 'N/A' }}
+                        ብር
+                    </span>
+
+                </div>
+
+
+                <div class="contact-detail">
+
+                    <span class="detail-label">
+                        የተከፈለ:
+                    </span>
+
+                    <span class="detail-value">
+                        {{ "{:,.2f}".format(supplier.total_paid) if supplier.total_paid is defined else 'N/A' }}
+                        ብር
+                    </span>
+
+                </div>
+
+
+                <div class="contact-detail debt">
+
+                    <span class="detail-label">
+                        ቀሪ:
+                    </span>
+
+                    <span class="detail-value">
+                        {{ "{:,.2f}".format(supplier.remaining_debt) if supplier.remaining_debt is defined else 'N/A' }}
+                        ብር
+                    </span>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        {% endfor %}
+
+
+    </div>
+
+
+    {% else %}
+
+
+    <div class="empty-state">
+
+        <i class="bi bi-truck"></i>
+
+        <h5>
+            ምንም አቅራቢ አልተገኘም
+        </h5>
+
+        <p>
+            የአቅራቢዎች መረጃ እዚህ ይታያል።
+        </p>
+
+    </div>
+
+
+    {% endif %}
+
+
+</div>
+
+
+<!-- =========================================================
+     SUPPLIER ACTION MODAL
+     ========================================================= -->
+
+<div class="modal fade action-modal"
+     id="supplierActionModal"
+     tabindex="-1"
+     data-bs-backdrop="static"
+     data-bs-keyboard="false">
+
+
+    <div class="modal-dialog">
+
+
+        <div class="modal-content">
+
+
+            <div class="sheet-handle"></div>
+
+
+            <div class="modal-header">
+
+
+                <h5 class="modal-title"
+                    id="actionSupplierName">
+                    አቅራቢ
+                </h5>
+
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                </button>
+
+
+            </div>
+
+
+            <div class="modal-body">
+
+
+                <div class="square-actions">
+
+
+                    <!-- HISTORY -->
+
+                    <button type="button"
+                            class="sq-btn primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#supplierHistoryModal"
+                            data-bs-dismiss="modal">
+
+                        <i class="bi bi-clock-history"></i>
+
+                        <span>
+                            ታሪክ
+                        </span>
+
+                    </button>
+
+
+                    <!-- EDIT -->
+
+                    <button type="button"
+                            class="sq-btn primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editSupplierConfirmModal"
+                            data-bs-dismiss="modal">
+
+                        <i class="bi bi-pencil-square"></i>
+
+                        <span>
+                            አስተካክል
+                        </span>
+
+                    </button>
+
+
+                    <!-- DELETE -->
+
+                    <button type="button"
+                            class="sq-btn danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteSupplierConfirmModal"
+                            data-bs-dismiss="modal">
+
+                        <i class="bi bi-trash3"></i>
+
+                        <span>
+                            ሰርዝ
+                        </span>
+
+                    </button>
+
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     SUPPLIER HISTORY CHOICE
+     ========================================================= -->
+
+<div class="modal fade action-modal"
+     id="supplierHistoryModal"
+     tabindex="-1"
+     data-bs-backdrop="static"
+     data-bs-keyboard="false">
+
+
+    <div class="modal-dialog">
+
+
+        <div class="modal-content">
+
+
+            <div class="sheet-handle"></div>
+
+
+            <div class="modal-header">
+
+
+                <h5 class="modal-title">
+                    ምን ማየት ይፈልጋሉ?
+                </h5>
+
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+
+
+            </div>
+
+
+            <div class="modal-body">
+
+
+                <div class="history-choice">
+
+
+                    <a href="#"
+                       id="historyPurchaseBtn">
+
+                        <i class="bi bi-cart-plus"></i>
+
+                        የግዢ ታሪክ
+
+                    </a>
+
+
+                    <a href="#"
+                       id="historySupplierPaymentBtn">
+
+                        <i class="bi bi-cash-coin"></i>
+
+                        የክፍያ ታሪክ
+
+                    </a>
+
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     EDIT CONFIRMATION
+     ========================================================= -->
+
+<div class="modal fade"
+     id="editSupplierConfirmModal"
+     tabindex="-1"
+     data-bs-backdrop="static"
+     data-bs-keyboard="false">
+
+
+    <div class="modal-dialog modal-dialog-centered">
+
+
+        <div class="modal-content">
+
+
+            <div class="modal-header">
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+
+                <h5 class="modal-title">
+                    ማስተካከልን ያረጋግጡ
+                </h5>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <p class="mb-0">
+
+                    <strong id="editSupplierName"></strong>
+
+                    ን ማስተካከል ይፈልጋሉ?
+
+                </p>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+
+                    ይቅር
+
+                </button>
+
+
+                <a href="#"
+                   id="editSupplierBtn"
+                   class="btn btn-primary">
+
+                    <i class="bi bi-pencil me-1"></i>
+
+                    አዎ፣ አስተካክል
+
+                </a>
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     DELETE CONFIRMATION
+     ========================================================= -->
+
+<div class="modal fade"
+     id="deleteSupplierConfirmModal"
+     tabindex="-1"
+     data-bs-backdrop="static"
+     data-bs-keyboard="false">
+
+
+    <div class="modal-dialog modal-dialog-centered">
+
+
+        <div class="modal-content">
+
+
+            <div class="modal-header">
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+
+                <h5 class="modal-title">
+                    መሰረዙን ያረጋግጡ
+                </h5>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <p class="mb-0">
+
+                    <strong id="deleteSupplierName"></strong>
+
+                    ን ማጥፋት እርግጠኛ ነዎት?
+
+                    ይህ ድርጊት መመለስ አይቻልም።
+
+                </p>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+
+                    ይቅር
+
+                </button>
+
+
+                <form id="deleteSupplierForm"
+                      method="POST"
+                      action="">
+
+
+                    <button type="submit"
+                            class="btn btn-danger">
+
+                        <i class="bi bi-trash me-1"></i>
+
+                        ሰርዝ
+
+                    </button>
+
+
+                </form>
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= BOOTSTRAP ================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script>
+
+
+/* ================= SUPPLIER SEARCH ================= */
+
+document
+    .getElementById('supplierSearch')
+    .addEventListener('input', function(){
+
+        const q = this.value.toLowerCase().trim();
+
+        document
+            .querySelectorAll('.supplier-row')
+            .forEach(row => {
+
+                row.style.display =
+                    (row.getAttribute('data-search') || '')
+                    .includes(q)
+                    ? ''
+                    : 'none';
+
+            });
+
+    });
+
+
+/* ================= OPEN SUPPLIER ACTION ================= */
+
+function openSupplierAction(
+    id,
+    name,
+    purchaseHistUrl,
+    paymentHistUrl
+){
+
+    document
+        .getElementById('actionSupplierName')
+        .innerText = name;
+
+
+    document
+        .getElementById('editSupplierName')
+        .innerText = name;
+
+
+    document
+        .getElementById('editSupplierBtn')
+        .href = "/edit/supplier/" + id;
+
+
+    document
+        .getElementById('deleteSupplierName')
+        .innerText = name;
+
+
+    document
+        .getElementById('deleteSupplierForm')
+        .action = "/delete/supplier/" + id;
+
+
+    document
+        .getElementById('historyPurchaseBtn')
+        .href = purchaseHistUrl;
+
+
+    document
+        .getElementById('historySupplierPaymentBtn')
+        .href = paymentHistUrl;
+
+
+    new bootstrap.Modal(
+        document.getElementById('supplierActionModal')
+    ).show();
+
+}
+
+</script>
+
+
+</body>
+
+</html>

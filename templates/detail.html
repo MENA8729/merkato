@@ -22,10 +22,7 @@
     }
 
     *{ box-sizing:border-box; }
-
-    html, body{
-        overflow-x:hidden;
-    }
+    html, body{ overflow-x:hidden; }
 
     body{
         font-family:'Inter', sans-serif;
@@ -46,10 +43,7 @@
         letter-spacing:-0.5px;
     }
 
-    .navbar-brand i{
-        color:var(--accent);
-        margin-right:6px;
-    }
+    .navbar-brand i{ color:var(--accent); margin-right:6px; }
 
     .nav-link{
         font-weight:500;
@@ -61,6 +55,44 @@
 
     .nav-link:hover{ color:var(--primary) !important; }
     .nav-link.active{ color:var(--primary) !important; font-weight:600; }
+
+    /* NEW: search bar in navbar */
+    .navbar-search{
+        display:flex;
+        align-items:center;
+        gap:6px;
+        margin-left:12px;
+    }
+
+    .navbar-search input{
+        border-radius:10px 0 0 10px;
+        border:1px solid #dee2e6;
+        padding:7px 12px;
+        font-size:0.85rem;
+        min-width:160px;
+    }
+
+    .navbar-search input:focus{
+        outline:none;
+        border-color:var(--primary);
+        box-shadow:0 0 0 0.15rem rgba(15,76,92,0.15);
+    }
+
+    .navbar-search button{
+        border-radius:0 10px 10px 0;
+        border:1px solid var(--primary);
+        background:var(--primary);
+        color:#fff;
+        padding:7px 12px;
+        font-size:0.85rem;
+    }
+
+    .navbar-search button:hover{ background:var(--primary-dark); border-color:var(--primary-dark); }
+
+    @media (max-width: 991.98px){
+        .navbar-search{ margin:10px 0 0; width:100%; }
+        .navbar-search input{ flex:1; min-width:0; }
+    }
 
     .hero{
         position:relative;
@@ -120,15 +152,21 @@
         z-index:5;
     }
 
+    /* ============================================================
+       SUPPLIER CARD — wider, shorter, 2 per row on phone
+       ============================================================ */
     .supplier-card{
         background:#fff;
         border:1px solid #eef0f2;
         border-radius:14px;
-        padding:14px;
+        padding:10px 12px;
         box-shadow:0 3px 10px rgba(0,0,0,0.05);
         cursor:pointer;
         transition:transform .18s ease, box-shadow .18s ease;
         height:100%;
+        display:flex;
+        flex-direction:column;
+        gap:6px;
     }
 
     .supplier-card:hover{
@@ -140,26 +178,25 @@
         display:flex;
         align-items:center;
         gap:8px;
-        margin-bottom:10px;
     }
 
     .supplier-avatar{
-        width:36px;
-        height:36px;
-        border-radius:10px;
+        width:32px;
+        height:32px;
+        border-radius:9px;
         background:linear-gradient(135deg, var(--primary), var(--primary-dark));
         color:#fff;
         display:flex;
         align-items:center;
         justify-content:center;
         font-weight:700;
-        font-size:0.95rem;
+        font-size:0.85rem;
         flex-shrink:0;
     }
 
     .supplier-name{
         font-weight:600;
-        font-size:clamp(0.82rem, 2.4vw, 0.95rem);
+        font-size:clamp(0.78rem, 2.3vw, 0.9rem);
         margin-bottom:1px;
         line-height:1.2;
         overflow:hidden;
@@ -169,29 +206,44 @@
 
     .supplier-id{
         color:var(--text-muted);
-        font-size:clamp(0.65rem, 1.8vw, 0.75rem);
+        font-size:clamp(0.6rem, 1.6vw, 0.68rem);
         font-weight:400;
     }
 
-    .debt-row{
+    .debt-mini-row{
         display:flex;
         justify-content:space-between;
-        padding:4px 0;
-        font-size:clamp(0.7rem, 2vw, 0.8rem);
-        font-weight:500;
+        align-items:center;
+        gap:6px;
     }
 
-    .debt-row span:first-child{
+    .debt-mini{
+        flex:1;
+        background:var(--bg-soft);
+        border-radius:8px;
+        padding:4px 6px;
+        text-align:center;
+    }
+
+    .debt-mini .label{
+        font-size:clamp(0.55rem, 1.5vw, 0.62rem);
         color:var(--text-muted);
-        font-weight:400;
+        text-transform:uppercase;
+        letter-spacing:0.3px;
+    }
+
+    .debt-mini .value{
+        font-size:clamp(0.68rem, 2vw, 0.78rem);
+        font-weight:700;
     }
 
     .remaining-debt-box{
         background:#fdf1ee;
-        border-radius:10px;
-        padding:8px 10px;
-        margin-top:8px;
-        text-align:center;
+        border-radius:9px;
+        padding:5px 8px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
     }
 
     .remaining-debt-label{
@@ -203,7 +255,7 @@
     }
 
     .remaining-debt-amount{
-        font-size:clamp(0.92rem, 3vw, 1.15rem);
+        font-size:clamp(0.82rem, 2.6vw, 0.98rem);
         font-weight:800;
         color:var(--danger);
         line-height:1.3;
@@ -215,18 +267,13 @@
         border:none;
         border-radius:8px;
         font-weight:600;
-        font-size:clamp(0.72rem, 2vw, 0.82rem);
-        padding:7px;
+        font-size:clamp(0.68rem, 1.9vw, 0.78rem);
+        padding:6px;
         width:100%;
-        margin-top:10px;
         transition:background .2s ease;
     }
 
-    .btn-pay:hover{
-        background:var(--primary-dark);
-        color:#fff;
-    }
-
+    .btn-pay:hover{ background:var(--primary-dark); color:#fff; }
     .btn-pay i{ font-size:0.85em; }
 
     .empty-state{
@@ -243,22 +290,26 @@
         margin-bottom:14px;
     }
 
-    .empty-state h3{
-        font-weight:700;
-        margin-bottom:6px;
-        font-size:1.2rem;
-    }
+    .empty-state h3{ font-weight:700; margin-bottom:6px; font-size:1.2rem; }
+    .empty-state p{ color:var(--text-muted); font-size:0.9rem; }
 
-    .empty-state p{
-        color:var(--text-muted);
-        font-size:0.9rem;
-    }
-
-    .modal-content{
+    /* NEW: shown when search yields nothing */
+    .search-empty-state{
+        display:none;
+        text-align:center;
+        padding:60px 20px;
+        background:#fff;
         border-radius:18px;
-        border:none;
-        overflow:hidden;
+        box-shadow:0 4px 18px rgba(0,0,0,0.05);
     }
+
+    .search-empty-state i{
+        font-size:3rem;
+        color:var(--text-muted);
+        margin-bottom:14px;
+    }
+
+    .modal-content{ border-radius:18px; border:none; overflow:hidden; }
 
     .modal-header{
         background:linear-gradient(135deg, var(--primary), var(--primary-dark));
@@ -267,18 +318,9 @@
         padding:16px 20px;
     }
 
-    .modal-header .modal-title{
-        font-size:1.05rem;
-        font-weight:700;
-    }
-
-    .modal-header .btn-close{
-        filter:invert(1);
-    }
-
-    .modal-body{
-        padding:20px;
-    }
+    .modal-header .modal-title{ font-size:1.05rem; font-weight:700; }
+    .modal-header .btn-close{ filter:invert(1); }
+    .modal-body{ padding:20px; }
 
     .modal-remaining-box{
         background:var(--bg-soft);
@@ -302,10 +344,7 @@
         color:var(--danger);
     }
 
-    .form-label{
-        font-weight:600;
-        font-size:0.85rem;
-    }
+    .form-label{ font-weight:600; font-size:0.85rem; }
 
     .form-control{
         border-radius:10px;
@@ -319,16 +358,8 @@
         box-shadow:0 0 0 0.2rem rgba(15,76,92,0.15);
     }
 
-    .max-payable{
-        font-size:0.76rem;
-        color:var(--text-muted);
-        margin-top:5px;
-    }
-
-    .modal-footer{
-        border:none;
-        padding:0 20px 20px;
-    }
+    .max-payable{ font-size:0.76rem; color:var(--text-muted); margin-top:5px; }
+    .modal-footer{ border:none; padding:0 20px 20px; }
 
     .btn-cancel{
         background:#f1f3f5;
@@ -350,45 +381,122 @@
         font-size:0.88rem;
     }
 
-    .btn-confirm-pay:hover{
-        background:#166638;
+    .btn-confirm-pay:hover{ background:#166638; color:#fff; }
+
+    .toast-container{ z-index:1090; }
+    .toast{ border-radius:12px; font-size:0.88rem; }
+
+    /* ============================================================
+       BOTTOM ACTION SHEET (same pattern as customer page)
+       ============================================================ */
+    #supplierActionSheet .modal-dialog{
+        position:fixed;
+        bottom:0;
+        left:0;
+        right:0;
+        margin:0;
+        width:100%;
+        max-width:100%;
+        transform:translateY(100%);
+        transition:transform .3s ease-out;
+    }
+
+    #supplierActionSheet.show .modal-dialog{
+        transform:translateY(0);
+    }
+
+    #supplierActionSheet .modal-content{
+        border-radius:20px 20px 0 0;
+        padding-bottom:env(safe-area-inset-bottom, 16px);
+    }
+
+    .sheet-handle{
+        width:44px;
+        height:5px;
+        background:#dee2e6;
+        border-radius:10px;
+        margin:12px auto 6px;
+    }
+
+    .sheet-title{
+        text-align:center;
+        font-weight:800;
+        font-size:1.1rem;
+        color:#212529;
+        padding:4px 20px 4px;
+    }
+
+    .sheet-remaining{
+        text-align:center;
+        font-size:0.82rem;
+        color:var(--text-muted);
+        padding-bottom:14px;
+    }
+
+    .sheet-remaining strong{ color:var(--danger); }
+
+    .sheet-actions{
+        display:flex;
+        gap:10px;
+        padding:0 20px 24px;
+    }
+
+    .sheet-action-btn{
+        flex:1;
+        background:#f4f6f8;
+        border:none;
+        border-radius:14px;
+        padding:16px 8px;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:8px;
+        font-weight:600;
+        font-size:0.78rem;
+        color:#343a40;
+        text-decoration:none;
+        transition:background .15s ease;
+    }
+
+    .sheet-action-btn:hover, .sheet-action-btn:active{
+        background:#e9ecef;
+        color:#212529;
+    }
+
+    .sheet-action-icon{
+        width:44px;
+        height:44px;
+        border-radius:12px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:1.2rem;
         color:#fff;
     }
 
-    .toast-container{
-        z-index:1090;
-    }
-
-    .toast{
-        border-radius:12px;
-        font-size:0.88rem;
-    }
+    .sheet-action-icon.pay{ background:var(--success); }
+    .sheet-action-icon.purchases{ background:var(--primary); }
+    .sheet-action-icon.payments{ background:var(--accent); }
 
     @media (max-width: 430px){
-        .supplier-card{
-            padding:10px;
-            border-radius:12px;
-        }
-
-        .supplier-avatar{
-            width:30px;
-            height:30px;
-            font-size:0.8rem;
-            border-radius:8px;
-        }
-
-        .supplier-top{ gap:6px; margin-bottom:7px; }
-        .debt-row{ padding:2px 0; }
-        .remaining-debt-box{ padding:6px 8px; margin-top:6px; }
-        .btn-pay{ padding:6px; margin-top:7px; }
+        .supplier-card{ padding:8px; border-radius:12px; }
+        .supplier-avatar{ width:28px; height:28px; font-size:0.78rem; border-radius:8px; }
+        .supplier-top{ gap:6px; }
         .hero{ padding:28px 0 48px; }
         .total-debt-box{ padding:12px 22px; }
+        .sheet-action-btn{ font-size:0.7rem; padding:14px 6px; }
+        .sheet-action-icon{ width:38px; height:38px; font-size:1.05rem; }
     }
 
     @media (max-width: 360px){
-        .supplier-name{ font-size:0.76rem; }
-        .supplier-id{ font-size:0.62rem; }
-        .remaining-debt-amount{ font-size:0.88rem; }
+        .supplier-name{ font-size:0.72rem; }
+        .supplier-id{ font-size:0.58rem; }
+        .remaining-debt-amount{ font-size:0.8rem; }
+    }
+
+    /* TABLET: 3 per row */
+    @media (min-width: 576px) and (max-width: 991.98px){
+        .supplier-grid-item{ flex:0 0 33.3333%; max-width:33.3333%; }
     }
 </style>
 </head>
@@ -396,7 +504,7 @@
 <body>
 
 <nav class="navbar navbar-expand-lg sticky-top">
-    <div class="container">
+    <div class="container flex-wrap">
         <a class="navbar-brand" href="{{ url_for('home') }}">
             <i class="bi bi-boxes"></i>የምርት አስተዳዳሪ
         </a>
@@ -408,21 +516,15 @@
         </button>
 
         <div class="collapse navbar-collapse justify-content-end" id="navMenu">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('home') }}">ዋና ገጽ</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('purchases') }}">ግዢዎች</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('suppliers_customers') }}">አቅራቢዎች</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link active" href="#">የአቅራቢ ዕዳዎች</a>
+            <ul class="navbar-nav align-items-lg-center">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('new_action') }}">ዋና ገጽ</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('purchases') }}">ግዢዎች</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('suppliers_page') }}">አቅራቢዎች</a></li>
+                <li class="nav-item"><a class="nav-link active" href="#">የአቅራቢ ዕዳዎች</a></li>
+                <!-- NEW: search bar -->
+                <li class="nav-item navbar-search">
+                    <input type="text" id="supplierSearchInput" placeholder="በስም ይፈልጉ..." autocomplete="off">
+                    <button type="button" id="supplierSearchBtn"><i class="bi bi-search"></i></button>
                 </li>
             </ul>
         </div>
@@ -434,19 +536,12 @@
         {% if messages %}
             {% for category, message in messages %}
             <div class="toast align-items-center text-white bg-{{ category }} border-0 show"
-                 role="alert"
-                 data-bs-delay="3000"
-                 data-bs-autohide="true">
-
+                 role="alert" data-bs-delay="3000" data-bs-autohide="true">
                 <div class="d-flex">
                     <div class="toast-body">
                         <i class="bi bi-check-circle-fill me-2"></i>{{ message }}
                     </div>
-
-                    <button type="button"
-                            class="btn-close btn-close-white me-2 m-auto"
-                            data-bs-dismiss="toast">
-                    </button>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                 </div>
             </div>
             {% endfor %}
@@ -465,10 +560,7 @@
 
         <div class="total-debt-box">
             <div class="total-debt-label">ጠቅላላ ዕዳ</div>
-
-            <div class="total-debt-value">
-                {{ "{:,.2f}".format(grand_total_debt) }} ETB
-            </div>
+            <div class="total-debt-value">{{ "{:,.2f}".format(grand_total_debt) }} ETB</div>
         </div>
     </div>
 </section>
@@ -479,75 +571,52 @@
 
     {% if supplier_details %}
 
-    <div class="row g-2 g-md-3">
+    <div class="row g-2 g-md-3" id="supplierGrid">
 
         {% for supplier in supplier_details %}
 
-        <div class="col-6 col-md-6 col-lg-4">
+        <div class="col-6 supplier-grid-item" data-search-name="{{ supplier.supplier_name|lower }}">
 
             <div class="supplier-card"
                  data-bs-toggle="modal"
-                 data-bs-target="#payModal"
+                 data-bs-target="#supplierActionSheet"
                  data-supplier-id="{{ supplier.supplier_id }}"
                  data-supplier-name="{{ supplier.supplier_name }}"
                  data-remaining-debt="{{ supplier.remaining_debt }}">
 
                 <div class="supplier-top">
-
-                    <div class="supplier-avatar">
-                        {{ supplier.supplier_name[0]|upper }}
-                    </div>
-
+                    <div class="supplier-avatar">{{ supplier.supplier_name[0]|upper }}</div>
                     <div class="min-w-0">
-
-                        <div class="supplier-name">
-                            {{ supplier.supplier_name }}
-                        </div>
-
-                        <div class="supplier-id">
-                            መለያ: {{ supplier.supplier_id }}
-                        </div>
-
+                        <div class="supplier-name">{{ supplier.supplier_name }}</div>
+                        <div class="supplier-id">መለያ: {{ supplier.supplier_id }}</div>
                     </div>
                 </div>
 
-                <div class="debt-row">
-                    <span>ጠቅላላ</span>
-                    <span>
-                        {{ "{:,.2f}".format(supplier.total_debt) }}
-                    </span>
-                </div>
-
-                <div class="debt-row">
-                    <span>የተከፈለ</span>
-                    <span>
-                        {{ "{:,.2f}".format(supplier.total_paid) }}
-                    </span>
+                <div class="debt-mini-row">
+                    <div class="debt-mini">
+                        <div class="label">ጠቅላላ</div>
+                        <div class="value">{{ "{:,.0f}".format(supplier.total_debt) }}</div>
+                    </div>
+                    <div class="debt-mini">
+                        <div class="label">የተከፈለ</div>
+                        <div class="value">{{ "{:,.0f}".format(supplier.total_paid) }}</div>
+                    </div>
                 </div>
 
                 <div class="remaining-debt-box">
-
-                    <div class="remaining-debt-label">
-                        ቀሪ ዕዳ
-                    </div>
-
-                    <div class="remaining-debt-amount">
-                        {{ "{:,.2f}".format(supplier.remaining_debt) }} ETB
-                    </div>
-
+                    <span class="remaining-debt-label">ቀሪ ዕዳ</span>
+                    <span class="remaining-debt-amount">{{ "{:,.2f}".format(supplier.remaining_debt) }} ETB</span>
                 </div>
 
                 <button type="button"
                         class="btn-pay"
                         data-bs-toggle="modal"
-                        data-bs-target="#payModal"
+                        data-bs-target="#supplierActionSheet"
                         data-supplier-id="{{ supplier.supplier_id }}"
                         data-supplier-name="{{ supplier.supplier_name }}"
                         data-remaining-debt="{{ supplier.remaining_debt }}">
 
-                    <i class="bi bi-cash-coin me-1"></i>
-                    ዕዳ ይክፈሉ
-
+                    <i class="bi bi-three-dots"></i> አማራጮች
                 </button>
 
             </div>
@@ -558,24 +627,55 @@
 
     </div>
 
+    <div class="search-empty-state" id="searchEmptyState">
+        <i class="bi bi-search"></i>
+        <h4>ምንም አቅራቢ አልተገኘም</h4>
+        <p class="text-muted mb-0">የፈለጉት ስም ካለ አቅራቢዎች ጋር አልተዛመደም።</p>
+    </div>
+
     {% else %}
 
     <div class="empty-state">
-
         <i class="bi bi-check-circle"></i>
-
         <h3>ምንም ቀሪ ዕዳ የለም</h3>
-
-        <p>
-            በአሁኑ ጊዜ ለአቅራቢዎችዎ የሚከፍሉት ገንዘብ የለም።
-        </p>
-
+        <p>በአሁኑ ጊዜ ለአቅራቢዎችዎ የሚከፍሉት ገንዘብ የለም።</p>
     </div>
 
     {% endif %}
 
 </div>
 
+<!-- ============================================================
+     BOTTOM ACTION SHEET — 3 buttons: Pay Debt / Purchase History / Payment History
+     ============================================================ -->
+<div class="modal fade" id="supplierActionSheet" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="sheet-handle"></div>
+            <div class="sheet-title" id="sheetSupplierName">የአቅራቢ ስም</div>
+            <div class="sheet-remaining">ቀሪ ዕዳ: <strong id="sheetRemainingDebt">0.00 ETB</strong></div>
+
+            <div class="sheet-actions">
+                <button type="button" class="sheet-action-btn" id="sheetPayBtn">
+                    <span class="sheet-action-icon pay"><i class="bi bi-cash-coin"></i></span>
+                    ዕዳ ይክፈሉ
+                </button>
+
+                <a href="#" class="sheet-action-btn" id="sheetPurchaseHistoryBtn">
+                    <span class="sheet-action-icon purchases"><i class="bi bi-receipt"></i></span>
+                    የግዢ ታሪክ
+                </a>
+
+                <a href="#" class="sheet-action-btn" id="sheetPaymentHistoryBtn">
+                    <span class="sheet-action-icon payments"><i class="bi bi-clock-history"></i></span>
+                    የክፍያ ታሪክ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EXISTING PAYMENT MODAL — opened from the action sheet -->
 <div class="modal fade" id="payModal" tabindex="-1" aria-hidden="true">
 
     <div class="modal-dialog modal-dialog-centered">
@@ -583,82 +683,37 @@
         <div class="modal-content">
 
             <div class="modal-header">
-
-                <h5 class="modal-title" id="modalSupplierName">
-                    የአቅራቢ ስም
-                </h5>
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
-
+                <h5 class="modal-title" id="modalSupplierName">የአቅራቢ ስም</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
-            <form action="{{ url_for('pay_debt') }}"
-                  method="POST"
-                  id="paymentForm">
+            <form action="{{ url_for('pay_debt') }}" method="POST" id="paymentForm">
 
                 <div class="modal-body">
 
                     <div class="modal-remaining-box">
-
-                        <div class="modal-remaining-label">
-                            ቀሪ ዕዳ
-                        </div>
-
-                        <div class="modal-remaining-amount"
-                             id="modalRemainingDebt">
-                            0.00 ETB
-                        </div>
-
+                        <div class="modal-remaining-label">ቀሪ ዕዳ</div>
+                        <div class="modal-remaining-amount" id="modalRemainingDebt">0.00 ETB</div>
                     </div>
 
-                    <input type="hidden"
-                           name="supplier_id"
-                           id="modalSupplierId">
+                    <input type="hidden" name="supplier_id" id="modalSupplierId">
 
-                    <label class="form-label"
-                           for="paymentAmount">
-                        የሚከፈል መጠን
-                    </label>
+                    <label class="form-label" for="paymentAmount">የሚከፈል መጠን</label>
 
-                    <input
-                        type="number"
-                        name="amount"
-                        id="paymentAmount"
-                        class="form-control"
-                        min="0.01"
-                        step="0.01"
-                        required
-                    >
+                    <input type="number" name="amount" id="paymentAmount" class="form-control"
+                           min="0.01" step="0.01" required>
 
-                    <div class="max-payable"
-                         id="maxPayableText">
-                        ከፍተኛው የሚከፈል መጠን: 0.00 ETB
-                    </div>
+                    <div class="max-payable" id="maxPayableText">ከፍተኛው የሚከፈል መጠን: 0.00 ETB</div>
 
-                    <div class="invalid-feedback d-block mt-2"
-                         id="paymentError"
-                         style="display:none;">
+                    <div class="invalid-feedback d-block mt-2" id="paymentError" style="display:none;">
                         ክፍያው ከቀሪው ዕዳ መብለጥ አይችልም።
                     </div>
 
                 </div>
 
                 <div class="modal-footer">
-
-                    <button type="button"
-                            class="btn-cancel"
-                            data-bs-dismiss="modal">
-                        ሰርዝ
-                    </button>
-
-                    <button type="submit"
-                            class="btn-confirm-pay">
-                        ዕዳ ይክፈሉ
-                    </button>
-
+                    <button type="button" class="btn-cancel" data-bs-dismiss="modal">ሰርዝ</button>
+                    <button type="submit" class="btn-confirm-pay">ዕዳ ይክፈሉ</button>
                 </div>
 
             </form>
@@ -672,76 +727,67 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+const actionSheet = document.getElementById('supplierActionSheet');
 const payModal = document.getElementById('payModal');
 const paymentForm = document.getElementById('paymentForm');
 const paymentAmountInput = document.getElementById('paymentAmount');
 const paymentError = document.getElementById('paymentError');
 
 let currentRemainingDebt = 0;
+let currentSupplierId = null;
+let currentSupplierName = '';
 
-payModal.addEventListener('show.bs.modal', function(event){
+const actionSheetInstance = new bootstrap.Modal(actionSheet);
+const payModalInstance = new bootstrap.Modal(payModal);
 
+// ============================================================
+// Open action sheet on card/button click
+// ============================================================
+actionSheet.addEventListener('show.bs.modal', function(event){
     const trigger = event.relatedTarget;
+    if (!trigger) return;
 
-    const supplierId =
-        trigger.getAttribute('data-supplier-id');
+    currentSupplierId = trigger.getAttribute('data-supplier-id');
+    currentSupplierName = trigger.getAttribute('data-supplier-name');
 
-    const supplierName =
-        trigger.getAttribute('data-supplier-name');
+    let remainingDebt = parseFloat(trigger.getAttribute('data-remaining-debt'));
+    if(isNaN(remainingDebt) || remainingDebt < 0){ remainingDebt = 0; }
+    currentRemainingDebt = Math.round((remainingDebt + Number.EPSILON) * 100) / 100;
 
-    let remainingDebt =
-        parseFloat(trigger.getAttribute('data-remaining-debt'));
+    document.getElementById('sheetSupplierName').textContent = currentSupplierName;
+    document.getElementById('sheetRemainingDebt').textContent =
+        currentRemainingDebt.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ETB';
 
-    /*
-        Prevent an invalid/negative value from being used
-        by the frontend.
-    */
-    if(isNaN(remainingDebt) || remainingDebt < 0){
-        remainingDebt = 0;
-    }
-
-    /*
-        Round to two decimal places so that the frontend
-        does not accidentally allow a value such as
-        100.0000001.
-    */
-    currentRemainingDebt =
-        Math.round((remainingDebt + Number.EPSILON) * 100) / 100;
-
-    document.getElementById('modalSupplierName').textContent =
-        supplierName;
-
-    document.getElementById('modalSupplierId').value =
-        supplierId;
-
-    document.getElementById('modalRemainingDebt').textContent =
-        currentRemainingDebt.toLocaleString(undefined, {
-            minimumFractionDigits:2,
-            maximumFractionDigits:2
-        }) + ' ETB';
-
-    document.getElementById('maxPayableText').textContent =
-        'ከፍተኛው የሚከፈል መጠን: ' +
-        currentRemainingDebt.toLocaleString(undefined, {
-            minimumFractionDigits:2,
-            maximumFractionDigits:2
-        }) + ' ETB';
-
-    paymentAmountInput.max =
-        currentRemainingDebt;
-
-    paymentAmountInput.value = '';
-
-    paymentError.style.display = 'none';
-
-    paymentAmountInput.classList.remove('is-invalid');
+    document.getElementById('sheetPurchaseHistoryBtn').href = '/supplier/' + currentSupplierId + '/purchase_history';
+    document.getElementById('sheetPaymentHistoryBtn').href = '/supplier/' + currentSupplierId + '/payment_history';
 });
 
+// ============================================================
+// "ዕዳ ይክፈሉ" inside the sheet -> close sheet, open payment modal
+// ============================================================
+document.getElementById('sheetPayBtn').addEventListener('click', function(){
+    actionSheetInstance.hide();
+
+    document.getElementById('modalSupplierName').textContent = currentSupplierName;
+    document.getElementById('modalSupplierId').value = currentSupplierId;
+    document.getElementById('modalRemainingDebt').textContent =
+        currentRemainingDebt.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ETB';
+    document.getElementById('maxPayableText').textContent =
+        'ከፍተኛው የሚከፈል መጠን: ' + currentRemainingDebt.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ETB';
+
+    paymentAmountInput.max = currentRemainingDebt;
+    paymentAmountInput.value = '';
+    paymentError.style.display = 'none';
+    paymentAmountInput.classList.remove('is-invalid');
+
+    actionSheet.addEventListener('hidden.bs.modal', function handler(){
+        payModalInstance.show();
+        actionSheet.removeEventListener('hidden.bs.modal', handler);
+    });
+});
 
 paymentAmountInput.addEventListener('input', function(){
-
-    let amount =
-        parseFloat(paymentAmountInput.value);
+    let amount = parseFloat(paymentAmountInput.value);
 
     if(isNaN(amount)){
         paymentError.style.display = 'none';
@@ -749,94 +795,84 @@ paymentAmountInput.addEventListener('input', function(){
         return;
     }
 
-    /*
-        Never allow the frontend value to exceed
-        the currently displayed remaining debt.
-    */
     if(amount > currentRemainingDebt){
-
-        paymentAmountInput.value =
-            currentRemainingDebt.toFixed(2);
-
+        paymentAmountInput.value = currentRemainingDebt.toFixed(2);
         paymentError.style.display = 'block';
-
         paymentAmountInput.classList.add('is-invalid');
-
     }else{
-
         paymentError.style.display = 'none';
-
         paymentAmountInput.classList.remove('is-invalid');
     }
 });
 
-
 paymentForm.addEventListener('submit', function(e){
+    const amount = parseFloat(paymentAmountInput.value);
 
-    const amount =
-        parseFloat(paymentAmountInput.value);
-
-    /*
-        Frontend protection.
-        The backend MUST also perform the same check.
-    */
-    if(
-        isNaN(amount) ||
-        amount <= 0 ||
-        amount > currentRemainingDebt
-    ){
-
+    if(isNaN(amount) || amount <= 0 || amount > currentRemainingDebt){
         e.preventDefault();
-
         paymentError.style.display = 'block';
-
         paymentAmountInput.classList.add('is-invalid');
-
         return;
     }
 
-    /*
-        Prevent floating-point values with more than
-        two decimal places.
-    */
-    const roundedAmount =
-        Math.round((amount + Number.EPSILON) * 100) / 100;
+    const roundedAmount = Math.round((amount + Number.EPSILON) * 100) / 100;
 
     if(roundedAmount > currentRemainingDebt){
-
         e.preventDefault();
-
         paymentError.style.display = 'block';
-
         paymentAmountInput.classList.add('is-invalid');
-
         return;
     }
 
-    paymentAmountInput.value =
-        roundedAmount.toFixed(2);
-
+    paymentAmountInput.value = roundedAmount.toFixed(2);
     paymentError.style.display = 'none';
-
     paymentAmountInput.classList.remove('is-invalid');
 });
 
-
 document.addEventListener('DOMContentLoaded', function () {
-
     document.querySelectorAll('.toast').forEach(function(toastEl){
-
-        const toast =
-            new bootstrap.Toast(toastEl, {
-                delay: 3000,
-                autohide: true
-            });
-
+        const toast = new bootstrap.Toast(toastEl, { delay: 3000, autohide: true });
         toast.show();
-
     });
-
 });
+
+// ============================================================
+// Supplier search (by name only), client-side, no reload
+// ============================================================
+(function(){
+    const searchInput = document.getElementById('supplierSearchInput');
+    const searchBtn = document.getElementById('supplierSearchBtn');
+    const grid = document.getElementById('supplierGrid');
+    const emptyState = document.getElementById('searchEmptyState');
+
+    if (!searchInput || !grid) return;
+
+    function runSearch(){
+        const query = searchInput.value.trim().toLowerCase();
+        const items = grid.querySelectorAll('.supplier-grid-item');
+        let visibleCount = 0;
+
+        items.forEach(function(item){
+            const name = item.getAttribute('data-search-name') || '';
+            const matches = query === '' || name.includes(query);
+            item.style.display = matches ? '' : 'none';
+            if (matches) visibleCount++;
+        });
+
+        if (emptyState) {
+            emptyState.style.display = (visibleCount === 0) ? 'block' : 'none';
+        }
+    }
+
+    searchInput.addEventListener('input', runSearch);
+    searchBtn.addEventListener('click', runSearch);
+    searchInput.addEventListener('keydown', function(e){
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            runSearch();
+        }
+    });
+})();
 </script>
 
 </body>

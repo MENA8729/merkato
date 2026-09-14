@@ -13,7 +13,7 @@
     *{ box-sizing:border-box; }
     body{
         font-family:'Inter', sans-serif;
-        background:#f4f6f8;
+        background:linear-gradient(160deg, #f4f6f8 0%, #eef2f7 100%);
         min-height:100vh;
         display:flex;
         align-items:center;
@@ -22,24 +22,35 @@
     }
     .edit-card{
         background:#fff;
-        border-radius:16px;
-        padding:36px;
-        max-width:520px;
+        border-radius:18px;
+        padding:38px;
+        max-width:480px;
         width:100%;
-        box-shadow:0 10px 30px rgba(0,0,0,0.08);
+        box-shadow:0 12px 34px rgba(15,23,42,0.10);
+    }
+    .edit-card .icon-circle{
+        width:52px; height:52px;
+        background:#eaf1ff;
+        color:#2563eb;
+        border-radius:14px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:1.4rem;
+        margin-bottom:16px;
     }
     .edit-card h2{
         font-weight:800;
-        margin-bottom:24px;
-        color:#1e293b;
+        margin-bottom:26px;
+        color:#0f172a;
+        font-size:1.4rem;
     }
-    .form-label{ font-weight:600; font-size:0.9rem; color:#334155; }
-    .form-control{
+    .form-label{ font-weight:600; font-size:0.88rem; color:#334155; }
+    .form-control, .form-select{
         border-radius:10px;
-        padding:10px 14px;
+        padding:11px 14px;
         border:1.5px solid #e2e8f0;
+        transition:all .2s ease;
     }
-    .form-control:focus{
+    .form-control:focus, .form-select:focus{
         border-color:#2563eb;
         box-shadow:0 0 0 3px rgba(37,99,235,0.12);
     }
@@ -47,17 +58,17 @@
         background:#2563eb;
         border:none;
         border-radius:10px;
-        padding:11px;
-        font-weight:600;
+        padding:12px;
+        font-weight:700;
         color:#fff;
         width:100%;
-        transition:background .2s ease;
+        transition:background .2s ease, transform .2s ease;
     }
-    .btn-save:hover{ background:#1d4ed8; color:#fff; }
+    .btn-save:hover{ background:#1d4ed8; color:#fff; transform:translateY(-1px); }
     .btn-cancel{
-        display:inline-block;
+        display:block;
         text-align:center;
-        margin-top:10px;
+        margin-top:12px;
         width:100%;
         color:#64748b;
         font-weight:600;
@@ -65,7 +76,7 @@
     }
     .btn-cancel:hover{ color:#334155; }
     .text-danger.small{ font-size:0.8rem; }
-    .flash-wrap{ max-width:520px; width:100%; margin-bottom:16px; }
+    .flash-wrap{ max-width:480px; width:100%; margin-bottom:16px; }
 </style>
 </head>
 <body>
@@ -85,6 +96,15 @@
     {% endwith %}
 
     <div class="edit-card">
+        <div class="icon-circle">
+            {% if item_type == "product" %}
+                <i class="bi bi-box-seam"></i>
+            {% elif item_type == "customer" %}
+                <i class="bi bi-person"></i>
+            {% else %}
+                <i class="bi bi-truck"></i>
+            {% endif %}
+        </div>
         <h2>{{ title }}</h2>
 
         <form method="POST" novalidate>
@@ -109,71 +129,40 @@
                     {% endfor %}
                 </div>
 
+            <!-- ================= PRODUCT ================= -->
+            {% elif item_type == "product" %}
+
                 <div class="mb-3">
-                    {{ form.email.label(class="form-label") }}
-                    {{ form.email(class="form-control", placeholder="Email address") }}
-                    {% for error in form.email.errors %}
+                    {{ form.stock_name.label(class="form-label") }}
+                    {{ form.stock_name(class="form-control", placeholder="Product name") }}
+                    {% for error in form.stock_name.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.quantity.label(class="form-label") }}
+                    {{ form.quantity(class="form-control", placeholder="0") }}
+                    {% for error in form.quantity.errors %}
                         <div class="text-danger small mt-1">{{ error }}</div>
                     {% endfor %}
                 </div>
 
                 <div class="mb-4">
-                    {{ form.balance_owed.label(class="form-label") }}
-                    {{ form.balance_owed(class="form-control", placeholder="0.00") }}
-                    {% for error in form.balance_owed.errors %}
+                    {{ form.unit_price.label(class="form-label") }}
+                    {{ form.unit_price(class="form-control", placeholder="0.00") }}
+                    {% for error in form.unit_price.errors %}
                         <div class="text-danger small mt-1">{{ error }}</div>
                     {% endfor %}
                 </div>
 
-            <!-- ================= PRODUCT ================= -->
-            {% elif item_type == "product" %}
+            {% endif %}
 
-    <div class="mb-3">
-        {{ form.stock_name.label(class="form-label") }}
-        {{ form.stock_name(class="form-control", placeholder="Product name") }}
-        {% for error in form.stock_name.errors %}
-            <div class="text-danger small mt-1">{{ error }}</div>
-        {% endfor %}
-    </div>
-
-    <div class="mb-3">
-        {{ form.stock_code.label(class="form-label") }}
-        {{ form.stock_code(class="form-control", placeholder="Product code / SKU") }}
-        {% for error in form.stock_code.errors %}
-            <div class="text-danger small mt-1">{{ error }}</div>
-        {% endfor %}
-    </div>
-
-    <div class="mb-3">
-        {{ form.measurement.label(class="form-label") }}
-        {{ form.measurement(class="form-select") }}
-        {% for error in form.measurement.errors %}
-            <div class="text-danger small mt-1">{{ error }}</div>
-        {% endfor %}
-    </div>
-
-    <div class="mb-3">
-        {{ form.quantity.label(class="form-label") }}
-        {{ form.quantity(class="form-control", placeholder="0") }}
-        {% for error in form.quantity.errors %}
-            <div class="text-danger small mt-1">{{ error }}</div>
-        {% endfor %}
-    </div>
-
-    <div class="mb-4">
-        {{ form.unit_price.label(class="form-label") }}
-        {{ form.unit_price(class="form-control", placeholder="0.00") }}
-        {% for error in form.unit_price.errors %}
-            <div class="text-danger small mt-1">{{ error }}</div>
-        {% endfor %}
-    </div>
-
-{% endif %}
             <button type="submit" class="btn btn-save">
                 <i class="bi bi-check-circle me-1"></i> Save Changes
             </button>
 
-            <a href="#" class="btn-cancel">Cancel</a>
+            <a href="{{url_for('products_page')}}" class="btn-cancel">Cancel</a>
         </form>
     </div>
 </div>

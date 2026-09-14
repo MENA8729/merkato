@@ -1,0 +1,304 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-success alert-dismissible fade show flash-message" role="alert">
+                {{ message }}
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+<style>
+    .flash-message {
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.1px;
+        padding: 8px 12px;
+        margin: 10px auto;
+        max-width: 500px;
+        border-radius: 7px;
+    }
+</style>
+<!DOCTYPE html>
+<html lang="am">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>የሽያጭ ታሪክ</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#2563eb;--green:#16a34a;--orange:#ea580c;--red:#dc2626;--dark:#1e293b;--muted:#64748b;--bg:#f4f6f8;}
+*{box-sizing:border-box;} html,body{overflow-x:hidden;max-width:100%;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);}
+.navbar{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:14px 0;}
+.navbar-brand{font-weight:800;color:var(--blue)!important;font-size:1.3rem;}
+.navbar-brand i{margin-right:6px;}
+.hero{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;padding:40px 0 55px;text-align:center;}
+.hero .badge-pill{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);padding:5px 16px;border-radius:30px;font-size:.78rem;font-weight:600;display:inline-block;margin-bottom:12px;}
+.hero h1{font-weight:800;font-size:2rem;margin-bottom:6px;}
+.hero p{color:#dbeafe;}
+.back-link{color:#dbeafe;text-decoration:none;font-size:.85rem;}
+.summary-wrap{margin-top:-35px;}
+
+.summary-card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 8px 20px rgba(0,0,0,.07);height:100%;overflow:hidden;}
+.summary-value{font-size:clamp(.95rem,3.6vw,1.6rem);font-weight:800;line-height:1.2;word-break:break-word;white-space:normal;}
+.summary-value.text-red{color:var(--red);}
+.summary-value.text-green{color:var(--green);}
+.summary-value.text-orange{color:var(--orange);}
+.summary-label{color:var(--muted);font-size:.78rem;font-weight:500;margin-top:4px;}
+
+.section-block{margin-top:50px;}
+.section-title{font-weight:800;font-size:1.3rem;margin-bottom:4px;}
+.section-desc{color:var(--muted);margin-bottom:20px;font-size:.9rem;}
+
+.filter-bar{background:#fff;border-radius:14px;padding:16px;box-shadow:0 4px 14px rgba(0,0,0,.05);margin-bottom:18px;}
+
+.total-bar{display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:14px;padding:14px 18px;box-shadow:0 4px 14px rgba(0,0,0,.05);margin-bottom:18px;}
+.total-bar .label{color:var(--muted);font-size:.85rem;font-weight:600;}
+.total-bar .value{font-weight:800;font-size:clamp(1rem,4vw,1.3rem);color:var(--blue);word-break:break-word;text-align:right;}
+
+.sale-list{background:#fff;border-radius:16px;box-shadow:0 4px 14px rgba(0,0,0,.05);overflow:hidden;}
+.sale-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background .15s ease;}
+.sale-row:last-child{border-bottom:none;}
+.sale-row:hover{background:#f8fafc;}
+.sale-row.debt-row{cursor:default;}
+.sale-row.debt-row:hover{background:#fff;}
+.sale-main{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.sale-product{font-weight:700;font-size:.96rem;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sale-meta{font-size:.8rem;color:var(--muted);}
+.sale-meta span{margin-right:8px;}
+.sale-side{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.sale-total{font-weight:700;font-size:.92rem;color:var(--dark);white-space:nowrap;}
+.sale-debt{font-size:.8rem;font-weight:700;color:var(--red);white-space:nowrap;}
+.sale-status{font-size:.68rem;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+.badge-status-paid{background:#dcfce7;color:var(--green);}
+.badge-status-partial{background:#fef3c7;color:#b45309;}
+.badge-status-unpaid{background:#fee2e2;color:var(--red);}
+.badge-adddebt{background:#f1f5f9;color:var(--muted);font-size:.68rem;font-weight:600;padding:3px 10px;border-radius:20px;}
+
+.empty-state{text-align:center;padding:50px 20px;background:#fff;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.05);}
+.empty-state i{font-size:2.6rem;color:#cbd5e1;margin-bottom:14px;}
+
+/* ---- Bottom sheet edit modal — ALWAYS a bottom sheet ---- */
+.action-modal .modal-dialog{
+    position:fixed; bottom:0; left:0; right:0; margin:0;
+    max-width:100%; width:100%;
+    transform:translateY(100%);
+    transition:transform .3s ease-out;
+}
+.action-modal.show .modal-dialog{ transform:translateY(0); }
+.action-modal .modal-content{
+    border-radius:20px 20px 0 0; border:none;
+    max-height:85vh; overflow-y:auto;
+    padding-bottom:env(safe-area-inset-bottom, 14px);
+    box-shadow:0 -8px 30px rgba(0,0,0,.15);
+}
+.action-modal .modal-header{ flex-direction:row-reverse; justify-content:space-between; border:none; padding:18px 20px 10px; }
+.action-modal .modal-title{ font-weight:800; }
+.action-modal .form-label{ color:var(--blue); font-weight:600; font-size:.85rem; }
+.action-modal .form-control, .action-modal .form-select{
+    border-radius:10px; padding:10px 12px; border:1px solid #dee2e6; font-size:.92rem;
+}
+.action-modal .form-control:focus, .action-modal .form-select:focus{
+    border-color:var(--blue); box-shadow:0 0 0 0.2rem rgba(37,99,235,.15);
+}
+.row-line{display:flex;justify-content:space-between;font-size:.88rem;padding:5px 0;}
+.row-line span:first-child{color:var(--muted);}
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('home') }}"><i class="bi bi-boxes"></i>StockManager</a>
+        <a href="{{ url_for('suppliers_customers') }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-right me-1"></i>ወደ ደንበኞች ተመለስ</a>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <span class="badge-pill">የደንበኛ ታሪክ</span>
+        <h1>{{ customer.name }} - የሽያጭ ታሪክ</h1>
+        <p>ሁሉንም ሽያጮች እና ተጨማሪ ዕዳዎች ይመልከቱ።</p>
+    </div>
+</section>
+
+<div class="container summary-wrap mb-5">
+    <div class="row g-3">
+        <div class="col-6 col-md-4">
+            <div class="summary-card">
+                <div class="summary-value text-red">{{ "{:,.2f}".format(remaining_debt) }} ETB</div>
+                <div class="summary-label">ቀሪ ዕዳ</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="summary-card">
+                <div class="summary-value text-green">{{ "{:,.2f}".format(total_paid) }} ETB</div>
+                <div class="summary-label">ጠቅላላ የተከፈለ</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="summary-card">
+                <div class="summary-value text-orange">{{ "{:,.2f}".format(total_sold) }} ETB</div>
+                <div class="summary-label">ጠቅላላ የተሸጠ</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container section-block pb-5">
+    <h2 class="section-title">የሽያጭ ዝርዝር</h2>
+    <p class="section-desc">ቀንን በመምረጥ ይፈልጉ እና ጠቅላላ ድምርን ይመልከቱ።</p>
+
+    <div class="filter-bar">
+        <div class="row g-2 align-items-end">
+            <div class="col-8 col-md-4">
+                <label class="form-label small fw-semibold">በቀን ፈልግ</label>
+                <input type="date" class="form-control" id="dateFilter">
+            </div>
+            <div class="col-4 col-md-2 d-grid">
+                <button type="button" class="btn btn-primary" id="dateSearchBtn"><i class="bi bi-search"></i></button>
+            </div>
+            <div class="col-12 col-md-3 d-grid">
+                <button type="button" class="btn btn-outline-secondary" id="dateClearBtn">ሁሉንም አሳይ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="total-bar">
+        <span class="label">ጠቅላላ፡</span>
+        <span class="value" id="filteredTotal">0.00 ETB</span>
+    </div>
+
+    {% if sales or debts %}
+    <div class="sale-list" id="saleList">
+        {% for sale in sales %}
+        {% set status = 'paid' if sale.debt == 0 else ('partial' if sale.current_payment > 0 and sale.debt > 0 else 'unpaid') %}
+        {% set line_total = sale.quantity * sale.unit_price %}
+        <div class="sale-row" data-date="{{ sale.date }}" data-total="{{ line_total }}" data-bs-toggle="modal" data-bs-target="#saleModal{{ sale.id }}">
+            <div class="sale-main">
+                <div class="sale-product">{{ products[sale.product_id].name if sale.product_id in products else 'ያልታወቀ' }}</div>
+                <div class="sale-meta">
+                    <span><i class="bi bi-calendar3 me-1"></i>{{ sale.date }}</span>
+                    <span>ብዛት፡ {{ sale.quantity }}</span>
+                    <span>@ {{ "{:,.2f}".format(sale.unit_price) }} ETB</span>
+                </div>
+            </div>
+            <div class="sale-side">
+                <div class="sale-total">{{ "{:,.2f}".format(line_total) }} ETB</div>
+                <div class="sale-debt">ዕዳ፡ {{ "{:,.2f}".format(sale.debt) }} ETB</div>
+                <span class="sale-status badge-status-{{ status }}">
+                    {{ 'ተከፍሏል' if status == 'paid' else ('በከፊል ተከፍሏል' if status == 'partial' else 'አልተከፈለም') }}
+                </span>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% for d in debts %}
+        <div class="sale-row debt-row" data-date="{{ d.date }}" data-total="{{ d.amount }}">
+            <div class="sale-main">
+                <div class="sale-product"><span class="badge-adddebt">ተጨማሪ ዕዳ</span></div>
+                <div class="sale-meta">
+                    <span><i class="bi bi-calendar3 me-1"></i>{{ d.date }}</span>
+                    {% if d.reason %}<span>{{ d.reason }}</span>{% endif %}
+                </div>
+            </div>
+            <div class="sale-side">
+                <div class="sale-total">{{ "{:,.2f}".format(d.amount) }} ETB</div>
+                <div class="sale-debt">ዕዳ፡ {{ "{:,.2f}".format(d.amount) }} ETB</div>
+                <span class="sale-status badge-status-unpaid">ዕዳ</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><i class="bi bi-graph-down"></i><h5>ምንም መዝገብ የለም</h5><p>የዚህ ደንበኛ ሽያጭ ታሪክ እዚህ ይታያል።</p></div>
+    {% endif %}
+</div>
+
+<!-- SALE EDIT MODALS (bottom sheet) -->
+{% for sale in sales %}
+<div class="modal fade action-modal" id="saleModal{{ sale.id }}" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title">ሽያጭ #{{ sale.id }}</h5>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('edit_sale', sale_id=sale.id) }}">
+                    <div class="mb-3">
+                        <label class="form-label">ደንበኛ</label>
+                        <select name="customer_id" class="form-select" required>
+                            {% for c in all_customers %}
+                            <option value="{{ c.id }}" {{ 'selected' if c.id == sale.customer_id else '' }}>{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ብዛት</label>
+                        <input type="number" step="0.01" min="0.01" name="quantity" class="form-control" value="{{ sale.quantity }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">የሽያጭ ዋጋ</label>
+                        <input type="number" step="0.01" min="0" name="unit_price" class="form-control" value="{{ sale.unit_price }}" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">የአሁኑ ክፍያ</label>
+                        <input type="number" step="0.01" min="0" name="current_payment" class="form-control" value="{{ sale.current_payment }}" required>
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">ይቅር</button>
+                        <button type="submit" class="btn btn-primary flex-fill">አረጋግጦ አስቀምጥ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function formatETB(n){
+    return n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ETB';
+}
+
+function recomputeTotal(){
+    let sum = 0;
+    document.querySelectorAll('#saleList .sale-row').forEach(row=>{
+        if(row.style.display !== 'none'){
+            sum += parseFloat(row.getAttribute('data-total')) || 0;
+        }
+    });
+    document.getElementById('filteredTotal').innerText = formatETB(sum);
+}
+
+function applyDateFilter(){
+    const val = document.getElementById('dateFilter').value;
+    document.querySelectorAll('#saleList .sale-row').forEach(row=>{
+        row.style.display = (!val || row.getAttribute('data-date') === val) ? '' : 'none';
+    });
+    recomputeTotal();
+}
+
+document.getElementById('dateSearchBtn').addEventListener('click', applyDateFilter);
+document.getElementById('dateFilter').addEventListener('change', applyDateFilter);
+document.getElementById('dateClearBtn').addEventListener('click', function(){
+    document.getElementById('dateFilter').value = '';
+    document.querySelectorAll('#saleList .sale-row').forEach(row=>{ row.style.display = ''; });
+    recomputeTotal();
+});
+
+recomputeTotal();
+</script>
+</body>
+</html>

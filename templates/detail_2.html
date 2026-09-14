@@ -30,10 +30,6 @@
         color:#212529;
     }
 
-    /* ============================================================
-       NEW: sticky wrapper so header + hero stay fixed while only
-       the customer list area scrolls. No existing rules changed.
-       ============================================================ */
     .page-fixed-top{
         position:sticky;
         top:0;
@@ -44,7 +40,6 @@
         max-height:calc(100vh - 0px);
         overflow-y:auto;
     }
-    /* ============================================================ */
 
     .navbar{
         background:#ffffff;
@@ -68,9 +63,6 @@
 
     .nav-link:hover, .nav-link.active{ color:var(--primary) !important; }
 
-    /* ============================================================
-       NEW: search bar placed in the header/navbar
-       ============================================================ */
     .navbar-search{
         display:flex;
         align-items:center;
@@ -107,7 +99,6 @@
         .navbar-search{ margin:10px 0 0; width:100%; }
         .navbar-search input{ flex:1; min-width:0; }
     }
-    /* ============================================================ */
 
     .hero{
         position:relative;
@@ -166,15 +157,21 @@
         z-index:5;
     }
 
+    /* ============================================================
+       CUSTOMER CARD — wider, shorter, horizontal layout, 2 per row
+       ============================================================ */
     .customer-card{
         background:#fff;
         border:1px solid #eef0f2;
         border-radius:14px;
-        padding:14px;
+        padding:10px 12px;
         box-shadow:0 3px 10px rgba(0,0,0,0.05);
         cursor:pointer;
         transition:transform .18s ease, box-shadow .18s ease;
         height:100%;
+        display:flex;
+        flex-direction:column;
+        gap:6px;
     }
 
     .customer-card:hover{
@@ -186,52 +183,70 @@
         display:flex;
         align-items:center;
         gap:8px;
-        margin-bottom:10px;
     }
 
     .customer-avatar{
-        width:36px;
-        height:36px;
-        border-radius:10px;
+        width:32px;
+        height:32px;
+        border-radius:9px;
         background:linear-gradient(135deg, var(--primary), var(--primary-dark));
         color:#fff;
         display:flex;
         align-items:center;
         justify-content:center;
         font-weight:700;
-        font-size:0.95rem;
+        font-size:0.85rem;
         flex-shrink:0;
     }
 
     .customer-name{
         font-weight:600;
-        font-size:clamp(0.82rem, 2.4vw, 0.95rem);
+        font-size:clamp(0.78rem, 2.3vw, 0.9rem);
         overflow:hidden;
         text-overflow:ellipsis;
         white-space:nowrap;
+        line-height:1.2;
     }
 
     .customer-id{
         color:var(--text-muted);
-        font-size:clamp(0.65rem, 1.8vw, 0.75rem);
+        font-size:clamp(0.6rem, 1.6vw, 0.68rem);
     }
 
-    .debt-row{
+    .debt-mini-row{
         display:flex;
         justify-content:space-between;
-        padding:4px 0;
-        font-size:clamp(0.7rem, 2vw, 0.8rem);
-        font-weight:500;
+        align-items:center;
+        gap:6px;
     }
 
-    .debt-row span:first-child{ color:var(--text-muted); font-weight:400; }
+    .debt-mini{
+        flex:1;
+        background:var(--bg-soft);
+        border-radius:8px;
+        padding:4px 6px;
+        text-align:center;
+    }
+
+    .debt-mini .label{
+        font-size:clamp(0.55rem, 1.5vw, 0.62rem);
+        color:var(--text-muted);
+        text-transform:uppercase;
+        letter-spacing:0.3px;
+    }
+
+    .debt-mini .value{
+        font-size:clamp(0.68rem, 2vw, 0.78rem);
+        font-weight:700;
+    }
 
     .remaining-debt-box{
         background:#fdf1ee;
-        border-radius:10px;
-        padding:8px 10px;
-        margin-top:8px;
-        text-align:center;
+        border-radius:9px;
+        padding:5px 8px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
     }
 
     .remaining-debt-label{
@@ -242,7 +257,7 @@
     }
 
     .remaining-debt-amount{
-        font-size:clamp(0.92rem, 3vw, 1.15rem);
+        font-size:clamp(0.82rem, 2.6vw, 0.98rem);
         font-weight:800;
         color:var(--danger);
     }
@@ -253,10 +268,9 @@
         border:none;
         border-radius:8px;
         font-weight:600;
-        font-size:clamp(0.72rem, 2vw, 0.82rem);
-        padding:7px;
+        font-size:clamp(0.68rem, 1.9vw, 0.78rem);
+        padding:6px;
         width:100%;
-        margin-top:10px;
     }
 
     .btn-pay:hover{ background:var(--primary-dark); color:#fff; }
@@ -275,7 +289,6 @@
         margin-bottom:14px;
     }
 
-    /* NEW: shown only when a search yields nothing */
     .search-empty-state{
         display:none;
         text-align:center;
@@ -291,6 +304,9 @@
         margin-bottom:14px;
     }
 
+    /* ============================================================
+       PAYMENT MODAL (existing, unchanged in behavior)
+       ============================================================ */
     .modal-content{
         border-radius:18px;
         border:none;
@@ -366,23 +382,114 @@
 
     .btn-confirm-pay:hover{ background:#166638; color:#fff; }
 
+    /* ============================================================
+       NEW: BOTTOM ACTION SHEET (slides up from bottom, like the
+       reference screenshot — drag handle, title, 3 icon buttons)
+       ============================================================ */
+    #customerActionSheet .modal-dialog{
+        position:fixed;
+        bottom:0;
+        left:0;
+        right:0;
+        margin:0;
+        width:100%;
+        max-width:100%;
+        transform:translateY(100%);
+        transition:transform .3s ease-out;
+    }
+
+    #customerActionSheet.show .modal-dialog{
+        transform:translateY(0);
+    }
+
+    #customerActionSheet .modal-content{
+        border-radius:20px 20px 0 0;
+        padding-bottom:env(safe-area-inset-bottom, 16px);
+    }
+
+    .sheet-handle{
+        width:44px;
+        height:5px;
+        background:#dee2e6;
+        border-radius:10px;
+        margin:12px auto 6px;
+    }
+
+    .sheet-title{
+        text-align:center;
+        font-weight:800;
+        font-size:1.1rem;
+        color:#212529;
+        padding:4px 20px 4px;
+    }
+
+    .sheet-remaining{
+        text-align:center;
+        font-size:0.82rem;
+        color:var(--text-muted);
+        padding-bottom:14px;
+    }
+
+    .sheet-remaining strong{ color:var(--danger); }
+
+    .sheet-actions{
+        display:flex;
+        gap:10px;
+        padding:0 20px 24px;
+    }
+
+    .sheet-action-btn{
+        flex:1;
+        background:#f4f6f8;
+        border:none;
+        border-radius:14px;
+        padding:16px 8px;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:8px;
+        font-weight:600;
+        font-size:0.78rem;
+        color:#343a40;
+        text-decoration:none;
+        transition:background .15s ease;
+    }
+
+    .sheet-action-btn:hover, .sheet-action-btn:active{
+        background:#e9ecef;
+        color:#212529;
+    }
+
+    .sheet-action-icon{
+        width:44px;
+        height:44px;
+        border-radius:12px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:1.2rem;
+        color:#fff;
+    }
+
+    .sheet-action-icon.pay{ background:var(--success); }
+    .sheet-action-icon.sales{ background:var(--primary); }
+    .sheet-action-icon.payments{ background:var(--accent); }
+
     @media (max-width: 430px){
-        .customer-card{ padding:10px; border-radius:12px; }
-        .customer-avatar{ width:30px; height:30px; font-size:0.8rem; border-radius:8px; }
-        .customer-top{ gap:6px; margin-bottom:7px; }
-        .remaining-debt-box{ padding:6px 8px; margin-top:6px; }
-        .btn-pay{ padding:6px; margin-top:7px; }
+        .sheet-action-btn{ font-size:0.7rem; padding:14px 6px; }
+        .sheet-action-icon{ width:38px; height:38px; font-size:1.05rem; }
         .hero{ padding:28px 0 48px; }
         .total-debt-box{ padding:12px 22px; }
+    }
+
+    /* TABLET: 3 cards per row instead of 2 */
+    @media (min-width: 576px) and (max-width: 991.98px){
+        .customer-grid-item{ flex:0 0 33.3333%; max-width:33.3333%; }
     }
 </style>
 </head>
 <body>
 
-<!-- ============================================================
-     NEW: wrapper makes navbar + hero stay fixed (sticky),
-     only the customer list below scrolls.
-     ============================================================ -->
 <div class="page-fixed-top">
 
 <nav class="navbar navbar-expand-lg">
@@ -393,12 +500,10 @@
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navMenu">
             <ul class="navbar-nav align-items-lg-center">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">ዋና ገጽ</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('new_action') }}">ዋና ገጽ</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('Selling') }}">ሽያጭ</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('suppliers_customers') }}">ደንበኞች</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">logout</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('customers_page') }}">ደንበኞች</a></li>
                 <li class="nav-item"><a class="nav-link active" href="#">የደንበኞች ዕዳ</a></li>
-                <!-- NEW: search bar in header -->
                 <li class="nav-item navbar-search">
                     <input type="text" id="customerSearchInput" placeholder="በስም ይፈልጉ..." autocomplete="off">
                     <button type="button" id="customerSearchBtn"><i class="bi bi-search"></i></button>
@@ -439,10 +544,6 @@
 </section>
 
 </div>
-<!-- ============================================================
-     END sticky wrapper. Everything below this is the scrollable
-     content area.
-     ============================================================ -->
 
 <div class="container pb-5 scroll-area">
     <h2 class="section-title">ዕዳ ያለባቸው ደንበኞች</h2>
@@ -450,10 +551,10 @@
     {% if customer_details %}
     <div class="row g-2 g-md-3" id="customerGrid">
         {% for customer in customer_details %}
-        <div class="col-6 col-md-6 col-lg-4 customer-grid-item" data-search-name="{{ customer.customer_name|lower }}">
+        <div class="col-6 customer-grid-item" data-search-name="{{ customer.customer_name|lower }}">
             <div class="customer-card"
                  data-bs-toggle="modal"
-                 data-bs-target="#payCustomerModal"
+                 data-bs-target="#customerActionSheet"
                  data-customer-id="{{ customer.customer_id }}"
                  data-customer-name="{{ customer.customer_name }}"
                  data-remaining-debt="{{ customer.remaining_debt }}">
@@ -466,34 +567,35 @@
                     </div>
                 </div>
 
-                <div class="debt-row">
-                    <span>ጠቅላላ ዕዳ</span>
-                    <span>{{ "{:,.2f}".format(customer.total_debt) }}</span>
-                </div>
-                <div class="debt-row">
-                    <span>የተከፈለ</span>
-                    <span>{{ "{:,.2f}".format(customer.total_paid) }}</span>
+                <div class="debt-mini-row">
+                    <div class="debt-mini">
+                        <div class="label">ጠቅላላ</div>
+                        <div class="value">{{ "{:,.0f}".format(customer.total_debt) }}</div>
+                    </div>
+                    <div class="debt-mini">
+                        <div class="label">የተከፈለ</div>
+                        <div class="value">{{ "{:,.0f}".format(customer.total_paid) }}</div>
+                    </div>
                 </div>
 
                 <div class="remaining-debt-box">
-                    <div class="remaining-debt-label">ቀሪ ዕዳ</div>
-                    <div class="remaining-debt-amount">{{ "{:,.2f}".format(customer.remaining_debt) }} ETB</div>
+                    <span class="remaining-debt-label">ቀሪ ዕዳ</span>
+                    <span class="remaining-debt-amount">{{ "{:,.2f}".format(customer.remaining_debt) }} ETB</span>
                 </div>
 
                 <button type="button" class="btn-pay"
                     data-bs-toggle="modal"
-                    data-bs-target="#payCustomerModal"
+                    data-bs-target="#customerActionSheet"
                     data-customer-id="{{ customer.customer_id }}"
                     data-customer-name="{{ customer.customer_name }}"
                     data-remaining-debt="{{ customer.remaining_debt }}">
-                    <i class="bi bi-cash-coin me-1"></i>ክፍያ ይቀበሉ
+                    <i class="bi bi-three-dots"></i> አማራጮች
                 </button>
             </div>
         </div>
         {% endfor %}
     </div>
 
-    <!-- NEW: shown when search matches nothing -->
     <div class="search-empty-state" id="searchEmptyState">
         <i class="bi bi-search"></i>
         <h4>ምንም ደንበኛ አልተገኘም</h4>
@@ -509,6 +611,38 @@
     {% endif %}
 </div>
 
+<!-- ============================================================
+     NEW: BOTTOM ACTION SHEET — opens on card/button click.
+     3 buttons: Receive Payment / Sales History / Payment History
+     ============================================================ -->
+<div class="modal fade" id="customerActionSheet" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="sheet-handle"></div>
+            <div class="sheet-title" id="sheetCustomerName">የደንበኛ ስም</div>
+            <div class="sheet-remaining">ቀሪ ዕዳ: <strong id="sheetRemainingDebt">0.00 ETB</strong></div>
+
+            <div class="sheet-actions">
+                <button type="button" class="sheet-action-btn" id="sheetPayBtn">
+                    <span class="sheet-action-icon pay"><i class="bi bi-cash-coin"></i></span>
+                    ክፍያ ይቀበሉ
+                </button>
+
+                <a href="#" class="sheet-action-btn" id="sheetSalesHistoryBtn">
+                    <span class="sheet-action-icon sales"><i class="bi bi-receipt"></i></span>
+                    የሽያጭ ታሪክ
+                </a>
+
+                <a href="#" class="sheet-action-btn" id="sheetPaymentHistoryBtn">
+                    <span class="sheet-action-icon payments"><i class="bi bi-clock-history"></i></span>
+                    የክፍያ ታሪክ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EXISTING PAYMENT MODAL — now opened from the action sheet -->
 <div class="modal fade" id="payCustomerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -547,32 +681,60 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    const actionSheet = document.getElementById('customerActionSheet');
     const payModal = document.getElementById('payCustomerModal');
     const paymentForm = document.getElementById('customerPaymentForm');
     const paymentAmountInput = document.getElementById('customerPaymentAmount');
     const paymentError = document.getElementById('customerPaymentError');
 
     let currentRemainingDebt = 0;
+    let currentCustomerId = null;
+    let currentCustomerName = '';
 
-    payModal.addEventListener('show.bs.modal', function(event){
+    const actionSheetInstance = new bootstrap.Modal(actionSheet);
+    const payModalInstance = new bootstrap.Modal(payModal);
+
+    // ============================================================
+    // Open action sheet on card/button click, populate its content
+    // ============================================================
+    actionSheet.addEventListener('show.bs.modal', function(event){
         const trigger = event.relatedTarget;
-        const customerId = trigger.getAttribute('data-customer-id');
-        const customerName = trigger.getAttribute('data-customer-name');
-        const remainingDebt = parseFloat(trigger.getAttribute('data-remaining-debt'));
+        if (!trigger) return;
 
-        currentRemainingDebt = remainingDebt;
+        currentCustomerId = trigger.getAttribute('data-customer-id');
+        currentCustomerName = trigger.getAttribute('data-customer-name');
+        currentRemainingDebt = parseFloat(trigger.getAttribute('data-remaining-debt'));
 
-        document.getElementById('modalCustomerName').textContent = customerName;
-        document.getElementById('modalCustomerId').value = customerId;
+        document.getElementById('sheetCustomerName').textContent = currentCustomerName;
+        document.getElementById('sheetRemainingDebt').textContent =
+            currentRemainingDebt.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ETB';
+
+        document.getElementById('sheetSalesHistoryBtn').href = '/customer/' + currentCustomerId + '/sales_history';
+        document.getElementById('sheetPaymentHistoryBtn').href = '/customer/' + currentCustomerId + '/payment_history';
+    });
+
+    // ============================================================
+    // "ክፍያ ይቀበሉ" inside the sheet -> close sheet, open payment modal
+    // ============================================================
+    document.getElementById('sheetPayBtn').addEventListener('click', function(){
+        actionSheetInstance.hide();
+
+        document.getElementById('modalCustomerName').textContent = currentCustomerName;
+        document.getElementById('modalCustomerId').value = currentCustomerId;
         document.getElementById('modalCustomerRemainingDebt').textContent =
-            remainingDebt.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ETB';
+            currentRemainingDebt.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ETB';
         document.getElementById('customerMaxPayableText').textContent =
-            'ከፍተኛ ሊከፈል የሚችለው: ' + remainingDebt.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ETB';
+            'ከፍተኛ ሊከፈል የሚችለው: ' + currentRemainingDebt.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ETB';
 
-        paymentAmountInput.max = remainingDebt;
+        paymentAmountInput.max = currentRemainingDebt;
         paymentAmountInput.value = '';
         paymentError.style.display = 'none';
         paymentAmountInput.classList.remove('is-invalid');
+
+        actionSheet.addEventListener('hidden.bs.modal', function handler(){
+            payModalInstance.show();
+            actionSheet.removeEventListener('hidden.bs.modal', handler);
+        });
     });
 
     paymentAmountInput.addEventListener('input', function(){
@@ -603,7 +765,7 @@
     });
 
     // ============================================================
-    // NEW: customer search (by name only), client-side, no reload
+    // Customer search (by name only), client-side, no reload
     // ============================================================
     (function(){
         const searchInput = document.getElementById('customerSearchInput');

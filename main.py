@@ -1,5 +1,6 @@
 
 from datetime import datetime, date
+from zoneinfo import ZoneInfo
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -49,7 +50,7 @@ from datetime import datetime
 from flask_login import login_user, logout_user, login_required
 from flask_login import LoginManager,UserMixin,current_user
 from form import (StockForm,InventoryForm,PurchaseForm
-,PurchaseListForm,CustomerForm,SupplierForm,SaleForm,LoginForm,RegisterForm,UserEditForm,SupplierEntryForm,StockForm
+,MultiPurchaseForm,CustomerForm,SupplierForm,SaleForm,LoginForm,RegisterForm,UserEditForm,SupplierEntryForm,StockForm
 ,CustomerEntryForm,AddDebtForm)
 from flask_mail import Mail, Message
 from datetime import date, timedelta, datetime
@@ -200,6 +201,7 @@ class CustomerPayment(db.Model):
         db.ForeignKey("users.id"),
         nullable=True
     )
+    created_at = db.Column(db.DateTime,default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
     date = db.Column(db.Date,default=date.today)
 
 
@@ -210,6 +212,7 @@ class Product(db.Model):
         db.ForeignKey("users.id"),
         nullable=True
     )
+    created_at = db.Column(db.DateTime,default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
     name = db.Column(db.String(100))
     stock_code = db.Column(db.String(50))
     measurement = db.Column(db.String(20))
@@ -228,6 +231,7 @@ class Purchase(db.Model):
         db.ForeignKey("users.id"),
         nullable=True
     )
+    created_at = db.Column(db.DateTime,default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
     supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.id'))
     quantity = db.Column(db.Float)
@@ -248,6 +252,7 @@ class Sale(db.Model):
         db.ForeignKey("users.id"),
         nullable=True
     )
+    created_at = db.Column(db.DateTime,default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
     product_id = db.Column(db.Integer,db.ForeignKey("product.id"), nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"),nullable=False)
     quantity = db.Column(db.Float, nullable=False)
@@ -264,6 +269,7 @@ class Supplier(db.Model):
         db.ForeignKey("users.id"),
         nullable=True
     )
+    created_at = db.Column(db.DateTime,default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20))
     email = db.Column(db.String(100))
@@ -280,6 +286,7 @@ class SupplierPayment(db.Model):
         db.ForeignKey("users.id"),
         nullable=True
     )
+    created_at = db.Column(db.DateTime,default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
     #purchase_id = db.Column(db.Integer,db.ForeignKey("purchase.id"))
     amount = db.Column(db.Float, nullable=False)
     date = db.Column(db.Date, default=date.today)
@@ -293,6 +300,7 @@ class Customer(db.Model):
         db.ForeignKey("users.id"),
         nullable=True
     )
+    created_at = db.Column(db.DateTime,default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
     phone = db.Column(db.String(20))
     email = db.Column(db.String(100))
     balance_owed = db.Column(db.Float, default=0.0)
@@ -316,6 +324,7 @@ class AddDebt(db.Model):
         db.ForeignKey("customer.id"),
         nullable=False
     )
+    created_at = db.Column(db.DateTime,default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
     amount = db.Column(db.Float, nullable=False)
     reason = db.Column(db.String(255))
     date = db.Column(db.Date, default=date.today)
@@ -327,13 +336,6 @@ with app.app_context():
 
 
 
-
-
-with app.app_context():
-    user=db.session.execute(db.select(User)).scalars().all()
-
-    for i in user:
-        print(i.name)
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -438,6 +440,11 @@ def register():
     )
 
 
+@app.route('/new')
+@emp_allowed
+def new_action():
+    return render_template('new_action.html')
+
 
 
 
@@ -519,8 +526,8 @@ def inventory():
 
             new_product = Product(
                 name=stock['stock_name'],
-                stock_code=stock['stock_code'],
-                measurement=stock['measurement'],
+                stock_code="",          # no longer collected in the form
+                measurement="Piece",    # default, since it's no longer collected
                 current_quantity=stock['quantity'],
                 unit_price=stock['unit_price'],
                 user_id=current_user.id
@@ -546,40 +553,167 @@ def inventory():
 @login_required
 @emp_allowed
 def purchases():
-    form = PurchaseListForm()
+    form = MultiPurchaseForm()
 
     product_choices = [(p.id, p.name) for p in Product.query.all()]
     supplier_choices = [(s.id, s.name) for s in Supplier.query.all()]
 
-    for entry in form.purchase.entries:
-        entry.product.choices = product_choices
-        entry.supplier.choices = supplier_choices
+    for group in form.groups:
+        group.form.supplier.choices = supplier_choices
+        for entry in group.form.purchase.entries:
+            entry.form.product.choices = product_choices
 
     if form.validate_on_submit():
-        for item in form.purchase.data:
-            new_purchase = Purchase(
-                product_id=item['product'],
-                supplier_id=item['supplier'],
-                quantity=item['quantity'],
-                unit_price=item['unit_price'],
-                payment=item['payment'],
-                debt=item['debt'],
-                date=date.today().strftime("%m/%d/%Y"),
+
+        EPSILON = 0.01  # tolerance for float rounding, so a tiny rounding
+                         # difference never silently blocks a save
+
+        # ==========================================================
+        # PASS 1: Validate everything before saving anything
+        # ==========================================================
+
+        errors_found = False
+
+        for group_index, group in enumerate(form.groups.data, start=1):
+
+            items = group["purchase"]
+
+            if not items:
+                continue
+
+            for item in items:
+
+                product = Product.query.get(item["product"])
+                product_name = product.name if product else "የተመረጠ ምርት"
+
+                quantity = float(item["quantity"] or 0)
+                unit_price = float(item["unit_price"] or 0)
+
+                if quantity <= 0:
+                    flash(
+                        f"ቡድን #{group_index}: {product_name} - ብዛት ከዜሮ በላይ መሆን አለበት።",
+                        "danger"
+                    )
+                    errors_found = True
+
+                if unit_price <= 0:
+                    flash(
+                        f"ቡድን #{group_index}: {product_name} - ዋጋ ከዜሮ በላይ መሆን አለበት።",
+                        "danger"
+                    )
+                    errors_found = True
+
+            overall_payment = float(group["payment"] or 0)
+
+            if overall_payment < 0:
+                flash(
+                    f"ቡድን #{group_index}: የክፍያ መጠን አሉታዊ ሊሆን አይችልም።",
+                    "danger"
+                )
+                errors_found = True
+
+        if errors_found:
+
+            purchases_list = Purchase.query.all()
+
+            return render_template(
+                "purchase.html",
+                form=form,
+                purchases=purchases_list,
                 user_id=current_user.id
             )
-            db.session.add(new_purchase)
-            flash("product purchased successfully")
 
-            product = Product.query.get(item['product'])
-            product.current_quantity += float(item['quantity'])
+        # ==========================================================
+        # PASS 2: Everything valid - create purchases
+        # ==========================================================
+
+        groups_saved = 0
+
+        for group in form.groups.data:
+
+            supplier_id = group["supplier"]
+            items = group["purchase"]
+
+            if not items:
+                continue
+
+            grand_total = 0.0
+            for item in items:
+                grand_total += float(item["quantity"]) * float(item["unit_price"])
+
+            overall_payment = float(group["payment"] or 0)
+
+            # Clamp instead of reject: if payment is over the total only
+            # because of floating point rounding, silently cap it rather
+            # than refusing to save the whole purchase.
+            if overall_payment > grand_total:
+                overall_payment = grand_total
+
+            remaining_payment = overall_payment
+
+            for item in items:
+
+                quantity = float(item["quantity"])
+                unit_price = float(item["unit_price"])
+
+                total = quantity * unit_price
+
+                item_payment = min(remaining_payment, total)
+                item_debt = max(total - item_payment, 0)
+
+                # Guard against negative-zero / tiny float dust
+                if abs(item_debt) < EPSILON:
+                    item_debt = 0.0
+
+                new_purchase = Purchase(
+                    product_id=item["product"],
+                    supplier_id=supplier_id,
+                    quantity=quantity,
+                    unit_price=unit_price,
+                    payment=item_payment,
+                    debt=item_debt,
+                    date=date.today().strftime("%m/%d/%Y"),
+                    user_id=current_user.id
+                )
+
+                db.session.add(new_purchase)
+
+                product = Product.query.get(item["product"])
+                if product:
+                    product.current_quantity += quantity
+
+                remaining_payment -= item_payment
+
+            groups_saved += 1
 
         db.session.commit()
-        return redirect(url_for('purchases'))
+
+        if groups_saved:
+            flash(f"{groups_saved} ግዢ(ዎች) በተሳካ ሁኔታ ተመዝግበዋል።", "success")
+        else:
+            flash("ምንም ትክክለኛ ግዢ አልተመዘገበም። እባክዎ ቢያንስ አንድ ምርት ይምረጡ።", "warning")
+
+        return redirect(url_for("purchases"))
+
     else:
         print("FORM ERRORS:", form.errors)
 
+        # Flash WTForms' own field-level validation errors
+        # (e.g. missing product/supplier selection, DataRequired failures)
+        for group_index, group_errors in form.groups.errors.items() if hasattr(form.groups.errors, "items") else enumerate(form.groups.errors):
+            pass  # placeholder removed below - see note
+
+        if request.method == "POST":
+            flash("እባክዎ ከታች ያሉትን ስህተቶች ያስተካክሉ እና እንደገና ይሞክሩ።", "danger")
+
     purchases_list = Purchase.query.all()
-    return render_template("purchase.html", form=form, purchases=purchases_list, user_id=current_user.id)
+
+    return render_template(
+        "purchase.html",
+        form=form,
+        purchases=purchases_list,
+        user_id=current_user.id
+    )
 
 
 
@@ -939,25 +1073,9 @@ def pay_debt():
 @login_required
 @admin_only
 def history():
-    purchases = Purchase.query.order_by(Purchase.id.desc()).all()
-    sales = Sale.query.order_by(Sale.id.desc()).all()
-    payments = SupplierPayment.query.order_by(SupplierPayment.id.desc()).all()
-    customer_payments = CustomerPayment.query.order_by(CustomerPayment.id.desc()).all()
-
-    products = {p.id: p for p in Product.query.all()}
-    suppliers = {s.id: s for s in Supplier.query.all()}
-    customers = {c.id: c for c in Customer.query.all()}
 
     return render_template(
-        "history.html",
-        purchases=purchases,
-        sales=sales,
-        payments=payments,
-        customer_payments=customer_payments,
-        products=products,
-        suppliers=suppliers,
-        customers=customers
-    )
+        "history.html" )
 
 
 
@@ -966,35 +1084,14 @@ def history():
 @app.route("/track")
 @login_required
 def track():
-    products = Product.query.all()
-    customers = Customer.query.all()
-    suppliers = Supplier.query.all()
-    supplier_list = []
-    for s in suppliers:
-        purchases = Purchase.query.filter_by(supplier_id=s.id).all()
-        total_debt = sum(p.debt for p in purchases)
-        payments = SupplierPayment.query.filter_by(supplier_id=s.id).all()
-        total_paid = sum(p.amount for p in payments)
-
-        s.purchase_count = len(purchases)
-        s.total_debt = total_debt
-        s.total_paid = total_paid
-        s.remaining_debt = total_debt - total_paid
-        supplier_list.append(s)
-
-    return render_template(
-        "track.html",
-        products=products,
-        customers=customers,
-        suppliers=supplier_list, user_id=current_user.id
-    )
+    return render_template("track.html")
 
 
 
 
 @app.route("/suppliers_customers")
 @login_required
-@admin_only
+@emp_allowed
 def suppliers_customers():
     supplier_form = SupplierForm()
     customer_form = CustomerForm()
@@ -1007,16 +1104,14 @@ def suppliers_customers():
         supplier_form=supplier_form,
         customer_form=customer_form,
         suppliers=suppliers,
-        customers=customers, user_id=current_user.id
+        customers=customers,
+        user_id=current_user.id
     )
-
-
-
 
 
 @app.route("/register_customer_and_supplier", methods=["GET", "POST"])
 @login_required
-@admin_only
+@emp_allowed
 def Register_customer_and_supplier():
     supplier_form = SupplierForm()
     customer_form = CustomerForm()
@@ -1027,8 +1122,7 @@ def Register_customer_and_supplier():
                 new_customer = Customer(
                     name=customer['name'],
                     phone=customer['phone'],
-                    email=customer['email'],
-                    balance_owed=customer['balance_owed'],user_id=current_user.id
+                    user_id=current_user.id
                 )
                 db.session.add(new_customer)
 
@@ -1052,8 +1146,7 @@ def Register_customer_and_supplier():
                 new_supplier = Supplier(
                     name=supplier['name'],
                     phone=supplier['phone'],
-                    email=supplier['email'],
-                    balance_owed=supplier['balance_owed'],user_id=current_user.id
+                    user_id=current_user.id
                 )
                 db.session.add(new_supplier)
 
@@ -1080,10 +1173,7 @@ def Register_customer_and_supplier():
 
 
 
-
-
 from decimal import Decimal
-
 
 @app.route("/selling", methods=["GET", "POST"])
 @login_required
@@ -1368,13 +1458,6 @@ def Selling():
         customers=customers
     )
 
-
-
-
-
-
-
-
 @app.route("/customer_detail")
 @login_required
 @emp_allowed
@@ -1624,7 +1707,6 @@ def pay_customer_debt():
         url_for("customer_detail")
     )
 
-
 @app.route("/edit/<string:item_type>/<int:item_id>", methods=["GET", "POST"])
 @login_required
 @admin_only
@@ -1641,25 +1723,24 @@ def edit(item_type, item_id):
         if request.method == "GET":
             form.name.data = customer.name
             form.phone.data = customer.phone
-            form.email.data = customer.email
-            form.balance_owed.data = customer.balance_owed
+
 
         if form.validate_on_submit():
             customer.name = form.name.data
             customer.phone = form.phone.data
-            customer.email = form.email.data
-            customer.balance_owed = form.balance_owed.data
+
 
             db.session.commit()
 
             flash("Customer updated successfully.", "success")
-            return redirect(url_for("suppliers_customers"))
+            return redirect(url_for("customers_page"))
 
         return render_template(
             "edit.html",
             form=form,
             item_type="customer",
-            title="Edit Customer",user_id=current_user.id
+            title="Edit Customer",
+            user_id=current_user.id
         )
 
     # --------------------------------
@@ -1673,25 +1754,22 @@ def edit(item_type, item_id):
         if request.method == "GET":
             form.name.data = supplier.name
             form.phone.data = supplier.phone
-            form.email.data = supplier.email
-            form.balance_owed.data = supplier.balance_owed
 
         if form.validate_on_submit():
             supplier.name = form.name.data
             supplier.phone = form.phone.data
-            supplier.email = form.email.data
-            supplier.balance_owed = form.balance_owed.data
 
             db.session.commit()
 
             flash("Supplier updated successfully.", "success")
-            return redirect(url_for("suppliers_customers"))
+            return redirect(url_for("suppliers_page"))
 
         return render_template(
             "edit.html",
             form=form,
             item_type="supplier",
-            title="Edit Supplier",user_id=current_user.id
+            title="Edit Supplier",
+            user_id=current_user.id
         )
 
     # --------------------------------
@@ -1706,36 +1784,33 @@ def edit(item_type, item_id):
         else:
             form = StockForm(
                 stock_name=product.name,
-                stock_code=product.stock_code,
-                measurement=product.measurement,
                 quantity=product.current_quantity,
                 unit_price=product.unit_price
             )
 
         if request.method == "POST" and form.validate():
             product.name = form.stock_name.data
-            product.stock_code = form.stock_code.data
-            product.measurement = form.measurement.data
             product.current_quantity = form.quantity.data
             product.unit_price = form.unit_price.data
             db.session.commit()
 
             flash("Product updated successfully.", "success")
-            return redirect(url_for("track"))
+            return redirect(url_for("products_page"))
 
         return render_template(
             "edit.html",
             form=form,
             item_type="product",
-            title="Edit Product"
+            title="Edit Product",
+            user_id=current_user.id
         )
 
-    # --------------------------------
-    # INVALID TYPE
-    # --------------------------------
+# --------------------------------
+# INVALID TYPE
+# --------------------------------
 
     flash("Invalid item type.", "danger")
-    return redirect(url_for("dashboard"))
+    return redirect(url_for("home"))
 
 
 
@@ -1774,6 +1849,7 @@ def delete(item_type, item_id):
         db.session.commit()
 
         flash("ደንበኛው እና ተያያዥ መረጃዎቹ ተሰርዘዋል።", "success")
+        return redirect(url_for("customers_page"))
 
 
     # ==========================================
@@ -1801,6 +1877,7 @@ def delete(item_type, item_id):
         db.session.commit()
 
         flash("አቅራቢው እና ተያያዥ መረጃዎቹ ተሰርዘዋል።", "success")
+        return redirect(url_for("suppliers_page"))
 
 
     # ==========================================
@@ -1817,7 +1894,7 @@ def delete(item_type, item_id):
         flash("ያልታወቀ የመረጃ አይነት ነው።", "danger")
 
 
-    return redirect(url_for("track"))
+    return redirect(url_for("products_page"))
 
 
 
@@ -1835,6 +1912,7 @@ def users():
 
 @app.route("/users/toggle-admin/<int:user_id>", methods=["POST"])
 @login_required
+@admin_only
 def toggle_admin(user_id):
     user = db.get_or_404(User, user_id)
     existing_admin = Admin.query.filter_by(email=user.email).first()
@@ -1854,6 +1932,7 @@ def toggle_admin(user_id):
 
 @app.route("/users/toggle-emp/<int:user_id>", methods=["POST"])
 @login_required
+@admin_only
 def toggle_emp(user_id):
     user = db.get_or_404(User, user_id)
 
@@ -1957,6 +2036,8 @@ def delete_user(user_id):
 
 
 
+from sqlalchemy import func
+
 @app.route("/report", methods=["GET"])
 @login_required
 @admin_only
@@ -2048,7 +2129,6 @@ def report():
         })
 
     # ================= SUPPLIER PAYMENTS =================
-    # SupplierPayment.date is a real Date column -> compare against the date object
     supplier_payments = SupplierPayment.query.filter(SupplierPayment.date == selected_date).all()
     total_supplier_payments = sum(sp.amount or 0 for sp in supplier_payments)
 
@@ -2063,7 +2143,6 @@ def report():
         })
 
     # ================= CUSTOMER PAYMENTS =================
-    # CustomerPayment.date is a real Date column -> compare against the date object
     customer_payments = CustomerPayment.query.filter(CustomerPayment.date == selected_date).all()
     total_customer_payments = sum(cp.amount or 0 for cp in customer_payments)
 
@@ -2161,6 +2240,30 @@ def report():
 
     supplier_activity = list(supplier_activity_map.values())
 
+    # ================= PROFIT (real, based on actual sales vs. average cost) =================
+    # For each product sold today, cost basis = average unit_price paid across ALL of that
+    # product's purchases (not just today's), since stock sold today may have been bought earlier.
+    sold_product_ids = {s.product_id for s in sales}
+    avg_cost_by_product = {}
+
+    for pid in sold_product_ids:
+        cost_sum, qty_sum = db.session.query(
+            func.sum(Purchase.quantity * Purchase.unit_price),
+            func.sum(Purchase.quantity)
+        ).filter(Purchase.product_id == pid).first()
+
+        if qty_sum:
+            avg_cost_by_product[pid] = (cost_sum or 0) / qty_sum
+        else:
+            avg_cost_by_product[pid] = 0  # no purchase history — treat cost as 0
+
+    total_cost_of_goods_sold = 0
+    for s in sales:
+        avg_cost = avg_cost_by_product.get(s.product_id, 0)
+        total_cost_of_goods_sold += (s.quantity or 0) * avg_cost
+
+    total_profit = total_sales_revenue - total_cost_of_goods_sold
+
     # ================= DAILY FINANCIAL ACTIVITY =================
     # NOT a profit calculation — just a same-day cash movement summary.
     daily_financial_activity = (
@@ -2200,22 +2303,19 @@ def report():
         customer_activity=customer_activity,
         supplier_activity=supplier_activity,
 
+        total_cost_of_goods_sold=total_cost_of_goods_sold,
+        total_profit=total_profit,
+
         daily_financial_activity=daily_financial_activity
     )
 
 
-
-
-
-
-
-
+from datetime import datetime, date, timedelta
 
 @app.route("/dashboard")
 @login_required
 @admin_only
 def dashboard():
-    # Find this user's last reset record, if any
     reset_record = (
         ActivityReset.query
         .filter_by(user_id=current_user.id)
@@ -2223,352 +2323,193 @@ def dashboard():
         .first()
     )
 
-    last_purchase_cutoff = (
-        reset_record.last_purchase_id if reset_record else 0
-    )
-
-    last_sale_cutoff = (
-        reset_record.last_sale_id if reset_record else 0
-    )
-
-    last_supplier_payment_cutoff = (
-        reset_record.last_supplier_payment_id if reset_record else 0
-    )
-
-    last_customer_payment_cutoff = (
-        reset_record.last_customer_payment_id if reset_record else 0
-    )
+    last_purchase_cutoff = reset_record.last_purchase_id if reset_record else 0
+    last_sale_cutoff = reset_record.last_sale_id if reset_record else 0
+    last_supplier_payment_cutoff = reset_record.last_supplier_payment_id if reset_record else 0
+    last_customer_payment_cutoff = reset_record.last_customer_payment_id if reset_record else 0
 
     activities = []
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+
+    def day_label(dt):
+        d = dt.date()
+        if d == today:
+            return "ዛሬ"
+        elif d == yesterday:
+            return "ትናንት"
+        return dt.strftime("%d %b %Y")
+
+    def time_label(dt, has_real_time):
+        if not has_real_time:
+            return None
+        return dt.strftime("%I:%M%p").lower().lstrip("0")
 
     # =========================================================
     # PURCHASES
     # =========================================================
-
-    purchases = (
-        Purchase.query
-        .order_by(Purchase.id.desc())
-        .all()
-    )
+    purchases = Purchase.query.order_by(Purchase.id.desc()).all()
 
     for p in purchases:
-
-        try:
-            p_date = datetime.strptime(
-                p.date.strip(),
-                "%m/%d/%Y"
-            )
-        except (ValueError, TypeError, AttributeError):
-            continue
-
-        # Do not show activities that existed before the last reset
         if p.id <= last_purchase_cutoff:
             continue
 
+        try:
+            p_date = datetime.strptime(p.date.strip(), "%m/%d/%Y")
+        except (ValueError, TypeError, AttributeError):
+            continue
+
+        has_time = bool(getattr(p, "created_at", None))
+        sort_dt = p.created_at if has_time else p_date
+
         product = Product.query.get(p.product_id)
-
         supplier = Supplier.query.get(p.supplier_id)
-
-        user = (
-            User.query.get(p.user_id)
-            if p.user_id
-            else None
-        )
-
-        product_measurement = (
-            product.measurement
-            if product and product.measurement
-            else ""
-        )
-
-        product_name = (
-            product.name
-            if product
-            else "ያልታወቀ ምርት"
-        )
-
-        supplier_name = (
-            supplier.name
-            if supplier
-            else "ያልታወቀ አቅራቢ"
-        )
-
-        user_name = (
-            user.name
-            if user
-            else "ያልታወቀ ተጠቃሚ"
-        )
+        user = User.query.get(p.user_id) if p.user_id else None
 
         activities.append({
             "type": "purchase",
-
             "icon": "bi-cart-plus",
-
-            "text": (
-                f"{p.quantity} "
-                f"{product_measurement} "
-                f"የሆነ {product_name} "
-                f"ከ {supplier_name} ተገዛ"
-            ),
-
+            "direction": "out",
+            "product_name": product.name if product else "ያልታወቀ ምርት",
+            "quantity": p.quantity,
+            "measurement": product.measurement if product and product.measurement else "",
+            "counterparty_role": "አቅራቢ",
+            "counterparty_name": supplier.name if supplier else "ያልታወቀ አቅራቢ",
             "money_label": "የተከፈለ",
-
             "amount": p.payment,
-
-            "user_name": user_name,
-
-            "date_display": p_date.strftime("%d %b %Y"),
-
-            "sort_key": p_date
+            "user_name": user.name if user else "ያልታወቀ ተጠቃሚ",
+            "day_label": day_label(sort_dt),
+            "time_label": time_label(sort_dt, has_time),
+            "sort_key": sort_dt
         })
 
     # =========================================================
     # SALES
     # =========================================================
-
-    sales = (
-        Sale.query
-        .order_by(Sale.id.desc())
-        .all()
-    )
+    sales = Sale.query.order_by(Sale.id.desc()).all()
 
     for s in sales:
-
-        try:
-            s_date = datetime.strptime(
-                s.date.strip(),
-                "%m/%d/%Y"
-            )
-        except (ValueError, TypeError, AttributeError):
-            continue
-
-        # Do not show activities that existed before the last reset
         if s.id <= last_sale_cutoff:
             continue
 
+        try:
+            s_date = datetime.strptime(s.date.strip(), "%m/%d/%Y")
+        except (ValueError, TypeError, AttributeError):
+            continue
+
+        has_time = bool(getattr(s, "created_at", None))
+        sort_dt = s.created_at if has_time else s_date
+
         product = Product.query.get(s.product_id)
-
         customer = Customer.query.get(s.customer_id)
-
-        user = (
-            User.query.get(s.user_id)
-            if s.user_id
-            else None
-        )
-
-        product_measurement = (
-            product.measurement
-            if product and product.measurement
-            else ""
-        )
-
-        product_name = (
-            product.name
-            if product
-            else "ያልታወቀ ምርት"
-        )
-
-        customer_name = (
-            customer.name
-            if customer
-            else "ያልታወቀ ደንበኛ"
-        )
-
-        user_name = (
-            user.name
-            if user
-            else "ያልታወቀ ተጠቃሚ"
-        )
+        user = User.query.get(s.user_id) if s.user_id else None
 
         activities.append({
             "type": "sale",
-
             "icon": "bi-bag-check",
-
-            "text": (
-                f"{s.quantity} "
-                f"{product_measurement} "
-                f"የሆነ {product_name} "
-                f"ለ {customer_name} ተሸጠ"
-            ),
-
+            "direction": "in",
+            "product_name": product.name if product else "ያልታወቀ ምርት",
+            "quantity": s.quantity,
+            "measurement": product.measurement if product and product.measurement else "",
+            "counterparty_role": "ደንበኛ",
+            "counterparty_name": customer.name if customer else "ያልታወቀ ደንበኛ",
             "money_label": "የተቀበለ",
-
             "amount": s.current_payment,
-
-            "user_name": user_name,
-
-            "date_display": s_date.strftime("%d %b %Y"),
-
-            "sort_key": s_date
+            "user_name": user.name if user else "ያልታወቀ ተጠቃሚ",
+            "day_label": day_label(sort_dt),
+            "time_label": time_label(sort_dt, has_time),
+            "sort_key": sort_dt
         })
 
     # =========================================================
     # SUPPLIER PAYMENTS
     # =========================================================
-
-    supplier_payments = (
-        SupplierPayment.query
-        .order_by(SupplierPayment.id.desc())
-        .all()
-    )
+    supplier_payments = SupplierPayment.query.order_by(SupplierPayment.id.desc()).all()
 
     for sp in supplier_payments:
-
-        # Do not show activities that existed before the last reset
         if sp.id <= last_supplier_payment_cutoff:
             continue
 
-        sp_datetime = datetime.combine(
-            sp.date,
-            datetime.min.time()
-        )
+        has_time = bool(getattr(sp, "created_at", None))
+        sort_dt = sp.created_at if has_time else datetime.combine(sp.date, datetime.min.time())
 
-        supplier = Supplier.query.get(
-            sp.supplier_id
-        )
-
-        user = (
-            User.query.get(sp.user_id)
-            if sp.user_id
-            else None
-        )
-
-        supplier_name = (
-            supplier.name
-            if supplier
-            else "ያልታወቀ አቅራቢ"
-        )
-
-        user_name = (
-            user.name
-            if user
-            else "ያልታወቀ ተጠቃሚ"
-        )
+        supplier = Supplier.query.get(sp.supplier_id)
+        user = User.query.get(sp.user_id) if sp.user_id else None
 
         activities.append({
             "type": "supplier_payment",
-
             "icon": "bi-cash-stack",
-
-            "text": (
-                f"ለ {supplier_name} "
-                f"ክፍያ ተፈጸመ"
-            ),
-
+            "direction": "out",
+            "product_name": None,
+            "quantity": None,
+            "measurement": None,
+            "counterparty_role": "አቅራቢ",
+            "counterparty_name": supplier.name if supplier else "ያልታወቀ አቅራቢ",
             "money_label": None,
-
             "amount": sp.amount,
-
-            "user_name": user_name,
-
-            "date_display": sp.date.strftime(
-                "%d %b %Y"
-            ),
-
-            "sort_key": sp_datetime
+            "user_name": user.name if user else "ያልታወቀ ተጠቃሚ",
+            "day_label": day_label(sort_dt),
+            "time_label": time_label(sort_dt, has_time),
+            "sort_key": sort_dt
         })
 
     # =========================================================
     # CUSTOMER PAYMENTS
     # =========================================================
-
-    customer_payments = (
-        CustomerPayment.query
-        .order_by(CustomerPayment.id.desc())
-        .all()
-    )
+    customer_payments = CustomerPayment.query.order_by(CustomerPayment.id.desc()).all()
 
     for cp in customer_payments:
-
-        # Do not show activities that existed before the last reset
         if cp.id <= last_customer_payment_cutoff:
             continue
 
-        cp_datetime = datetime.combine(
-            cp.date,
-            datetime.min.time()
-        )
+        has_time = bool(getattr(cp, "created_at", None))
+        sort_dt = cp.created_at if has_time else datetime.combine(cp.date, datetime.min.time())
 
-        customer = Customer.query.get(
-            cp.customer_id
-        )
-
-        user = (
-            User.query.get(cp.user_id)
-            if cp.user_id
-            else None
-        )
-
-        customer_name = (
-            customer.name
-            if customer
-            else "ያልታወቀ ደንበኛ"
-        )
-
-        user_name = (
-            user.name
-            if user
-            else "ያልታወቀ ተጠቃሚ"
-        )
+        customer = Customer.query.get(cp.customer_id)
+        user = User.query.get(cp.user_id) if cp.user_id else None
 
         activities.append({
             "type": "customer_payment",
-
             "icon": "bi-wallet2",
-
-            "text": (
-                f"ከ {customer_name} "
-                f"ክፍያ ተቀበለ"
-            ),
-
+            "direction": "in",
+            "product_name": None,
+            "quantity": None,
+            "measurement": None,
+            "counterparty_role": "ደንበኛ",
+            "counterparty_name": customer.name if customer else "ያልታወቀ ደንበኛ",
             "money_label": None,
-
             "amount": cp.amount,
-
-            "user_name": user_name,
-
-            "date_display": cp.date.strftime(
-                "%d %b %Y"
-            ),
-
-            "sort_key": cp_datetime
+            "user_name": user.name if user else "ያልታወቀ ተጠቃሚ",
+            "day_label": day_label(sort_dt),
+            "time_label": time_label(sort_dt, has_time),
+            "sort_key": sort_dt
         })
 
     # =========================================================
-    # SORT ALL ACTIVITIES
+    # SORT + GROUP BY DAY
     # =========================================================
+    activities.sort(key=lambda x: x["sort_key"], reverse=True)
 
-    activities.sort(
-        key=lambda x: x["sort_key"],
-        reverse=True
-    )
-
-    # =========================================================
-    # IMPORTANT:
-    # SHOW ALL ACTIVITIES
-    #
-    # DO NOT USE:
-    # recent_activities = activities[:5]
-    #
-    # That was the reason only 5 activities were displayed.
-    # =========================================================
-
-    recent_activities = activities
+    grouped_activities = []
+    seen_labels = []
+    for act in activities:
+        if act["day_label"] not in seen_labels:
+            seen_labels.append(act["day_label"])
+            grouped_activities.append({"day_label": act["day_label"], "items": [act]})
+        else:
+            grouped_activities[-1]["items"].append(act)
 
     return render_template(
         "dashboard.html",
-        recent_activities=recent_activities
-
+        grouped_activities=grouped_activities,
+        recent_activities=activities
     )
+
 
 @app.route("/reset_activity", methods=["POST"])
 @login_required
 @admin_only
 def reset_activity():
-
-    print("RESET ROUTE HIT for user:", current_user.id)
-
     last_purchase = Purchase.query.order_by(Purchase.id.desc()).first()
     last_sale = Sale.query.order_by(Sale.id.desc()).first()
     last_supplier_payment = SupplierPayment.query.order_by(SupplierPayment.id.desc()).first()
@@ -2617,7 +2558,7 @@ def add_debt(customer_id):
         db.session.commit()
 
         flash(f"Successfully added debt of {amount_val:,.2f} ETB for {customer.name}.", "success")
-        return redirect(url_for('suppliers_customers'))
+        return redirect(url_for('customers_page'))
 
     return render_template("add_debt.html", form=form, customer=customer)
 
@@ -2635,9 +2576,9 @@ from reportlab.lib.enums import TA_CENTER
 from reportlab.pdfbase.pdfmetrics import registerFont
 from reportlab.pdfbase.ttfonts import TTFont
 
-
 @app.route("/customer_debt_statement/<int:customer_id>")
 @login_required
+@admin_only
 def customer_debt_statement(customer_id):
     customer = db.get_or_404(Customer, customer_id)
 
@@ -2651,7 +2592,10 @@ def customer_debt_statement(customer_id):
     for sale in sales:
         statement_records.append({
             "date": sale.date or "",
-            "type": f"Product Sale - {sale.product.name}" if sale.product else "Product Sale",
+            "type": "sale",
+            "product_name": sale.product.name if sale.product else "Unknown Product",
+            "quantity": sale.quantity or 0,
+            "unit_price": sale.unit_price or 0,
             "amount": sale.debt or 0,
             "sort_key": str(sale.date or "")
         })
@@ -2659,7 +2603,8 @@ def customer_debt_statement(customer_id):
     for debt in additional_debts:
         statement_records.append({
             "date": debt.date.strftime("%m/%d/%Y") if isinstance(debt.date, date) else str(debt.date),
-            "type": f"Additional Debt ({debt.reason or 'General'})",
+            "type": "additional_debt",
+            "reason": debt.reason or "General",
             "amount": debt.amount or 0,
             "sort_key": str(debt.date)
         })
@@ -2667,16 +2612,28 @@ def customer_debt_statement(customer_id):
     for payment in payments:
         statement_records.append({
             "date": payment.date.strftime("%m/%d/%Y") if isinstance(payment.date, date) else str(payment.date),
-            "type": "Payment",
+            "type": "payment",
             "amount": -(payment.amount or 0),
             "sort_key": str(payment.date)
         })
 
     statement_records.sort(key=lambda x: x["sort_key"])
 
+    # ---------- Running balance + paid-in-full detection ----------
+    running_balance = 0
+    paid_in_full_dates = []
+
+    for rec in statement_records:
+        running_balance += rec["amount"]
+        if running_balance < 0:
+            running_balance = 0
+        rec["running_balance"] = running_balance
+        if running_balance == 0:
+            paid_in_full_dates.append(rec["date"])
+
     total_debt = sum(r["amount"] for r in statement_records if r["amount"] > 0)
     total_paid = sum(-r["amount"] for r in statement_records if r["amount"] < 0)
-    remaining_debt = total_debt - total_paid
+    remaining_debt = max(running_balance, 0)
 
     # ---------- PDF GENERATION ----------
     buffer = BytesIO()
@@ -2746,6 +2703,16 @@ def customer_debt_statement(customer_id):
         fontName='Helvetica', fontSize=7.5, leading=10,
         alignment=TA_CENTER, textColor=SLATE
     )
+    paid_flag_style = ParagraphStyle(
+        'PaidFlag', parent=styles['Normal'],
+        fontName='Helvetica-Bold', fontSize=6.5, leading=8,
+        textColor=RED
+    )
+    small_note_style = ParagraphStyle(
+        'SmallNote', parent=styles['Normal'],
+        fontName='Helvetica', fontSize=7.5, leading=10,
+        textColor=RED
+    )
 
     # ---------- Logo ----------
     logo_cell = Paragraph(
@@ -2803,20 +2770,38 @@ def customer_debt_statement(customer_id):
     # ---------- Transaction History ----------
     story.append(Paragraph("TRANSACTION HISTORY", section_label_style))
 
-    table_data = [["Date", "Transaction Type", "Amount"]]
+    table_data = [["Date", "Transaction Type", "Amount", "Balance"]]
     row_is_payment = []
+    row_is_paid_off = []
 
     for rec in statement_records:
-        is_payment = rec['amount'] < 0
+        is_payment = rec["amount"] < 0
         amt_str = f"({abs(rec['amount']):,.2f} ETB)" if is_payment else f"{rec['amount']:,.2f} ETB"
-        table_data.append([rec['date'], rec['type'], amt_str])
+
+        if rec["type"] == "sale":
+            type_str = f"Product Sale — {rec['product_name']} ({rec['quantity']:g} × {rec['unit_price']:,.2f} ETB)"
+        elif rec["type"] == "additional_debt":
+            type_str = f"Additional Debt ({rec['reason']})"
+        else:
+            type_str = "Payment"
+
+        is_paid_off = rec["running_balance"] == 0
+
+        balance_cell = Paragraph(
+            f"{rec['running_balance']:,.2f} ETB" + ("<br/><font color='#b91c1c'>✓ PAID IN FULL</font>" if is_paid_off else ""),
+            paid_flag_style if is_paid_off else info_value_style
+        )
+
+        table_data.append([rec["date"], type_str, amt_str, balance_cell])
         row_is_payment.append(is_payment)
+        row_is_paid_off.append(is_paid_off)
 
     if len(statement_records) == 0:
-        table_data.append(["-", "No transactions recorded", "0.00 ETB"])
+        table_data.append(["-", "No transactions recorded", "0.00 ETB", "0.00 ETB"])
         row_is_payment.append(False)
+        row_is_paid_off.append(False)
 
-    tx_table = Table(table_data, colWidths=[85, 275, 140])
+    tx_table = Table(table_data, colWidths=[70, 235, 100, 95])
     tx_style = [
         ('BACKGROUND', (0, 0), (-1, 0), NAVY),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -2829,7 +2814,7 @@ def customer_debt_statement(customer_id):
         ('FONTSIZE', (0, 1), (-1, -1), 9),
         ('TOPPADDING', (0, 1), (-1, -1), 6),
         ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
-        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+        ('ALIGN', (2, 0), (3, -1), 'RIGHT'),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, LIGHT_BG]),
     ]
     for i, is_payment in enumerate(row_is_payment, start=1):
@@ -2839,8 +2824,21 @@ def customer_debt_statement(customer_id):
         else:
             tx_style.append(('TEXTCOLOR', (2, i), (2, i), RED))
 
+    for i, is_paid_off in enumerate(row_is_paid_off, start=1):
+        if is_paid_off:
+            tx_style.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor('#fef2f2')))
+
     tx_table.setStyle(TableStyle(tx_style))
     story.append(tx_table)
+    story.append(Spacer(1, 8))
+
+    # ---------- Paid-in-full summary note ----------
+    if paid_in_full_dates:
+        story.append(Paragraph(
+            f"<b>Debt Cleared On:</b> {', '.join(paid_in_full_dates)}",
+            small_note_style
+        ))
+
     story.append(Spacer(1, 20))
 
     # ---------- Account Summary ----------
@@ -2915,8 +2913,11 @@ def customer_debt_statement(customer_id):
     response.headers['Expires'] = '0'
 
     return response
+
+
 @app.route("/share_statement/<int:customer_id>")
 @login_required
+@admin_only
 def customer_debt_statement_share(customer_id):
     customer = db.get_or_404(Customer, customer_id)
 
@@ -2932,12 +2933,12 @@ def customer_debt_statement_share(customer_id):
     )
 
 
-
 @app.route("/edit_purchase/<int:purchase_id>", methods=["POST"])
 @login_required
-@emp_allowed
+@admin_only
 def edit_purchase(purchase_id):
     purchase = Purchase.query.get_or_404(purchase_id)
+    original_supplier_id = purchase.supplier_id
 
     quantity = request.form.get("quantity", type=float)
     unit_price = request.form.get("unit_price", type=float)
@@ -2946,16 +2947,16 @@ def edit_purchase(purchase_id):
 
     if quantity is None or unit_price is None or payment is None or new_supplier_id is None:
         flash("Invalid data submitted.", "danger")
-        return redirect(url_for("history"))
+        return redirect(url_for("supplier_purchase_history", supplier_id=original_supplier_id))
 
     if quantity <= 0 or unit_price < 0 or payment < 0:
         flash("Values must be valid positive numbers.", "danger")
-        return redirect(url_for("history"))
+        return redirect(url_for("supplier_purchase_history", supplier_id=original_supplier_id))
 
     new_supplier = Supplier.query.get(new_supplier_id)
     if not new_supplier:
         flash("Selected supplier does not exist.", "danger")
-        return redirect(url_for("history"))
+        return redirect(url_for("supplier_purchase_history", supplier_id=original_supplier_id))
 
     old_supplier_id = purchase.supplier_id
     new_debt = (quantity * unit_price) - payment
@@ -2980,12 +2981,9 @@ def edit_purchase(purchase_id):
         return total_debt - total_paid
 
     # ---------------------------------------------------------
-    # Check ORIGIN supplier — removing/changing this purchase's debt
-    # must not make their remaining debt negative
+    # Check ORIGIN supplier
     # ---------------------------------------------------------
     if old_supplier_id:
-        # If staying with the same supplier, this purchase's new debt still counts.
-        # If moving away, this purchase's debt is entirely removed from origin (extra_debt=0).
         origin_extra_debt = new_debt if not is_moving else 0
 
         origin_remaining = supplier_remaining_debt(
@@ -3001,7 +2999,7 @@ def edit_purchase(purchase_id):
                 f"remaining debt negative ({origin_remaining:,.2f} ETB).",
                 "danger"
             )
-            return redirect(url_for("history"))
+            return redirect(url_for("supplier_purchase_history", supplier_id=original_supplier_id))
 
     # ---------------------------------------------------------
     # Check DESTINATION supplier — only relevant if actually moving
@@ -3019,7 +3017,7 @@ def edit_purchase(purchase_id):
                 f"({destination_remaining:,.2f} ETB).",
                 "danger"
             )
-            return redirect(url_for("history"))
+            return redirect(url_for("supplier_purchase_history", supplier_id=original_supplier_id))
 
     # ---------------------------------------------------------
     # Safe to save — apply changes
@@ -3044,17 +3042,15 @@ def edit_purchase(purchase_id):
     else:
         flash("Purchase updated successfully.", "success")
 
-    return redirect(url_for("history"))
-
-
-
+    return redirect(url_for("supplier_purchase_history", supplier_id=new_supplier_id))
 
 
 @app.route("/edit_sale/<int:sale_id>", methods=["POST"])
 @login_required
-@emp_allowed
+@admin_only
 def edit_sale(sale_id):
     sale = Sale.query.get_or_404(sale_id)
+    original_customer_id = sale.customer_id
 
     quantity = request.form.get("quantity", type=float)
     unit_price = request.form.get("unit_price", type=float)
@@ -3063,16 +3059,16 @@ def edit_sale(sale_id):
 
     if quantity is None or unit_price is None or current_payment is None or new_customer_id is None:
         flash("Invalid data submitted.", "danger")
-        return redirect(url_for("history"))
+        return redirect(url_for("customer_sales_history", customer_id=original_customer_id))
 
     if quantity <= 0 or unit_price < 0 or current_payment < 0:
         flash("Values must be valid positive numbers.", "danger")
-        return redirect(url_for("history"))
+        return redirect(url_for("customer_sales_history", customer_id=original_customer_id))
 
     new_customer = Customer.query.get(new_customer_id)
     if not new_customer:
         flash("Selected customer does not exist.", "danger")
-        return redirect(url_for("history"))
+        return redirect(url_for("customer_sales_history", customer_id=original_customer_id))
 
     old_customer_id = sale.customer_id
     new_debt = (quantity * unit_price) - current_payment
@@ -3116,7 +3112,7 @@ def edit_sale(sale_id):
                 f"remaining debt negative ({origin_remaining:,.2f} ETB).",
                 "danger"
             )
-            return redirect(url_for("history"))
+            return redirect(url_for("customer_sales_history", customer_id=original_customer_id))
 
     # ---------------------------------------------------------
     # Check DESTINATION customer — only relevant if actually moving
@@ -3134,7 +3130,7 @@ def edit_sale(sale_id):
                 f"({destination_remaining:,.2f} ETB).",
                 "danger"
             )
-            return redirect(url_for("history"))
+            return redirect(url_for("customer_sales_history", customer_id=original_customer_id))
 
     # ---------------------------------------------------------
     # Check stock availability if quantity increased
@@ -3149,7 +3145,7 @@ def edit_sale(sale_id):
                 f"Insufficient stock. Only {product.current_quantity} available.",
                 "danger"
             )
-            return redirect(url_for("history"))
+            return redirect(url_for("customer_sales_history", customer_id=original_customer_id))
 
     # ---------------------------------------------------------
     # Safe to save — apply changes
@@ -3170,9 +3166,347 @@ def edit_sale(sale_id):
     else:
         flash("Sale updated successfully.", "success")
 
-    return redirect(url_for("history"))
+    return redirect(url_for("customer_sales_history", customer_id=new_customer_id))
 
 
+
+
+
+@app.route("/customer/<int:customer_id>/sales_history")
+@login_required
+@admin_only
+def customer_sales_history(customer_id):
+    customer = db.get_or_404(Customer, customer_id)
+
+    sales = Sale.query.filter_by(customer_id=customer_id).order_by(Sale.id.desc()).all()
+    debts = AddDebt.query.filter_by(customer_id=customer_id).order_by(AddDebt.id.desc()).all()
+    payments = CustomerPayment.query.filter_by(customer_id=customer_id).all()
+    products = {p.id: p for p in Product.query.all()}
+    all_customers = Customer.query.order_by(Customer.name).all()
+
+    total_sold = sum(Decimal(str(s.quantity or 0)) * Decimal(str(s.unit_price or 0)) for s in sales)
+    sales_debt = sum(max(Decimal(str(s.debt or 0)), Decimal("0")) for s in sales)
+    additional_debt = sum(max(Decimal(str(d.amount or 0)), Decimal("0")) for d in debts)
+    total_debt = sales_debt + additional_debt
+    total_paid = sum(max(Decimal(str(p.amount or 0)), Decimal("0")) for p in payments)
+    remaining_debt = max(total_debt - total_paid, Decimal("0"))
+
+    return render_template(
+        "customer_sales_history.html",
+        customer=customer, sales=sales, debts=debts, products=products,
+        all_customers=all_customers,
+        total_sold=total_sold, total_paid=total_paid, remaining_debt=remaining_debt
+    )
+
+
+
+
+
+
+@app.route("/customer/<int:customer_id>/payment_history")
+@login_required
+@emp_allowed
+def customer_payment_history(customer_id):
+    customer = db.get_or_404(Customer, customer_id)
+
+    payments = CustomerPayment.query.filter_by(customer_id=customer_id).order_by(CustomerPayment.id.desc()).all()
+    sales = Sale.query.filter_by(customer_id=customer_id).all()
+    debts = AddDebt.query.filter_by(customer_id=customer_id).all()
+
+    total_sold = sum(Decimal(str(s.quantity or 0)) * Decimal(str(s.unit_price or 0)) for s in sales)
+    sales_debt = sum(max(Decimal(str(s.debt or 0)), Decimal("0")) for s in sales)
+    additional_debt = sum(max(Decimal(str(d.amount or 0)), Decimal("0")) for d in debts)
+    total_debt = sales_debt + additional_debt
+    total_paid = sum(max(Decimal(str(p.amount or 0)), Decimal("0")) for p in payments)
+    remaining_debt = max(total_debt - total_paid, Decimal("0"))
+
+    return render_template(
+        "customer_payment_history.html",
+        customer=customer, payments=payments,
+        total_sold=total_sold, total_paid=total_paid, remaining_debt=remaining_debt
+    )
+
+
+@app.route("/supplier/<int:supplier_id>/payment_history")
+@login_required
+@emp_allowed
+def supplier_payment_history(supplier_id):
+    supplier = db.get_or_404(Supplier, supplier_id)
+
+    payments = SupplierPayment.query.filter_by(supplier_id=supplier_id).order_by(SupplierPayment.id.desc()).all()
+    purchases = Purchase.query.filter_by(supplier_id=supplier_id).all()
+
+    total_purchased = sum(Decimal(str(p.total_price or 0)) for p in purchases)
+    purchase_debt = sum(max(Decimal(str(p.debt or 0)), Decimal("0")) for p in purchases)
+
+    balance_owed = Decimal(str(supplier.balance_owed or 0))
+    if balance_owed < 0:
+        balance_owed = Decimal("0")
+
+    total_debt = purchase_debt + balance_owed
+    total_paid = sum(max(Decimal(str(p.amount or 0)), Decimal("0")) for p in payments)
+    remaining_debt = max(total_debt - total_paid, Decimal("0"))
+
+    return render_template(
+        "supplier_payment_history.html",
+        supplier=supplier, payments=payments,
+        total_purchased=total_purchased, total_paid=total_paid, remaining_debt=remaining_debt
+    )
+
+
+
+@app.route("/supplier/<int:supplier_id>/purchase_history")
+@login_required
+@admin_only
+def supplier_purchase_history(supplier_id):
+    supplier = db.get_or_404(Supplier, supplier_id)
+
+    purchases = Purchase.query.filter_by(supplier_id=supplier_id).order_by(Purchase.id.desc()).all()
+    payments = SupplierPayment.query.filter_by(supplier_id=supplier_id).all()
+    products = {p.id: p for p in Product.query.all()}
+    all_suppliers = Supplier.query.order_by(Supplier.name).all()
+
+    total_purchased = sum(Decimal(str(p.total_price or 0)) for p in purchases)
+    purchase_debt = sum(max(Decimal(str(p.debt or 0)), Decimal("0")) for p in purchases)
+
+    balance_owed = Decimal(str(supplier.balance_owed or 0))
+    if balance_owed < 0:
+        balance_owed = Decimal("0")
+
+    total_debt = purchase_debt + balance_owed
+    total_paid = sum(max(Decimal(str(p.amount or 0)), Decimal("0")) for p in payments)
+    remaining_debt = max(total_debt - total_paid, Decimal("0"))
+
+    return render_template(
+        "supplier_purchase_history.html",
+        supplier=supplier, purchases=purchases, products=products,
+        all_suppliers=all_suppliers,
+        total_purchased=total_purchased, total_paid=total_paid, remaining_debt=remaining_debt
+    )
+
+@app.route("/products")
+@login_required
+@emp_allowed
+def products_page():
+    products = Product.query.all()
+    return render_template(
+        "products.html",
+        products=products,
+        user_id=current_user.id
+    )
+
+
+@app.route("/customers")
+@login_required
+@emp_allowed
+def customers_page():
+    customers = Customer.query.order_by(Customer.id.desc()).all()
+
+    customer_list = []
+    for c in customers:
+        sales = Sale.query.filter_by(customer_id=c.id).all()
+        sales_debt = sum(max(Decimal(str(s.debt or 0)), Decimal("0")) for s in sales)
+
+        debts = AddDebt.query.filter_by(customer_id=c.id).all()
+        additional_debt = sum(max(Decimal(str(d.amount or 0)), Decimal("0")) for d in debts)
+
+        payments = CustomerPayment.query.filter_by(customer_id=c.id).all()
+        total_paid = sum(max(Decimal(str(p.amount or 0)), Decimal("0")) for p in payments)
+
+        total_debt = sales_debt + additional_debt
+        remaining_debt = max(total_debt - total_paid, Decimal("0"))
+
+        c.debt = remaining_debt
+        c.paid_amount = total_paid
+        customer_list.append(c)
+
+    return render_template(
+        "customers.html",
+        customers=customer_list,
+        user_id=current_user.id
+    )
+
+
+@app.route("/suppliers")
+@login_required
+@emp_allowed
+def suppliers_page():
+    suppliers = Supplier.query.order_by(Supplier.id.desc()).all()
+
+    supplier_list = []
+    for s in suppliers:
+        purchases = Purchase.query.filter_by(supplier_id=s.id).all()
+        total_debt = sum(p.debt for p in purchases)
+
+        payments = SupplierPayment.query.filter_by(supplier_id=s.id).all()
+        total_paid = sum(p.amount for p in payments)
+
+        s.purchase_count = len(purchases)
+        s.total_debt = total_debt
+        s.total_paid = total_paid
+        s.remaining_debt = total_debt - total_paid
+        supplier_list.append(s)
+
+    return render_template(
+        "suppliers.html",
+        suppliers=supplier_list,
+        user_id=current_user.id
+    )
+
+from datetime import datetime, date
+
+def prettydate(value):
+    if isinstance(value, (datetime, date)):
+        return value.strftime('%b %d, %Y')
+    if isinstance(value, str):
+        for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%Y/%m/%d'):
+            try:
+                dt = datetime.strptime(value, fmt)
+                return dt.strftime('%b %d, %Y')
+            except ValueError:
+                continue
+    return value
+
+app.jinja_env.filters['prettydate'] = prettydate
+
+
+@app.route("/history/sales")
+@login_required
+@admin_only
+def sales_history_page():
+    sales = Sale.query.order_by(Sale.id.desc()).all()
+    customer_payments = CustomerPayment.query.order_by(CustomerPayment.id.desc()).all()
+    products = {p.id: p for p in Product.query.all()}
+    customers = {c.id: c for c in Customer.query.all()}
+
+    return render_template(
+        "sales_history.html",
+        sales=sales,
+        customer_payments=customer_payments,
+        products=products,
+        customers=customers
+    )
+
+
+@app.route("/history/purchases")
+@login_required
+@admin_only
+def purchases_history_page():
+    purchases = Purchase.query.order_by(Purchase.id.desc()).all()
+    payments = SupplierPayment.query.order_by(SupplierPayment.id.desc()).all()
+    products = {p.id: p for p in Product.query.all()}
+    suppliers = {s.id: s for s in Supplier.query.all()}
+
+    return render_template(
+        "purchases_history.html",
+        purchases=purchases,
+        payments=payments,
+        products=products,
+        suppliers=suppliers
+    )
+
+
+@app.route("/expenses")
+@login_required
+@admin_only
+def expenses():
+    purchases = Purchase.query.filter_by(
+        user_id=current_user.id
+    ).order_by(Purchase.date.desc()).all()
+
+    grouped = {}
+    grand_total = 0
+
+    for p in purchases:
+        day = p.date or "Unknown"
+        cost = float(p.unit_price or 0) * float(p.quantity or 0)
+        grand_total += cost
+
+        if day not in grouped:
+            grouped[day] = {"items": [], "total": 0}
+
+        grouped[day]["items"].append({
+            "product_name": p.product.name if p.product else "—",
+            "supplier_name": p.supplier.name if p.supplier else "—",
+            "quantity": p.quantity,
+            "unit_price": p.unit_price,
+            "total": cost
+        })
+        grouped[day]["total"] += cost
+
+    grouped = dict(sorted(grouped.items(), reverse=True))
+
+    return render_template(
+        "expenses.html",
+        grouped=grouped,
+        grand_total=grand_total,
+        user_id=current_user.id
+    )
+
+
+
+
+@app.route('/stock/add', methods=['GET', 'POST'])
+@admin_only
+def stock_add():
+    products = Product.query.all()
+    if request.method == 'POST':
+        product = Product.query.get_or_404(int(request.form['product_id']))
+        qty = float(request.form['quantity'])
+        product.current_quantity += qty
+        db.session.commit()
+        flash(f'{product.name} ላይ {qty} ተጨምሯል።', 'success')
+        return redirect(url_for('stock_add'))
+    return render_template('stock_add.html', products=products)
+
+
+@app.route('/stock/subtract', methods=['GET', 'POST'])
+@admin_only
+def stock_subtract():
+    products = Product.query.all()
+    if request.method == 'POST':
+        product = Product.query.get_or_404(int(request.form['product_id']))
+        qty = float(request.form['quantity'])
+        if qty > product.current_quantity:
+            flash('የሚቀነሰው መጠን ካለው ክምችት መብለጥ አይችልም።', 'danger')
+            return redirect(url_for('stock_subtract'))
+        product.current_quantity -= qty
+        db.session.commit()
+        flash(f'{product.name} ላይ {qty} ተቀንሷል።', 'success')
+        return redirect(url_for('stock_subtract'))
+    return render_template('stock_subtract.html', products=products)
+
+
+@app.route('/change-price', methods=['GET', 'POST'])
+@admin_only
+def change_price():
+    products = Product.query.all()
+    if request.method == 'POST':
+        product = Product.query.get_or_404(int(request.form['product_id']))
+        product.unit_price = float(request.form['unit_price'])
+        db.session.commit()
+        flash(f'{product.name} ዋጋ ተቀይሯል።', 'success')
+        return redirect(url_for('change_price'))
+    return render_template('change_price.html', products=products)
+
+
+
+
+
+@app.route("/edit/sales/select-customer")
+@login_required
+@admin_only
+def select_customer_for_sales_edit():
+    customers = Customer.query.order_by(Customer.name).all()
+    return render_template("select_customer_for_edit.html", customers=customers)
+
+
+@app.route("/edit/purchases/select-supplier")
+@login_required
+@admin_only
+def select_supplier_for_purchases_edit():
+    suppliers = Supplier.query.order_by(Supplier.name).all()
+    return render_template("select_supplier_for_edit.html", suppliers=suppliers)
 
 
 

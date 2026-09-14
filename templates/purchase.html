@@ -1,1742 +1,709 @@
+<!-- ============================================================= -->
+<!-- PURCHASE PAGE — inline dropdowns, dup checks, live validation, sticky footer -->
+<!-- ============================================================= -->
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}
             <div class="alert alert-success alert-dismissible fade show flash-message" role="alert">
                 {{ message }}
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert">
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         {% endfor %}
     {% endif %}
 {% endwith %}
 
-<style>
-    .flash-message {
-        font-family: 'Inter', 'Segoe UI', sans-serif;
-        font-size: 13px;
-        font-weight: 500;
-        letter-spacing: 0.1px;
-        padding: 8px 12px;
-        margin: 10px auto;
-        max-width: 500px;
-        border-radius: 7px;
-    }
-</style>
+<style>.flash-message{font-family:'Inter','Segoe UI',sans-serif;font-size:13px;font-weight:500;padding:8px 12px;margin:10px auto;max-width:500px;border-radius:7px;}</style>
 
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="am">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Purchase Management — Kedir Stock</title>
-
+<title>አዲስ ግዢ</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{
-    --green:#1e7e4f;
-    --green-dark:#145c39;
-    --green-soft:#e6f4ec;
-    --gray-light:#f7f9f8;
-    --gray-dark:#2e2e2e;
-    --red:#c0392b;
-    --red-soft:#fdecea;
-}
-
-*{
-    box-sizing:border-box;
-}
-
-body{
-    font-family:'Segoe UI', sans-serif;
-    background:var(--gray-light);
-    color:var(--gray-dark);
-    margin:0;
-}
-
-a{
-    text-decoration:none;
-}
-
-/* ============ HEADER ============ */
-
-.header{
-    background:rgba(255,255,255,0.95);
-    box-shadow:0 2px 12px rgba(0,0,0,0.06);
-    padding:10px 0;
-    position:sticky;
-    top:0;
-    z-index:50;
-}
-
-.header .brand{
-    font-weight:700;
-    font-size:1.3rem;
-    color:var(--green-dark);
-    display:flex;
-    align-items:center;
-    gap:8px;
-}
-
-.header .brand img{
-    width:46px;
-    height:46px;
-    object-fit:contain;
-}
-
-.header .nav-link{
-    color:var(--gray-dark) !important;
-    font-weight:600;
-    margin:0 10px;
-}
-
-.header .nav-link:hover{
-    color:var(--green) !important;
-}
-
-.header .nav-link.active{
-    color:var(--green) !important;
-    border-bottom:2px solid var(--green);
-}
-
-.header .icon-btn{
-    color:var(--gray-dark);
-    font-size:1.2rem;
-    margin-left:16px;
-}
-
-/* ============ MOBILE SIDE MENU ============ */
-
-.side-menu-overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.5);
-    display:none;
-    z-index:90;
-}
-
-.side-menu{
-    position:fixed;
-    top:0;
-    left:-280px;
-    width:280px;
-    height:100%;
-    background:var(--green-dark);
-    z-index:100;
-    padding:24px;
-    transition:left .35s ease;
-    overflow-y:auto;
-}
-
-.side-menu.open{
-    left:0;
-}
-
-.side-menu-overlay.show{
-    display:block;
-}
-
-.side-menu .close-btn{
-    color:#fff;
-    font-size:1.5rem;
-    background:none;
-    border:none;
-    margin-bottom:20px;
-}
-
-.side-menu a{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    color:#e6f4ec;
-    padding:12px 8px;
-    border-radius:8px;
-    font-weight:600;
-    transition:background .25s ease;
-}
-
-.side-menu a:hover{
-    background:rgba(255,255,255,0.1);
-    color:#fff;
-}
-
-.side-menu a.active{
-    background:rgba(255,255,255,0.15);
-    color:#fff;
-}
-
-/* ============ HERO ============ */
-
-.page-hero{
-    position:relative;
-    overflow:hidden;
-    background:linear-gradient(120deg, var(--green-dark), var(--green));
-    padding:50px 0;
-    text-align:center;
-    color:#fff;
-}
-
-.page-hero .icon-circle{
-    width:56px;
-    height:56px;
-    background:rgba(255,255,255,0.15);
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:1.5rem;
-    margin:0 auto 14px auto;
-}
-
-.page-hero h1{
-    font-weight:800;
-}
-
-.page-hero p{
-    color:#dfeee5;
-    margin:6px auto 0 auto;
-    max-width:560px;
-}
-
-/* ============ FORM SECTION ============ */
-
-.form-section{
-    padding:50px 0 90px 0;
-}
-
-.section-title{
-    text-align:center;
-    font-weight:800;
-    margin-bottom:34px;
-}
-
-.purchase-card{
-    background:#fff;
-    border-radius:16px;
-    border:1px solid #eef1ef;
-    box-shadow:0 8px 22px rgba(0,0,0,0.06);
-    padding:30px;
-    margin-bottom:26px;
-    transition:box-shadow .3s ease;
-}
-
-.purchase-card:hover{
-    box-shadow:0 12px 30px rgba(0,0,0,0.09);
-}
-
-.purchase-card-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:22px;
-}
-
-.purchase-card-header .purchase-title{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    font-weight:700;
-    color:var(--green-dark);
-    font-size:1.1rem;
-}
-
-.purchase-card-header .purchase-title i{
-    background:var(--green-soft);
-    color:var(--green);
-    padding:8px;
-    border-radius:8px;
-}
-
-.remove-item-btn{
-    background:none;
-    border:none;
-    color:var(--red);
-    font-weight:600;
-    font-size:0.9rem;
-    display:flex;
-    align-items:center;
-    gap:4px;
-}
-
-.remove-item-btn:hover{
-    color:#992d22;
-}
-
-.form-label{
-    font-weight:600;
-    font-size:0.9rem;
-    color:var(--gray-dark);
-}
-
-.form-control,
-.form-select{
-    border-radius:10px;
-    border:1px solid #dde3e0;
-    padding:10px 12px;
-    transition:all .25s ease;
-}
-
-.form-control:focus,
-.form-select:focus{
-    border-color:var(--green);
-    box-shadow:0 0 0 0.2rem rgba(30,126,79,0.15);
-}
-
-.price-input-wrap{
-    position:relative;
-}
-
-.price-input-wrap .currency-tag{
-    position:absolute;
-    right:12px;
-    top:50%;
-    transform:translateY(-50%);
-    color:#8a978f;
-    font-weight:600;
-    font-size:0.85rem;
-    pointer-events:none;
-}
-
-/* NEW: pay-full button under Current Payment field */
-.pay-full-btn{
-    border-radius:10px;
-    font-weight:600;
-    font-size:0.82rem;
-    margin-top:8px;
-}
-
-.calc-summary{
-    background:var(--green-soft);
-    border-radius:12px;
-    padding:16px 20px;
-    margin-top:20px;
-    display:flex;
-    flex-wrap:wrap;
-    gap:16px;
-    justify-content:space-between;
-}
-
-.calc-summary .calc-block{
-    min-width:140px;
-}
-
-.calc-summary .calc-label{
-    font-size:0.8rem;
-    color:var(--green-dark);
-    font-weight:600;
-}
-
-.calc-summary .calc-value{
-    font-size:1.15rem;
-    font-weight:800;
-    color:var(--green-dark);
-}
-
-.calc-summary .calc-value.debt-value{
-    color:var(--red);
-}
-
-.calc-summary .calc-value.debt-value.zero-debt{
-    color:var(--green-dark);
-}
-
-.debt-warning{
-    display:none;
-    background:var(--red-soft);
-    color:var(--red);
-    font-size:0.82rem;
-    font-weight:600;
-    padding:8px 12px;
-    border-radius:8px;
-    margin-top:10px;
-}
-
-.duplicate-warning{
-    display:none;
-    background:#fff3cd;
-    color:#856404;
-    font-size:0.82rem;
-    font-weight:600;
-    padding:8px 12px;
-    border-radius:8px;
-    margin-top:10px;
-}
-
-/* Add more */
-
-.add-item-wrap{
-    text-align:center;
-    margin:10px 0 30px 0;
-}
-
-.add-item-btn{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    background:#fff;
-    border:2px dashed var(--green);
-    color:var(--green-dark);
-    font-weight:700;
-    padding:12px 26px;
-    border-radius:50px;
-    transition:all .3s ease;
-    cursor:pointer;
-}
-
-.add-item-btn:hover{
-    transform:translateY(-3px);
-    background:var(--green-soft);
-    box-shadow:0 8px 18px rgba(30,126,79,0.15);
-}
-
-/* Overall summary */
-
-.overall-summary{
-    background:var(--green-dark);
-    color:#fff;
-    border-radius:16px;
-    padding:30px;
-    box-shadow:0 14px 30px rgba(0,0,0,0.15);
-}
-
-.overall-summary .row-stats{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:space-between;
-    gap:16px;
-    text-align:center;
-}
-
-.overall-summary .stat-block{
-    flex:1;
-    min-width:140px;
-}
-
-.overall-summary .stat-label{
-    font-size:0.85rem;
-    color:#c9ddd0;
-    margin-bottom:4px;
-}
-
-.overall-summary .stat-value{
-    font-size:1.5rem;
-    font-weight:800;
-}
-
-.overall-summary .stat-value.debt-total{
-    color:#ffb3a8;
-}
-
-.save-purchase-btn{
-    background:#fff;
-    color:var(--green-dark);
-    font-weight:700;
-    padding:14px 0;
-    width:100%;
-    border-radius:12px;
-    border:none;
-    margin-top:24px;
-    transition:all .3s ease;
-}
-
-.save-purchase-btn:hover{
-    transform:translateY(-3px);
-    box-shadow:0 10px 22px rgba(0,0,0,0.25);
-    background:#f3f8f5;
-}
-
-@media(max-width:767px){
-
-    .header .brand img{
-        width:42px;
-        height:42px;
-    }
-
-    .purchase-card{
-        padding:18px;
-    }
-
-    .calc-summary{
-        padding:14px;
-    }
-
-    .calc-summary .calc-block{
-        min-width:100%;
-    }
-
-    .overall-summary{
-        padding:20px;
-    }
-
-    .overall-summary .stat-block{
-        min-width:45%;
-    }
-}
+:root{--green:#16a34a;--green-dark:#128a3e;--blue:#2563eb;--red:#dc2626;--dark:#1e293b;--muted:#64748b;--bg:#f4f6f8;}
+*{box-sizing:border-box;} html,body{overflow-x:hidden;max-width:100%;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);}
+
+.navbar{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:12px 0;}
+.navbar-brand{font-weight:800;color:var(--green-dark)!important;font-size:1.1rem;}
+.nav-link{font-weight:500;color:#475569!important;font-size:.86rem;}
+.nav-link.active{color:var(--green-dark)!important;}
+
+.page-header{background:linear-gradient(120deg,#145c39,#1e7e4f);color:#fff;padding:18px 0;}
+.page-header h1{font-weight:800;font-size:1.15rem;margin:0;}
+.page-header p{color:#dfeee5;font-size:.8rem;margin:2px 0 0;}
+
+.page-wrap{padding:16px 0 190px;max-width:600px;margin:0 auto;}
+
+.purchase-group{background:#fff;border-radius:14px;padding:16px;box-shadow:0 4px 14px rgba(0,0,0,.05);margin-bottom:16px;position:relative;}
+.form-badge-num{position:absolute;top:-9px;left:14px;background:var(--green-dark);color:#fff;font-size:.66rem;font-weight:700;padding:2px 10px;border-radius:14px;}
+.card-title-main{font-weight:700;font-size:.98rem;margin:6px 0 10px;}
+
+.form-label{font-weight:600;font-size:.8rem;margin-bottom:4px;}
+
+.dropdown-wrap{position:relative;}
+.picker-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #dee2e6;border-radius:10px;padding:10px 12px;font-size:.88rem;cursor:pointer;}
+.picker-trigger.filled{border-color:var(--green);color:var(--dark);font-weight:600;}
+.picker-trigger.invalid{border-color:var(--red);}
+.picker-trigger .placeholder-text{color:var(--muted);}
+.picker-trigger i{color:var(--muted);font-size:.85rem;}
+
+.inline-dropdown{position:absolute;top:100%;left:0;right:0;z-index:60;background:#fff;border:1px solid #dee2e6;border-radius:10px;margin-top:4px;box-shadow:0 10px 24px rgba(0,0,0,.1);max-height:270px;display:flex;flex-direction:column;overflow:hidden;}
+.dropdown-search{padding:8px 10px;position:relative;border-bottom:1px solid #f1f5f9;flex-shrink:0;}
+.dropdown-search i{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.78rem;}
+.dropdown-search input{width:100%;padding:7px 10px 7px 28px;border:1px solid #dee2e6;border-radius:8px;font-size:.85rem;}
+.dropdown-search input:focus{outline:none;border-color:var(--green);}
+.dropdown-list{overflow-y:auto;flex:1;}
+.dropdown-option{padding:10px 12px;cursor:pointer;font-size:.87rem;display:flex;justify-content:space-between;align-items:center;}
+.dropdown-option:hover{background:#f8fafc;}
+.dropdown-option .opt-name{font-weight:600;color:var(--dark);}
+.dropdown-option .opt-stock{font-size:.74rem;font-weight:700;color:var(--green);}
+.dropdown-empty{padding:14px;text-align:center;color:var(--muted);font-size:.8rem;}
+
+.item-card{border:1px solid #e5e7eb;border-radius:12px;margin-bottom:12px;overflow:visible;position:relative;}
+.item-header{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;cursor:pointer;background:#fff;border-radius:12px 12px 0 0;}
+.item-header .item-name{font-weight:700;font-size:.9rem;}
+.item-header .item-name.placeholder{color:var(--muted);font-weight:500;}
+.item-delete{background:none;border:none;color:var(--red);font-size:1rem;padding:0;}
+.item-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 12px 10px;background:#fff;}
+.item-fields label{font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:3px;display:block;}
+.item-fields label .req{color:var(--red);}
+.item-fields input{height:40px;font-size:.9rem;border-radius:8px;border:1.3px solid #dee2e6;padding:6px 10px;width:100%;}
+.item-fields input:focus{border-color:var(--green);outline:none;}
+.item-fields input.invalid{border-color:var(--red);background:#fff5f5;}
+.item-line-total{text-align:right;padding:0 12px 12px;font-size:.9rem;font-weight:800;color:var(--dark);}
+.item-line-total .unit-label{color:var(--muted);font-size:.72rem;font-weight:500;margin-right:4px;}
+
+.section-head-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.section-head-row .form-label{margin:0;}
+
+/* ---- Add item button now sits BELOW the items list ---- */
+.add-item-wrap{text-align:right;margin-top:4px;}
+.add-item-btn-sm{background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:700;font-size:.8rem;display:inline-flex;align-items:center;gap:6px;}
+.add-item-btn-sm:hover{background:var(--green-dark);color:#fff;}
+
+.card-grand-total{display:flex;justify-content:space-between;align-items:center;padding:12px 2px 0;font-size:.9rem;}
+.card-grand-total .g-label{color:var(--muted);font-weight:600;}
+.card-grand-total .g-value{font-weight:800;font-size:1.05rem;color:var(--dark);}
+
+.helper-text{font-size:.72rem;color:var(--muted);margin-top:3px;}
+
+.pay-full-btn{border-radius:8px;font-weight:600;font-size:.74rem;}
+
+.add-group-wrap{text-align:center;margin:6px 0 20px;}
+.add-group-btn{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px dashed var(--green);color:var(--green-dark);font-weight:600;font-size:.85rem;padding:9px 20px;border-radius:40px;cursor:pointer;}
+.add-group-btn:hover{background:#e6f4ec;}
+
+.remove-group-btn{background:none;border:none;color:var(--red);font-weight:600;font-size:.8rem;}
+
+/* ---- Sticky bottom footer ---- */
+.sticky-footer{position:fixed;bottom:0;left:0;right:0;background:#fff;box-shadow:0 -4px 16px rgba(0,0,0,.08);z-index:80;}
+.sticky-footer-inner{max-width:600px;margin:0 auto;padding:10px 16px 12px;}
+.sticky-total-row{display:flex;justify-content:space-between;font-size:.78rem;padding:2px 0;}
+.sticky-total-row .g-label{color:var(--muted);}
+.sticky-total-row .g-value{font-weight:800;color:var(--dark);}
+.sticky-total-row.grand-debt .g-value{color:var(--red);}
+.sticky-total-row.grand-paid .g-value{color:var(--green);}
+.sticky-actions{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;}
+.save-purchase-btn{background:var(--green-dark);color:#fff;font-weight:700;padding:9px 22px;border-radius:9px;border:none;font-size:.86rem;}
+.action-note{font-size:.7rem;color:var(--muted);}
 </style>
 </head>
-
 <body>
 
-<!-- HEADER -->
-
-<header class="header">
-    <div class="container d-flex align-items-center justify-content-between">
-
-        <a href="{{ url_for('dashboard') }}" class="brand">
-            <img src="{{ url_for('static', filename='logo.png') }}"
-                 alt="Kedir Stock Logo">
-            Kedir Stock
-        </a>
-
-        <nav class="d-none d-lg-flex">
-
-            <a class="nav-link"
-               href="{{ url_for('home') }}">
-               Home
-            </a>
-
-            <a class="nav-link"
-               href="{{ url_for('track') }}">
-               Products
-            </a>
-
-            <a class="nav-link"
-               href="{{ url_for('inventory') }}">
-               Inventory
-            </a>
-
-            <a class="nav-link active"
-               href="{{ url_for('purchases') }}">
-               Purchases
-            </a>
-
-            <a class="nav-link"
-               href="{{ url_for('Selling') }}">
-               Sales
-            </a>
-
-            <a class="nav-link"
-               href="{{ url_for('suppliers_customers') }}">
-               Suppliers & Customers
-            </a>
-
-            <a class="nav-link"
-               href="{{ url_for('report') }}">
-               Reports
-            </a>
-
-        </nav>
-
-        <div class="d-flex align-items-center">
-
-            <a href="#"
-               class="icon-btn d-none d-lg-inline"
-               title="Notifications">
-                <i class="bi bi-bell"></i>
-            </a>
-
-            <a href="#"
-               class="icon-btn d-none d-lg-inline"
-               title="Profile">
-                <i class="bi bi-person-circle"></i>
-            </a>
-
-            <span class="d-none d-lg-inline fw-semibold ms-2">
-                Kiya
-            </span>
-
-            <a href="{{ url_for('logout') }}"
-               class="icon-btn d-none d-lg-inline"
-               title="Logout">
-                <i class="bi bi-box-arrow-right"></i>
-            </a>
-
-            <button class="btn d-lg-none"
-                    id="menuToggle"
-                    aria-label="Open menu">
-                <i class="bi bi-list fs-3"></i>
-            </button>
-
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="#"><i class="bi bi-truck"></i> ስቶክ ማኔጅመንት</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavMenu"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse justify-content-end" id="mainNavMenu">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="{{url_for('new_action')}}">መነሻ</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{url_for('products_page')}}">ምርቶች</a></li>
+                  <li class="nav-item"><a class="nav-link " href="{{url_for('Selling')}}">ሽያጭ</a></li>
+            </ul>
         </div>
     </div>
-</header>
+</nav>
 
+<section class="page-header">
+    <div class="container">
+        <h1>አዲስ ግዢ ይመዝግቡ</h1>
+        <p>አቅራቢ ይምረጡ፣ ምርት ይጨምሩ፣ ክፍያ ይመዝግቡ።</p>
+    </div>
+</section>
 
-<!-- MOBILE SIDE MENU -->
+<div class="container page-wrap">
 
-<div class="side-menu-overlay" id="menuOverlay"></div>
+    <form method="POST" id="purchaseForm">
+        {{ form.hidden_tag() }}
+        <div id="realFieldsContainer" style="display:none;"></div>
 
-<div class="side-menu" id="sideMenu">
+        <div id="groupsContainer">
+            <div class="purchase-group" data-group-index="0">
+                <span class="form-badge-num">ግዢ #<span class="group-num-label">1</span></span>
+                <div class="card-title-main">አዲስ ግዢ</div>
 
-    <button class="close-btn"
-            id="menuClose"
-            aria-label="Close menu">
-        <i class="bi bi-x-lg"></i>
-    </button>
+                <div class="mb-3">
+                    <label class="form-label">አቅራቢ ይምረጡ</label>
+                    <div class="dropdown-wrap">
+                        <div class="picker-trigger supplier-trigger" data-supplier-id="">
+                            <span class="placeholder-text trigger-text">አቅራቢ ይምረጡ...</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
 
-    <a href="{{ url_for('home') }}">
-        <i class="bi bi-house"></i> Home
-    </a>
+                <label class="form-label">ምርቶች</label>
+                <div class="items-container"></div>
+                <div class="add-item-wrap">
+                    <button type="button" class="add-item-btn-sm"><i class="bi bi-plus-lg"></i>ጨምር</button>
+                </div>
 
-    <a href="{{ url_for('track') }}">
-        <i class="bi bi-box-seam"></i> Products
-    </a>
+                <div class="card-grand-total">
+                    <span class="g-label">ጠቅላላ</span>
+                    <span class="g-value group-total-display">0.00 ETB</span>
+                </div>
 
-    <a href="{{ url_for('inventory') }}">
-        <i class="bi bi-clipboard-data"></i> Inventory
-    </a>
+                <div class="mb-2 mt-3">
+                    <label class="form-label">አሁን የተከፈለ</label>
+                    <input type="number" class="form-control group-payment" placeholder="0.00" min="0" step="0.01" value="0">
+                    <div class="helper-text">አሁን ለአቅራቢው ምን ያህል ተከፍሏል?</div>
+                    <button type="button" class="btn btn-outline-success btn-sm pay-full-btn mt-2 group-pay-full"><i class="bi bi-check2-circle me-1"></i>ሙሉ መጠን ይክፈሉ</button>
+                </div>
 
-    <a href="{{ url_for('Selling') }}">
-        <i class="bi bi-cash-coin"></i> Sales
-    </a>
+                <input type="hidden" class="group-debt-hidden" name="groups-0-debt" value="0">
+            </div>
+        </div>
 
-    <a href="{{ url_for('purchases') }}"
-       class="active">
-        <i class="bi bi-truck"></i> Purchases
-    </a>
+        <div class="add-group-wrap">
+            <button type="button" class="add-group-btn" id="addGroupBtn"><i class="bi bi-plus-circle"></i>ሌላ ግዢ ቡድን ጨምር (ሌላ አቅራቢ)</button>
+        </div>
 
-    <a href="{{ url_for('suppliers_customers') }}">
-        <i class="bi bi-people"></i> Suppliers & Customers
-    </a>
+    </form>
 
-    <a href="{{ url_for('report') }}">
-        <i class="bi bi-bar-chart"></i> Reports
-    </a>
-
-    <hr>
-
-    <a href="#">
-        <i class="bi bi-bell"></i> Notifications
-    </a>
-
-    <a href="#">
-        <i class="bi bi-person-circle"></i> Profile
-    </a>
-
-    <a href="{{ url_for('logout') }}">
-        <i class="bi bi-box-arrow-right"></i> Logout
-    </a>
+    <!-- STICKY FOOTER -->
+    <div class="sticky-footer">
+        <div class="sticky-footer-inner">
+            <div class="sticky-total-row"><span class="g-label">ጠቅላላ ግዢ</span><span class="g-value" id="grandTotal">0.00 ETB</span></div>
+            <div class="sticky-total-row grand-paid"><span class="g-label">የተከፈለ</span><span class="g-value" id="grandPaid">0.00 ETB</span></div>
+            <div class="sticky-total-row grand-debt"><span class="g-label">ዕዳ</span><span class="g-value" id="grandDebt">0.00 ETB</span></div>
+            <div class="sticky-actions">
+                <span class="action-note"><i class="bi bi-shield-check me-1"></i>ግዢዎ ይመዘገባል።</span>
+                <button type="submit" form="purchaseForm" class="save-purchase-btn">{{ form.submit.label.text if form.submit and form.submit.label else 'አስቀምጥ' }}</button>
+            </div>
+        </div>
+    </div>
 
 </div>
 
-
-<!-- HERO — LEFT UNCHANGED -->
-
-<section class="page-hero">
-    <div class="container">
-        <div class="icon-circle">
-            <i class="bi bi-truck"></i>
-        </div>
-
-        <h1>Purchase Management</h1>
-
-        <p>
-            Record purchases, select suppliers, enter quantities and prices,
-            and track payments and outstanding debt — all in one place.
-        </p>
-    </div>
-</section>
-
-
-<!-- FORM SECTION -->
-
-<section class="form-section">
-
-    <div class="container">
-
-        <h2 class="section-title">
-            አዲስ ግዢ
-        </h2>
-
-        <form method="POST" id="purchaseForm">
-
-            {{ form.hidden_tag() }}
-
-            <div id="purchaseContainer">
-
-                {% for item in form.purchase %}
-
-                <div class="purchase-card"
-                     data-index="{{ loop.index0 }}">
-
-                    <div class="purchase-card-header">
-
-                        <div class="purchase-title">
-                            <i class="bi bi-bag-plus"></i>
-
-                            <span class="item-number">
-                                ግዢ #{{ loop.index }}
-                            </span>
-                        </div>
-
-                        {% if not loop.first %}
-
-                        <button type="button"
-                                class="remove-item-btn">
-
-                            <i class="bi bi-x-circle"></i>
-                            አስወግድ
-
-                        </button>
-
-                        {% endif %}
-
-                    </div>
-
-
-                    <div class="row g-3">
-
-                        <div class="col-md-6">
-
-                            <label class="form-label">
-                                {{ item.product.label.text }} (ምርት)
-                            </label>
-
-                            {{ item.product(class="form-select item-product") }}
-
-                        </div>
-
-
-                        <div class="col-md-6">
-
-                            <label class="form-label">
-                                {{ item.supplier.label.text }} (አቅራቢ)
-                            </label>
-
-                            {{ item.supplier(class="form-select item-supplier") }}
-
-                        </div>
-
-
-                        <div class="col-md-6">
-
-                            <label class="form-label">
-                                {{ item.quantity.label.text }} (መጠን)
-                            </label>
-
-                            {{ item.quantity(
-                                class="form-control item-quantity",
-                                placeholder="መጠኑን ያስገቡ",
-                                min="0",
-                                step="0.01"
-                            ) }}
-
-                        </div>
-
-
-                        <div class="col-md-6">
-
-                            <label class="form-label">
-                                {{ item.unit_price.label.text }} (የአንዱ ዋጋ)
-                            </label>
-
-                            <div class="price-input-wrap">
-
-                                {{ item.unit_price(
-                                    class="form-control item-price",
-                                    placeholder="የግዢ ዋጋ ያስገቡ",
-                                    min="0",
-                                    step="0.01"
-                                ) }}
-
-                                <span class="currency-tag">
-                                    ETB
-                                </span>
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="col-md-6">
-
-                            <label class="form-label">
-                                {{ item.payment.label.text }} (አሁን የተከፈለ)
-                            </label>
-
-                            <div class="price-input-wrap">
-
-                                {{ item.payment(
-                                    class="form-control item-payment",
-                                    placeholder="አሁን የከፈሉትን ያስገቡ",
-                                    min="0",
-                                    step="0.01"
-                                ) }}
-
-                                <span class="currency-tag">
-                                    ETB
-                                </span>
-
-                            </div>
-
-                            <button type="button"
-                                    class="btn btn-outline-success btn-sm pay-full-btn pay-full-trigger">
-                                <i class="bi bi-check2-circle me-1"></i>ሙሉ መጠን ይክፈሉ
-                            </button>
-
-                        </div>
-
-
-                        <div class="col-md-6">
-
-                            <label class="form-label">
-                                ዕዳ
-                            </label>
-
-                            <input type="text"
-                                   class="form-control item-debt-display"
-                                   readonly
-                                   value="0.00 ETB">
-
-                            {{ item.debt(
-                                class="item-debt-hidden",
-                                type="hidden"
-                            ) }}
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- CALCULATION SUMMARY -->
-
-                    <div class="calc-summary">
-
-                        <div class="calc-block">
-
-                            <div class="calc-label">
-                                ጠቅላላ ግዢ
-                            </div>
-
-                            <div class="calc-value item-total">
-                                0.00 ETB
-                            </div>
-
-                        </div>
-
-
-                        <div class="calc-block">
-
-                            <div class="calc-label">
-                                አሁን የተከፈለ
-                            </div>
-
-                            <div class="calc-value item-paid">
-                                0.00 ETB
-                            </div>
-
-                        </div>
-
-
-                        <div class="calc-block">
-
-                            <div class="calc-label">
-                                ቀሪ ዕዳ
-                            </div>
-
-                            <div class="calc-value debt-value item-debt-value">
-                                0.00 ETB
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="debt-warning">
-
-                        የክፍያ መጠኑ ከጠቅላላ የግዢ ዋጋ መብለጥ አይችልም።
-
-                    </div>
-
-
-                    <div class="duplicate-warning">
-
-                        ይህ ምርት በሌላ የግዢ ክፍል ውስጥ ተመርጧል። እባክዎ የተለየ ምርት ይምረጡ።
-
-                    </div>
-
-                </div>
-
-                {% endfor %}
-
-            </div>
-
-
-            <!-- ADD ANOTHER PRODUCT -->
-
-            <div class="add-item-wrap">
-
-                <button type="button"
-                        class="add-item-btn"
-                        id="addItemBtn">
-
-                    <i class="bi bi-plus-circle"></i>
-                    ሌላ ምርት ይግዙ
-
-                </button>
-
-            </div>
-
-
-            <!-- OVERALL SUMMARY -->
-
-            <div class="overall-summary">
-
-                <div class="row-stats">
-
-                    <div class="stat-block">
-
-                        <div class="stat-label">
-                            ጠቅላላ ምርቶች
-                        </div>
-
-                        <div class="stat-value"
-                             id="totalItems">
-                            1
-                        </div>
-
-                    </div>
-
-
-                    <div class="stat-block">
-
-                        <div class="stat-label">
-                            ጠቅላላ ግዢ
-                        </div>
-
-                        <div class="stat-value"
-                             id="grandTotal">
-                            0.00 ETB
-                        </div>
-
-                    </div>
-
-
-                    <div class="stat-block">
-
-                        <div class="stat-label">
-                            ጠቅላላ የተከፈለ
-                        </div>
-
-                        <div class="stat-value"
-                             id="grandPaid">
-                            0.00 ETB
-                        </div>
-
-                    </div>
-
-
-                    <div class="stat-block">
-
-                        <div class="stat-label">
-                            ጠቅላላ ዕዳ
-                        </div>
-
-                        <div class="stat-value debt-total"
-                             id="grandDebt">
-                            0.00 ETB
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                {{ form.submit(class="save-purchase-btn") }}
-
-            </div>
-
-        </form>
-
-    </div>
-
-</section>
-
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
 
-/* ===== MOBILE MENU ===== */
+const EPSILON = 0.01;
 
-const menuToggle = document.getElementById('menuToggle');
-const menuClose = document.getElementById('menuClose');
-const sideMenu = document.getElementById('sideMenu');
-const menuOverlay = document.getElementById('menuOverlay');
+const productsData = {
+    {% for value, label in form.groups[0].form.purchase[0].product.choices %}
+    "{{ value }}": { name: {{ label|tojson }}, stock: 0 },
+    {% endfor %}
+};
+{% if products %}
+{% for product in products %}
+if(productsData["{{ product.id }}"]) { productsData["{{ product.id }}"].stock = {{ product.current_quantity|default(0, true)|tojson }}; }
+{% endfor %}
+{% endif %}
 
+const suppliersData = {
+    {% for value, label in form.groups[0].form.supplier.choices %}
+    "{{ value }}": { name: {{ label|tojson }} }{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
 
-menuToggle.addEventListener('click', () => {
-
-    sideMenu.classList.add('open');
-    menuOverlay.classList.add('show');
-
-});
-
-
-function closeMenu(){
-
-    sideMenu.classList.remove('open');
-    menuOverlay.classList.remove('show');
-
-}
-
-
-menuClose.addEventListener('click', closeMenu);
-menuOverlay.addEventListener('click', closeMenu);
-
-
-/* ===== PURCHASE ITEMS ===== */
-
-const purchaseContainer = document.getElementById('purchaseContainer');
-
-const addItemBtn = document.getElementById('addItemBtn');
-
+const groupsContainer = document.getElementById('groupsContainer');
+const addGroupBtn = document.getElementById('addGroupBtn');
 const purchaseForm = document.getElementById('purchaseForm');
-
-const totalItemsEl = document.getElementById('totalItems');
+const realFieldsContainer = document.getElementById('realFieldsContainer');
 
 const grandTotalEl = document.getElementById('grandTotal');
-
 const grandPaidEl = document.getElementById('grandPaid');
-
 const grandDebtEl = document.getElementById('grandDebt');
 
+let groupIndex = 1;
 
-/*
-    Flask-WTF FieldList is named "purchase".
+function getNumber(v){ const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+function round2(v){ return Math.round((getNumber(v)+Number.EPSILON)*100)/100; }
+function formatMoney(v){ return round2(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + " ETB"; }
 
-    Therefore fields must be:
+/* ===== FIND DEFAULT "OTHER" SUPPLIER ===== */
 
-    purchase-0-product
-    purchase-0-supplier
-    purchase-0-quantity
-    purchase-0-unit_price
-    purchase-0-payment
-    purchase-0-debt
-
-    purchase-1-product
-    purchase-1-supplier
-    ...
-*/
-
-
-let itemIndex = document.querySelectorAll('.purchase-card').length;
-
-
-/* Get options from the first Flask-generated card */
-
-const productOptionsHTML =
-    document.querySelector('.item-product').innerHTML;
-
-const supplierOptionsHTML =
-    document.querySelector('.item-supplier').innerHTML;
-
-
-/* ===== FORMAT MONEY ===== */
-
-function formatMoney(num){
-
-    return num.toLocaleString(
-        'en-US',
-        {
-            minimumFractionDigits:2,
-            maximumFractionDigits:2
-        }
-    );
-
-}
-
-
-/* ===== CALCULATE ONE CARD ===== */
-
-function calculateCard(card){
-
-    const qty =
-        parseFloat(
-            card.querySelector('.item-quantity').value
-        ) || 0;
-
-
-    const price =
-        parseFloat(
-            card.querySelector('.item-price').value
-        ) || 0;
-
-
-    let paid =
-        parseFloat(
-            card.querySelector('.item-payment').value
-        ) || 0;
-
-
-    const total = qty * price;
-
-
-    const warningEl =
-        card.querySelector('.debt-warning');
-
-
-    /* Prevent payment exceeding total */
-
-    if(paid > total){
-
-        paid = total;
-
-        card.querySelector('.item-payment').value =
-            total.toFixed(2);
-
-        warningEl.style.display = 'block';
-
-    }else{
-
-        warningEl.style.display = 'none';
-
+function findOtherSupplierId(){
+    for(const [id, s] of Object.entries(suppliersData)){
+        if((s.name || '').trim().toLowerCase() === 'other') return id;
     }
-
-
-    const debt =
-        Math.max(total - paid, 0);
-
-
-    card.querySelector('.item-total').textContent =
-        formatMoney(total) + ' ETB';
-
-
-    card.querySelector('.item-paid').textContent =
-        formatMoney(paid) + ' ETB';
-
-
-    const debtValueEl =
-        card.querySelector('.item-debt-value');
-
-
-    debtValueEl.textContent =
-        formatMoney(debt) + ' ETB';
-
-
-    debtValueEl.classList.toggle(
-        'zero-debt',
-        debt === 0
-    );
-
-
-    card.querySelector('.item-debt-display').value =
-        formatMoney(debt) + ' ETB';
-
-
-    card.querySelector('.item-debt-hidden').value =
-        debt.toFixed(2);
-
-
-    return {
-        total,
-        paid,
-        debt
-    };
-
+    return null;
 }
 
+function trySetDefaultSupplier(groupEl){
+    const otherId = findOtherSupplierId();
+    if(!otherId) return;
+    if(isSupplierUsedElsewhere(otherId, groupEl)) return;
 
-/* ===== CALCULATE ALL TOTALS ===== */
+    const trigger = groupEl.querySelector('.supplier-trigger');
+    trigger.dataset.supplierId = otherId;
+    trigger.querySelector('.trigger-text').textContent = suppliersData[otherId].name;
+    trigger.querySelector('.trigger-text').classList.remove('placeholder-text');
+    trigger.classList.add('filled');
+    trigger.classList.remove('invalid');
+}
 
-function calculateGrandTotals(){
+/* ===== GENERIC INLINE DROPDOWN ===== */
 
-    let grandTotal = 0;
+function closeAllDropdowns(){
+    document.querySelectorAll('.inline-dropdown').forEach(p => {
+        if(p._outsideHandler) document.removeEventListener('click', p._outsideHandler);
+        p.remove();
+    });
+}
 
-    let grandPaid = 0;
+function openDropdown(triggerEl, options, onSelect, showStock){
+    const alreadyOpenForThis = triggerEl.parentElement.querySelector('.inline-dropdown');
+    closeAllDropdowns();
+    if(alreadyOpenForThis) return;
 
-    let grandDebt = 0;
+    const panel = document.createElement('div');
+    panel.className = 'inline-dropdown';
+    panel.innerHTML = `
+        <div class="dropdown-search"><i class="bi bi-search"></i><input type="text" placeholder="ይፈልጉ..."></div>
+        <div class="dropdown-list"></div>
+        <div class="dropdown-empty" style="display:none;">ምንም አልተገኘም።</div>
+    `;
+    triggerEl.parentElement.appendChild(panel);
 
+    const listEl = panel.querySelector('.dropdown-list');
+    const searchInput = panel.querySelector('.dropdown-search input');
+    const emptyEl = panel.querySelector('.dropdown-empty');
 
-    document
-        .querySelectorAll('.purchase-card')
-        .forEach(card => {
-
-            const result =
-                calculateCard(card);
-
-
-            grandTotal += result.total;
-
-            grandPaid += result.paid;
-
-            grandDebt += result.debt;
-
+    function renderList(filter=''){
+        listEl.innerHTML = '';
+        let any = false;
+        options.forEach(opt => {
+            if(filter && !opt.name.toLowerCase().includes(filter)) return;
+            any = true;
+            const row = document.createElement('div');
+            row.className = 'dropdown-option';
+            row.innerHTML = showStock
+                ? `<span class="opt-name">${opt.name}</span><span class="opt-stock">Available: ${opt.stock} pc</span>`
+                : `<span class="opt-name">${opt.name}</span>`;
+            row.addEventListener('click', () => { onSelect(opt.id, opt.name); closeAllDropdowns(); });
+            listEl.appendChild(row);
         });
+        emptyEl.style.display = any ? 'none' : 'block';
+    }
+    renderList();
+    searchInput.addEventListener('input', () => renderList(searchInput.value.toLowerCase().trim()));
+    setTimeout(() => searchInput.focus(), 30);
 
-
-    grandTotalEl.textContent =
-        formatMoney(grandTotal) + ' ETB';
-
-
-    grandPaidEl.textContent =
-        formatMoney(grandPaid) + ' ETB';
-
-
-    grandDebtEl.textContent =
-        formatMoney(grandDebt) + ' ETB';
-
+    function outsideHandler(e){
+        if(!panel.contains(e.target) && e.target !== triggerEl && !triggerEl.contains(e.target)){
+            closeAllDropdowns();
+        }
+    }
+    panel._outsideHandler = outsideHandler;
+    setTimeout(() => document.addEventListener('click', outsideHandler), 0);
 }
 
 
-/* ===== PAY FULL AMOUNT ===== */
+/* ===== DUPLICATE CHECKS ===== */
 
-function payFullAmount(card){
+function isSupplierUsedElsewhere(supplierId, currentGroupEl){
+    let used = false;
+    groupsContainer.querySelectorAll('.purchase-group').forEach(g => {
+        if(g === currentGroupEl) return;
+        if(g.querySelector('.supplier-trigger').dataset.supplierId === supplierId) used = true;
+    });
+    return used;
+}
 
-    const qty =
-        parseFloat(
-            card.querySelector('.item-quantity').value
-        ) || 0;
-
-    const price =
-        parseFloat(
-            card.querySelector('.item-price').value
-        ) || 0;
-
-    const total = qty * price;
-
-    card.querySelector('.item-payment').value =
-        total.toFixed(2);
-
-    calculateGrandTotals();
-
+function isProductUsedInGroup(productId, groupEl, excludeItemCard){
+    let used = false;
+    groupEl.querySelectorAll('.item-card').forEach(item => {
+        if(item === excludeItemCard) return;
+        if(item.dataset.productId === productId) used = true;
+    });
+    return used;
 }
 
 
-/* ===== CHECK DUPLICATE PRODUCTS ===== */
+/* ===== ITEM CARD ===== */
 
-function checkDuplicateProducts(){
+function createItemCard(){
+    const card = document.createElement("div");
+    card.className = "item-card";
+    card.dataset.productId = "";
+    card.innerHTML = `
+        <div class="item-header">
+            <div class="dropdown-wrap flex-grow-1">
+                <span class="item-name placeholder">ምርት ይምረጡ <i class="bi bi-chevron-down"></i></span>
+            </div>
+            <button type="button" class="item-delete"><i class="bi bi-trash"></i></button>
+        </div>
+        <div class="item-fields">
+            <div><label>ብዛት <span class="req">*</span></label><input type="number" class="item-quantity" min="0.01" step="0.01" placeholder="0"></div>
+            <div><label>የግዢ ዋጋ <span class="req">*</span></label><input type="number" class="item-price" min="0" step="0.01" placeholder="0.00"></div>
+        </div>
+        <div class="item-line-total"><span class="unit-label">ድምር</span><span class="item-total-value">0.00 ETB</span></div>
+    `;
+    return card;
+}
 
-    const cards =
-        document.querySelectorAll('.purchase-card');
+function calcItemTotal(card){
+    const qty = getNumber(card.querySelector(".item-quantity").value);
+    const price = getNumber(card.querySelector(".item-price").value);
+    const total = round2(qty * price);
+    card.querySelector(".item-total-value").textContent = formatMoney(total);
+    return total;
+}
+
+function validateItemInputs(card){
+    const qtyInput = card.querySelector(".item-quantity");
+    const priceInput = card.querySelector(".item-price");
+    const qty = getNumber(qtyInput.value);
+    const price = getNumber(priceInput.value);
+
+    qtyInput.classList.toggle("invalid", card.dataset.productId !== "" && (qtyInput.value === "" || qty <= 0));
+    priceInput.classList.toggle("invalid", card.dataset.productId !== "" && (priceInput.value === "" || price <= 0));
+}
+
+function initItemCard(itemCard, groupEl){
+    const nameEl = itemCard.querySelector(".item-name");
+    const qtyInput = itemCard.querySelector(".item-quantity");
+    const priceInput = itemCard.querySelector(".item-price");
+    const deleteBtn = itemCard.querySelector(".item-delete");
+
+    nameEl.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const options = Object.entries(productsData).map(([id,p]) => ({id, name:p.name, stock:p.stock}));
+        openDropdown(nameEl, options, (id, name) => {
+
+            if(isProductUsedInGroup(id, groupEl, itemCard)){
+                alert(`"${name}" ቀደም ብሎ ለዚህ አቅራቢ ተመርጧል። አንድ ምርት ለአንድ አቅራቢ አንድ ጊዜ ብቻ ይመረጣል።`);
+                return;
+            }
+
+            const stock = productsData[id] ? productsData[id].stock : 0;
+            itemCard.dataset.productId = id;
+            itemCard.dataset.productName = name;
+            itemCard.dataset.productStock = stock;
+            nameEl.classList.remove("placeholder");
+            nameEl.innerHTML = `${name} <i class="bi bi-chevron-down"></i>`;
+            if(!qtyInput.value) qtyInput.value = 1;
+            validateItemInputs(itemCard);
+            recalcGroup(groupEl);
+        }, true);
+    });
+
+    deleteBtn.addEventListener("click", () => { itemCard.remove(); recalcGroup(groupEl); });
+
+    qtyInput.addEventListener("input", () => {
+        validateItemInputs(itemCard);
+        recalcGroup(groupEl);
+    });
+
+    priceInput.addEventListener("input", () => {
+        validateItemInputs(itemCard);
+        recalcGroup(groupEl);
+    });
+
+    validateItemInputs(itemCard);
+}
 
 
-    let hasDuplicate = false;
+/* ===== GROUP LOGIC ===== */
 
+function getGroupEls(groupEl){
+    return {
+        supplierTrigger: groupEl.querySelector(".supplier-trigger"),
+        itemsContainer: groupEl.querySelector(".items-container"),
+        addItemBtn: groupEl.querySelector(".add-item-btn-sm"),
+        totalDisplay: groupEl.querySelector(".group-total-display"),
+        paymentInput: groupEl.querySelector(".group-payment"),
+        payFullBtn: groupEl.querySelector(".group-pay-full"),
+        debtHidden: groupEl.querySelector(".group-debt-hidden")
+    };
+}
 
-    const selectedProducts = {};
+function recalcGroup(groupEl){
+    const els = getGroupEls(groupEl);
+    let groupTotal = 0;
+    els.itemsContainer.querySelectorAll(".item-card").forEach(item => { groupTotal += calcItemTotal(item); });
+    groupTotal = round2(groupTotal);
+    els.totalDisplay.textContent = formatMoney(groupTotal);
 
+    let payment = getNumber(els.paymentInput.value);
+    els.paymentInput.classList.toggle("invalid", els.paymentInput.value !== "" && payment < 0);
+    if(payment < 0) payment = 0;
 
-    cards.forEach(card => {
+    let debt = round2(groupTotal - payment);
+    if(debt < EPSILON) debt = 0;
+    els.debtHidden.value = debt.toFixed(2);
 
-        const productSelect =
-            card.querySelector('.item-product');
+    groupEl.dataset.total = groupTotal;
+    groupEl.dataset.payment = payment;
+    groupEl.dataset.debt = debt;
+    groupEl.dataset.lastValidPayment = els.paymentInput.value;
 
+    recalcAll();
+}
 
-        const warning =
-            card.querySelector('.duplicate-warning');
+function recalcAll(){
+    let grandTotal = 0, grandPaid = 0, grandDebt = 0;
+    groupsContainer.querySelectorAll('.purchase-group').forEach(g => {
+        grandTotal += getNumber(g.dataset.total);
+        grandPaid += getNumber(g.dataset.payment);
+        grandDebt += getNumber(g.dataset.debt);
+    });
+    grandTotalEl.textContent = formatMoney(grandTotal);
+    grandPaidEl.textContent = formatMoney(grandPaid);
+    grandDebtEl.textContent = formatMoney(grandDebt);
+}
 
+function renumberAllGroups(){
+    const groups = groupsContainer.querySelectorAll('.purchase-group');
+    groups.forEach((g, idx) => {
+        g.dataset.groupIndex = idx;
+        g.querySelector('.group-num-label').textContent = idx + 1;
+        g.querySelector('.group-payment').name = `groups-${idx}-payment`;
+        g.querySelector('.group-debt-hidden').name = `groups-${idx}-debt`;
+    });
+    groupIndex = groups.length;
+}
 
-        warning.style.display = 'none';
+function initGroup(groupEl){
+    if(groupEl.dataset.initialized) return;
+    groupEl.dataset.initialized = "true";
 
+    const els = getGroupEls(groupEl);
 
-        const productId =
-            productSelect.value;
+    els.supplierTrigger.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const options = Object.entries(suppliersData).map(([id,s]) => ({id, name:s.name}));
+        openDropdown(els.supplierTrigger, options, (id, name) => {
 
+            if(isSupplierUsedElsewhere(id, groupEl)){
+                alert(`"${name}" ቀደም ብሎ በሌላ ግዢ ቡድን ውስጥ ተመርጧል። አንድ አቅራቢ በአንድ ጊዜ ለአንድ ቡድን ብቻ ይመረጣል።`);
+                return;
+            }
 
-        if(!productId){
+            els.supplierTrigger.dataset.supplierId = id;
+            els.supplierTrigger.querySelector(".trigger-text").textContent = name;
+            els.supplierTrigger.querySelector(".trigger-text").classList.remove("placeholder-text");
+            els.supplierTrigger.classList.add("filled");
+            els.supplierTrigger.classList.remove("invalid");
+        }, false);
+    });
+
+    els.addItemBtn.addEventListener("click", () => {
+        const itemCard = createItemCard();
+        els.itemsContainer.appendChild(itemCard);
+        initItemCard(itemCard, groupEl);
+        recalcGroup(groupEl);
+        itemCard.querySelector(".item-name").click();
+    });
+
+    els.paymentInput.dataset.lastValid = "0";
+    els.paymentInput.addEventListener("input", () => {
+        const total = getNumber(groupEl.dataset.total);
+        const payment = getNumber(els.paymentInput.value);
+
+        if(payment > total + EPSILON){
+            alert("ክፍያ ከጠቅላላ ዋጋ መብለጥ አይችልም። እባክዎ ትክክለኛ መጠን ያስገቡ።");
+            els.paymentInput.value = els.paymentInput.dataset.lastValid || "0";
+            recalcGroup(groupEl);
             return;
         }
 
+        els.paymentInput.dataset.lastValid = els.paymentInput.value;
+        recalcGroup(groupEl);
+    });
 
-        if(selectedProducts[productId]){
+    els.payFullBtn.addEventListener("click", () => {
+        let total = 0;
+        els.itemsContainer.querySelectorAll(".item-card").forEach(item => { total += calcItemTotal(item); });
+        els.paymentInput.value = round2(total).toFixed(2);
+        els.paymentInput.dataset.lastValid = els.paymentInput.value;
+        recalcGroup(groupEl);
+    });
 
-            hasDuplicate = true;
+    trySetDefaultSupplier(groupEl);
+    recalcGroup(groupEl);
+}
 
-            warning.style.display = 'block';
+function attachRemoveGroup(groupEl){
+    const btn = groupEl.querySelector('.remove-group-btn');
+    if(!btn) return;
+    btn.addEventListener('click', () => {
+        if(groupsContainer.querySelectorAll('.purchase-group').length <= 1) return;
+        groupEl.remove();
+        renumberAllGroups();
+        recalcAll();
+    });
+}
 
-            selectedProducts[productId]
-                .querySelector('.duplicate-warning')
-                .style.display = 'block';
+function createGroupBlock(index){
+    const groupEl = document.createElement('div');
+    groupEl.className = 'purchase-group';
+    groupEl.dataset.groupIndex = index;
+    groupEl.innerHTML = `
+        <span class="form-badge-num">ግዢ #<span class="group-num-label">${index+1}</span></span>
+        <button type="button" class="remove-group-btn float-end"><i class="bi bi-x-circle"></i> አስወግድ</button>
+        <div class="card-title-main">አዲስ ግዢ</div>
 
-        }else{
+        <div class="mb-3">
+            <label class="form-label">አቅራቢ ይምረጡ</label>
+            <div class="dropdown-wrap">
+                <div class="picker-trigger supplier-trigger" data-supplier-id="">
+                    <span class="placeholder-text trigger-text">አቅራቢ ይምረጡ...</span>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+            </div>
+        </div>
 
-            selectedProducts[productId] = card;
+        <label class="form-label">ምርቶች</label>
+        <div class="items-container"></div>
+        <div class="add-item-wrap">
+            <button type="button" class="add-item-btn-sm"><i class="bi bi-plus-lg"></i>ጨምር</button>
+        </div>
 
+        <div class="card-grand-total">
+            <span class="g-label">ጠቅላላ</span>
+            <span class="g-value group-total-display">0.00 ETB</span>
+        </div>
+
+        <div class="mb-2 mt-3">
+            <label class="form-label">አሁን የተከፈለ</label>
+            <input type="number" class="form-control group-payment" name="groups-${index}-payment" placeholder="0.00" min="0" step="0.01" value="0">
+            <div class="helper-text">አሁን ለአቅራቢው ምን ያህል ተከፍሏል?</div>
+            <button type="button" class="btn btn-outline-success btn-sm pay-full-btn mt-2 group-pay-full"><i class="bi bi-check2-circle me-1"></i>ሙሉ መጠን ይክፈሉ</button>
+        </div>
+
+        <input type="hidden" class="group-debt-hidden" name="groups-${index}-debt" value="0">
+    `;
+    return groupEl;
+}
+
+addGroupBtn.addEventListener('click', () => {
+    const newGroup = createGroupBlock(groupIndex);
+    groupsContainer.appendChild(newGroup);
+    initGroup(newGroup);
+    attachRemoveGroup(newGroup);
+    renumberAllGroups();
+    recalcAll();
+});
+
+
+/* ===== FULL RE-VALIDATION BEFORE SUBMIT ===== */
+
+function fullValidateBeforeSubmit(){
+    let hasMissingSupplier = false;
+    let hasEmptyItem = false;
+    let hasInvalidQtyOrPrice = false;
+    let hasInvalidPayment = false;
+    let hasDuplicateSupplier = false;
+    let hasDuplicateProduct = false;
+    let anyItems = false;
+
+    const seenSuppliers = new Set();
+
+    groupsContainer.querySelectorAll('.purchase-group').forEach(groupEl => {
+        const supplierId = groupEl.querySelector('.supplier-trigger').dataset.supplierId;
+        const itemCards = groupEl.querySelectorAll('.item-card');
+        const validItems = Array.from(itemCards).filter(i => i.dataset.productId);
+
+        if(itemCards.length !== validItems.length) hasEmptyItem = true;
+
+        if(validItems.length > 0){
+            anyItems = true;
+            if(!supplierId) hasMissingSupplier = true;
+            else {
+                if(seenSuppliers.has(supplierId)) hasDuplicateSupplier = true;
+                seenSuppliers.add(supplierId);
+            }
         }
 
-    });
+        const seenProducts = new Set();
+        validItems.forEach(item => {
+            const pid = item.dataset.productId;
+            if(seenProducts.has(pid)) hasDuplicateProduct = true;
+            seenProducts.add(pid);
 
-
-    return hasDuplicate;
-
-}
-
-
-/* ===== RENUMBER CARDS AND FLASK FIELD NAMES ===== */
-
-function renumberCards(){
-
-    const cards =
-        document.querySelectorAll('.purchase-card');
-
-
-    cards.forEach((card, i) => {
-
-        card.setAttribute(
-            'data-index',
-            i
-        );
-
-
-        card.querySelector('.item-number').textContent =
-            'ግዢ #' + (i + 1);
-
-
-        /*
-            Important:
-            Keep Flask-WTF FieldList names correct.
-        */
-
-        card.querySelector('.item-product').name =
-            `purchase-${i}-product`;
-
-
-        card.querySelector('.item-supplier').name =
-            `purchase-${i}-supplier`;
-
-
-        card.querySelector('.item-quantity').name =
-            `purchase-${i}-quantity`;
-
-
-        card.querySelector('.item-price').name =
-            `purchase-${i}-unit_price`;
-
-
-        card.querySelector('.item-payment').name =
-            `purchase-${i}-payment`;
-
-
-        card.querySelector('.item-debt-hidden').name =
-            `purchase-${i}-debt`;
-
-    });
-
-
-    totalItemsEl.textContent =
-        cards.length;
-
-
-    itemIndex =
-        cards.length;
-
-}
-
-
-/* ===== ATTACH EVENTS TO CARD ===== */
-
-function attachCardEvents(card){
-
-    card
-        .querySelectorAll(
-            '.item-quantity, .item-price, .item-payment'
-        )
-        .forEach(input => {
-
-            input.addEventListener(
-                'input',
-                calculateGrandTotals
-            );
-
+            const qty = getNumber(item.querySelector(".item-quantity").value);
+            const price = getNumber(item.querySelector(".item-price").value);
+            if(qty <= 0 || price <= 0) hasInvalidQtyOrPrice = true;
         });
 
-
-    const productSelect =
-        card.querySelector('.item-product');
-
-
-    productSelect.addEventListener(
-        'change',
-        () => {
-
-            checkDuplicateProducts();
-
-        }
-    );
-
-
-    const payFullBtn =
-        card.querySelector('.pay-full-trigger');
-
-
-    if(payFullBtn){
-
-        payFullBtn.addEventListener(
-            'click',
-            () => {
-
-                payFullAmount(card);
-
-            }
-        );
-
-    }
-
-
-    const removeBtn =
-        card.querySelector('.remove-item-btn');
-
-
-    if(removeBtn){
-
-        removeBtn.addEventListener(
-            'click',
-            () => {
-
-                const totalCards =
-                    document.querySelectorAll(
-                        '.purchase-card'
-                    ).length;
-
-
-                if(totalCards <= 1){
-                    return;
-                }
-
-
-                card.remove();
-
-
-                renumberCards();
-
-
-                checkDuplicateProducts();
-
-
-                calculateGrandTotals();
-
-            }
-        );
-
-    }
-
-}
-
-
-/* ===== CREATE NEW PURCHASE CARD ===== */
-
-function createPurchaseCard(index){
-
-    const card =
-        document.createElement('div');
-
-
-    card.className =
-        'purchase-card';
-
-
-    card.setAttribute(
-        'data-index',
-        index
-    );
-
-
-    card.innerHTML = `
-
-        <div class="purchase-card-header">
-
-            <div class="purchase-title">
-
-                <i class="bi bi-bag-plus"></i>
-
-                <span class="item-number">
-                    ግዢ #${index + 1}
-                </span>
-
-            </div>
-
-
-            <button type="button"
-                    class="remove-item-btn">
-
-                <i class="bi bi-x-circle"></i>
-                አስወግድ
-
-            </button>
-
-        </div>
-
-
-        <div class="row g-3">
-
-
-            <div class="col-md-6">
-
-                <label class="form-label">
-                    Product (ምርት)
-                </label>
-
-                <select class="form-select item-product"
-                        name="purchase-${index}-product">
-
-                    ${productOptionsHTML}
-
-                </select>
-
-            </div>
-
-
-            <div class="col-md-6">
-
-                <label class="form-label">
-                    Supplier (አቅራቢ)
-                </label>
-
-                <select class="form-select item-supplier"
-                        name="purchase-${index}-supplier">
-
-                    ${supplierOptionsHTML}
-
-                </select>
-
-            </div>
-
-
-            <div class="col-md-6">
-
-                <label class="form-label">
-                    Quantity (መጠን)
-                </label>
-
-                <input type="number"
-                       class="form-control item-quantity"
-                       name="purchase-${index}-quantity"
-                       placeholder="መጠኑን ያስገቡ"
-                       min="0"
-                       step="0.01"
-                       required>
-
-            </div>
-
-
-            <div class="col-md-6">
-
-                <label class="form-label">
-                    Purchase Price (የግዢ ዋጋ)
-                </label>
-
-                <div class="price-input-wrap">
-
-                    <input type="number"
-                           class="form-control item-price"
-                           name="purchase-${index}-unit_price"
-                           placeholder="የግዢ ዋጋ ያስገቡ"
-                           min="0"
-                           step="0.01"
-                           required>
-
-                    <span class="currency-tag">
-                        ETB
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <div class="col-md-6">
-
-                <label class="form-label">
-                    Current Payment (አሁን የተከፈለ)
-                </label>
-
-                <div class="price-input-wrap">
-
-                    <input type="number"
-                           class="form-control item-payment"
-                           name="purchase-${index}-payment"
-                           placeholder="የተከፈለውን መጠን ያስገቡ"
-                           min="0"
-                           step="0.01"
-                           value="0">
-
-                    <span class="currency-tag">
-                        ETB
-                    </span>
-
-                </div>
-
-                <button type="button"
-                        class="btn btn-outline-success btn-sm pay-full-btn pay-full-trigger">
-                    <i class="bi bi-check2-circle me-1"></i>ሙሉ መጠን ይክፈሉ
-                </button>
-
-            </div>
-
-
-            <div class="col-md-6">
-
-                <label class="form-label">
-                    ዕዳ
-                </label>
-
-                <input type="text"
-                       class="form-control item-debt-display"
-                       readonly
-                       value="0.00 ETB">
-
-                <input type="hidden"
-                       class="item-debt-hidden"
-                       name="purchase-${index}-debt"
-                       value="0">
-
-            </div>
-
-        </div>
-
-
-        <div class="calc-summary">
-
-
-            <div class="calc-block">
-
-                <div class="calc-label">
-                    ጠቅላላ ግዢ
-                </div>
-
-                <div class="calc-value item-total">
-                    0.00 ETB
-                </div>
-
-            </div>
-
-
-            <div class="calc-block">
-
-                <div class="calc-label">
-                    አሁን የተከፈለ
-                </div>
-
-                <div class="calc-value item-paid">
-                    0.00 ETB
-                </div>
-
-            </div>
-
-
-            <div class="calc-block">
-
-                <div class="calc-label">
-                    ቀሪ ዕዳ
-                </div>
-
-                <div class="calc-value debt-value item-debt-value">
-                    0.00 ETB
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="debt-warning">
-
-            የክፍያ መጠኑ ከጠቅላላ የግዢ ዋጋ
-            መብለጥ አይችልም።
-
-        </div>
-
-
-        <div class="duplicate-warning">
-
-            ይህ ምርት በሌላ የግዢ ክፍል ውስጥ
-            ተመርጧል። እባክዎ የተለየ ምርት ይምረጡ።
-
-        </div>
-
-    `;
-
-
-    return card;
-
-}
-
-
-/* ===== ADD NEW PRODUCT ===== */
-
-addItemBtn.addEventListener(
-    'click',
-    () => {
-
-        const newCard =
-            createPurchaseCard(itemIndex);
-
-
-        purchaseContainer.appendChild(
-            newCard
-        );
-
-
-        attachCardEvents(
-            newCard
-        );
-
-
-        itemIndex++;
-
-
-        renumberCards();
-
-
-        calculateGrandTotals();
-
-    }
-);
-
-
-/* ===== PREVENT SUBMITTING DUPLICATES ===== */
-
-purchaseForm.addEventListener(
-    'submit',
-    (event) => {
-
-        const hasDuplicate =
-            checkDuplicateProducts();
-
-
-        if(hasDuplicate){
-
-            event.preventDefault();
-
-
-            alert(
-                'ተመሳሳይ ምርት ከአንድ ጊዜ በላይ መግዛት አይችሉም። እባክዎ የተደጋገመውን ምርት ይቀይሩ።'
-            );
-
-        }
-
-    }
-);
-
-
-/* ===== INITIAL CARD ===== */
-
-document
-    .querySelectorAll('.purchase-card')
-    .forEach(card => {
-
-        attachCardEvents(card);
-
+        const total = getNumber(groupEl.dataset.total);
+        const payment = getNumber(groupEl.querySelector('.group-payment').value);
+        if(payment < 0 || payment > total + EPSILON) hasInvalidPayment = true;
     });
 
+    if(!anyItems) return 'እባክዎ ቢያንስ ለአንድ ቡድን ምርት ይምረጡ።';
+    if(hasEmptyItem) return 'እባክዎ ለተጨመሩ ሁሉም እቃዎች ምርት ይምረጡ።';
+    if(hasInvalidQtyOrPrice) return 'ብዛት እና ዋጋ ከዜሮ በላይ መሆን አለባቸው።';
+    if(hasMissingSupplier) return 'ምርት ለተመረጠበት ቡድን እባክዎ አቅራቢ ይምረጡ።';
+    if(hasDuplicateSupplier) return 'አንድ አቅራቢ ከአንድ ቡድን በላይ ሊመረጥ አይችልም።';
+    if(hasDuplicateProduct) return 'ለአንድ አቅራቢ አንድ ምርት ሁለት ጊዜ ሊመረጥ አይችልም።';
+    if(hasInvalidPayment) return 'ክፍያ አሉታዊ ወይም ከጠቅላላ ዋጋ በላይ ሊሆን አይችልም።';
 
-renumberCards();
+    return null;
+}
 
 
-checkDuplicateProducts();
+/* ===== SUBMIT: FLATTEN INTO HIDDEN FIELDS PER GROUP ===== */
+
+purchaseForm.addEventListener('submit', function(e){
+    realFieldsContainer.innerHTML = "";
+
+    const errorMsg = fullValidateBeforeSubmit();
+    if(errorMsg){
+        e.preventDefault();
+        alert(errorMsg);
+        return;
+    }
+
+    groupsContainer.querySelectorAll('.purchase-group').forEach((groupEl, gIdx) => {
+        const supplierId = groupEl.querySelector('.supplier-trigger').dataset.supplierId;
+        const validItems = Array.from(groupEl.querySelectorAll('.item-card')).filter(i => i.dataset.productId);
+
+        const createHidden = (name, val) => {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = name;
+            input.value = val;
+            realFieldsContainer.appendChild(input);
+        };
+
+        createHidden(`groups-${gIdx}-supplier`, supplierId || "");
+
+        validItems.forEach((item, i) => {
+            createHidden(`groups-${gIdx}-purchase-${i}-product`, item.dataset.productId);
+            createHidden(`groups-${gIdx}-purchase-${i}-quantity`, item.querySelector('.item-quantity').value);
+            createHidden(`groups-${gIdx}-purchase-${i}-unit_price`, item.querySelector('.item-price').value);
+        });
+    });
+
+    recalcAll();
+});
 
 
-calculateGrandTotals();
+/* ===== INITIAL STATE ===== */
+groupsContainer.querySelectorAll('.purchase-group').forEach(g => { initGroup(g); attachRemoveGroup(g); });
+renumberAllGroups();
+recalcAll();
 
 </script>
-
 </body>
 </html>

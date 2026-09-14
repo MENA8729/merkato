@@ -1,1133 +1,424 @@
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            <div class="alert alert-success alert-dismissible fade show flash-message" role="alert">
-                {{ message }}
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert">
-                </button>
-            </div>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
-
-<style>
-    .flash-message {
-        font-family: 'Inter', 'Segoe UI', sans-serif;
-        font-size: 13px;
-        font-weight: 500;
-        letter-spacing: 0.1px;
-        padding: 8px 12px;
-        margin: 10px auto;
-        max-width: 500px;
-        border-radius: 7px;
-    }
-</style>
 
 <!DOCTYPE html>
-
 <html lang="am">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>የእቃ ክምችት ክትትል</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>ዝርዝሮች</title>
 
-<style>
-    :root{
-        --blue:#2563eb;
-        --green:#16a34a;
-        --orange:#ea580c;
-        --red:#dc2626;
-        --dark:#1e293b;
-        --muted:#64748b;
-        --bg:#f4f6f8;
-    }
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    body{
-        font-family:'Inter', sans-serif;
-        background:var(--bg);
-        color:var(--dark);
-    }
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    /* NAVBAR */
-    .navbar{
-        background:#fff;
-        box-shadow:0 2px 10px rgba(0,0,0,0.06);
-        padding:14px 0;
-    }
+    <style>
+        :root{
+            --green:#1e7e4f;
+            --green-dark:#145c39;
+            --green-soft:#eaf7f0;
 
-    .navbar-brand{
-        font-weight:800;
-        color:var(--blue) !important;
-        font-size:1.3rem;
-    }
+            --blue:#5367c9;
+            --blue-soft:#eef1ff;
 
-    .navbar-brand i{
-        margin-right:6px;
-    }
+            --orange:#c47a16;
+            --orange-soft:#fff4e3;
 
-    .nav-link{
-        font-weight:500;
-        color:#475569 !important;
-        transition:color .2s ease;
-    }
+            --text:#25312b;
+            --muted:#7d8982;
+            --border:#e8eeeb;
+            --background:#f6f8f7;
+        }
 
-    .nav-link:hover,
-    .nav-link.active{
-        color:var(--blue) !important;
-    }
+        *{
+            box-sizing:border-box;
+        }
 
-    /* HERO */
-    .hero{
-        background:linear-gradient(135deg, #1e3a5f, #2563eb);
-        color:#fff;
-        padding:40px 0 55px;
-        text-align:center;
-    }
-
-    .hero .badge-pill{
-        background:rgba(255,255,255,0.15);
-        border:1px solid rgba(255,255,255,0.3);
-        padding:5px 16px;
-        border-radius:30px;
-        font-size:0.78rem;
-        font-weight:600;
-        letter-spacing:0.5px;
-        display:inline-block;
-        margin-bottom:12px;
-    }
-
-    .hero h1{
-        font-weight:800;
-        font-size:2rem;
-        margin-bottom:10px;
-    }
-
-    .hero p{
-        color:#dbeafe;
-        max-width:560px;
-        margin:0 auto;
-        font-size:0.95rem;
-    }
-
-    /* SUMMARY CARDS */
-    .summary-wrap{
-        margin-top:-35px;
-    }
-
-    .summary-card{
-        background:#fff;
-        border-radius:16px;
-        padding:20px;
-        box-shadow:0 8px 20px rgba(0,0,0,0.07);
-        transition:transform .2s ease;
-        height:100%;
-    }
-
-    .summary-card:hover{
-        transform:translateY(-4px);
-    }
-
-    .summary-icon{
-        width:46px;
-        height:46px;
-        border-radius:12px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        font-size:1.2rem;
-        color:#fff;
-        margin-bottom:12px;
-    }
-
-    .icon-blue{
-        background:var(--blue);
-    }
-
-    .icon-green{
-        background:var(--green);
-    }
-
-    .icon-orange{
-        background:var(--orange);
-    }
-
-    .icon-red{
-        background:var(--red);
-    }
-
-    .summary-value{
-        font-size:1.5rem;
-        font-weight:800;
-    }
-
-    .summary-label{
-        color:var(--muted);
-        font-size:0.83rem;
-        font-weight:500;
-    }
-
-    /* SECTION */
-    .section-title{
-        font-weight:800;
-        font-size:1.4rem;
-        margin-bottom:4px;
-    }
-
-    .section-desc{
-        color:var(--muted);
-        margin-bottom:22px;
-        font-size:0.92rem;
-    }
-
-    .section-block{
-        margin-top:50px;
-    }
-
-    /* SEARCH & FILTERS */
-    .filter-bar{
-        background:#fff;
-        border-radius:14px;
-        padding:16px;
-        box-shadow:0 4px 14px rgba(0,0,0,0.05);
-        margin-bottom:22px;
-    }
-
-    /* BADGES */
-    .badge-instock{
-        background:#dcfce7;
-        color:var(--green);
-    }
-
-    .badge-lowstock{
-        background:#fef3c7;
-        color:#b45309;
-    }
-
-    .badge-outstock{
-        background:#fee2e2;
-        color:var(--red);
-    }
-
-    .badge-status-paid{
-        background:#dcfce7;
-        color:var(--green);
-    }
-
-    .badge-status-partial{
-        background:#fef3c7;
-        color:#b45309;
-    }
-
-    .badge-status-unpaid{
-        background:#fee2e2;
-        color:var(--red);
-    }
-
-    .badge-active{
-        background:#dbeafe;
-        color:var(--blue);
-    }
-
-    /* TABLE */
-    .table-card{
-        background:#fff;
-        border-radius:14px;
-        box-shadow:0 4px 14px rgba(0,0,0,0.05);
-        overflow:hidden;
-    }
-
-    table th{
-        font-size:0.78rem;
-        text-transform:uppercase;
-        letter-spacing:0.5px;
-        color:var(--muted);
-        border-bottom:2px solid #eee;
-        white-space:nowrap;
-    }
-
-    table td{
-        vertical-align:middle;
-        font-size:0.92rem;
-        white-space:nowrap;
-    }
-
-    tr.clickable-row{
-        cursor:pointer;
-    }
-
-    tr.clickable-row:hover{
-        background:#f8fafc;
-    }
-
-    .debt-text{
-        color:var(--red);
-        font-weight:700;
-    }
-
-    /* EMPTY STATE */
-    .empty-state{
-        text-align:center;
-        padding:60px 20px;
-        background:#fff;
-        border-radius:14px;
-        box-shadow:0 4px 14px rgba(0,0,0,0.05);
-    }
-
-    .empty-state i{
-        font-size:3rem;
-        color:#cbd5e1;
-        margin-bottom:14px;
-    }
-
-    .empty-state h5{
-        font-weight:700;
-    }
-
-    .empty-state p{
-        color:var(--muted);
-    }
-
-    /* QUICK ACTIONS */
-    .quick-actions .btn{
-        border-radius:10px;
-        font-weight:600;
-        font-size:0.88rem;
-    }
-
-    /* ACTION MODAL */
-    .action-modal .modal-dialog{
-        max-width:420px;
-    }
-
-    .action-modal .modal-content{
-        border-radius:18px;
-        border:none;
-    }
-
-    .action-modal .modal-footer{
-        justify-content:stretch;
-        gap:10px;
-    }
-
-    .action-modal .modal-footer .btn{
-        flex:1;
-        border-radius:10px;
-        font-weight:600;
-    }
-
-    @media (max-width:767.98px){
-
-        .action-modal .modal-dialog{
-            position:fixed;
-            bottom:0;
-            left:0;
-            right:0;
+        body{
             margin:0;
-            max-width:100%;
+            min-height:100vh;
+            font-family:'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background:var(--background);
+            color:var(--text);
+        }
+
+        /* =================================
+           PAGE
+        ================================= */
+
+        .page{
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:30px 16px;
+        }
+
+        .menu-container{
             width:100%;
+            max-width:1000px;
         }
 
-        .action-modal .modal-content{
-            border-radius:18px 18px 0 0;
+        /* =================================
+           CARDS
+        ================================= */
+
+        .menu-card{
+            position:relative;
+            display:flex;
+            align-items:center;
+            gap:17px;
+
+            width:100%;
+            min-height:105px;
+
+            padding:20px;
+
+            background:#fff;
+            border:1px solid var(--border);
+            border-radius:22px;
+
+            text-decoration:none;
+            color:var(--text);
+
+            box-shadow:
+                0 8px 25px rgba(24,55,40,.06);
+
+            overflow:hidden;
+
+            transition:
+                transform .22s ease,
+                box-shadow .22s ease,
+                border-color .22s ease;
         }
 
-        .action-modal.fade .modal-dialog{
-            transform:translateY(100%);
-            transition:transform .3s ease-out;
+        .menu-card:hover{
+            transform:translateY(-5px);
+            box-shadow:
+                0 15px 35px rgba(24,55,40,.12);
         }
 
-        .action-modal.show .modal-dialog{
-            transform:translateY(0);
+        .menu-card:active{
+            transform:translateY(-1px) scale(.99);
         }
-    }
-</style>
+
+        /* Decorative circle */
+
+        .menu-card::before{
+            content:"";
+            position:absolute;
+            width:150px;
+            height:150px;
+            right:-65px;
+            top:-70px;
+            border-radius:50%;
+            pointer-events:none;
+        }
+
+        /* =================================
+           ICON
+        ================================= */
+
+        .menu-icon{
+            width:62px;
+            height:62px;
+
+            flex:0 0 62px;
+
+            display:flex;
+            align-items:center;
+            justify-content:center;
+
+            border-radius:18px;
+
+            font-size:1.5rem;
+
+            position:relative;
+            z-index:1;
+        }
+
+        /* Products */
+
+        .products-card .menu-icon{
+            background:var(--green-soft);
+            color:var(--green);
+        }
+
+        .products-card::before{
+            background:#dff2e7;
+        }
+
+        /* Customers */
+
+        .customers-card .menu-icon{
+            background:var(--blue-soft);
+            color:var(--blue);
+        }
+
+        .customers-card::before{
+            background:#e3e7ff;
+        }
+
+        /* Suppliers */
+
+        .suppliers-card .menu-icon{
+            background:var(--orange-soft);
+            color:var(--orange);
+        }
+
+        .suppliers-card::before{
+            background:#ffecd0;
+        }
+
+        /* =================================
+           TEXT
+        ================================= */
+
+        .menu-content{
+            flex:1;
+            min-width:0;
+            position:relative;
+            z-index:1;
+        }
+
+        .menu-content h4{
+            margin:0;
+            font-size:1.12rem;
+            font-weight:800;
+            line-height:1.3;
+        }
+
+        .menu-content p{
+            margin:5px 0 0;
+            color:var(--muted);
+            font-size:.82rem;
+            line-height:1.4;
+        }
+
+        /* =================================
+           ARROW
+        ================================= */
+
+        .menu-arrow{
+            width:40px;
+            height:40px;
+
+            flex:0 0 40px;
+
+            display:flex;
+            align-items:center;
+            justify-content:center;
+
+            background:#f5f7f6;
+            color:#7b8780;
+
+            border-radius:12px;
+
+            font-size:.95rem;
+
+            position:relative;
+            z-index:1;
+
+            transition:
+                transform .2s ease,
+                background .2s ease,
+                color .2s ease;
+        }
+
+        .menu-card:hover .menu-arrow{
+            transform:translateX(4px);
+        }
+
+        .products-card:hover .menu-arrow{
+            background:var(--green-soft);
+            color:var(--green);
+        }
+
+        .customers-card:hover .menu-arrow{
+            background:var(--blue-soft);
+            color:var(--blue);
+        }
+
+        .suppliers-card:hover .menu-arrow{
+            background:var(--orange-soft);
+            color:var(--orange);
+        }
+
+        /* =================================
+           MOBILE
+        ================================= */
+
+        @media(max-width:767px){
+
+            .page{
+                padding:20px 12px;
+            }
+
+            .menu-container{
+                max-width:520px;
+            }
+
+            .row{
+                --bs-gutter-y:12px;
+            }
+
+            .menu-card{
+                min-height:88px;
+                padding:14px;
+                gap:12px;
+                border-radius:18px;
+            }
+
+            .menu-icon{
+                width:50px;
+                height:50px;
+                flex-basis:50px;
+                border-radius:15px;
+                font-size:1.2rem;
+            }
+
+            .menu-content h4{
+                font-size:.95rem;
+            }
+
+            .menu-content p{
+                font-size:.72rem;
+                margin-top:3px;
+            }
+
+            .menu-arrow{
+                width:34px;
+                height:34px;
+                flex-basis:34px;
+                border-radius:10px;
+                font-size:.8rem;
+            }
+        }
+
+        /* =================================
+           VERY SMALL PHONES
+        ================================= */
+
+        @media(max-width:380px){
+
+            .page{
+                padding:15px 10px;
+            }
+
+            .menu-card{
+                min-height:80px;
+                padding:11px;
+            }
+
+            .menu-icon{
+                width:44px;
+                height:44px;
+                flex-basis:44px;
+                border-radius:13px;
+                font-size:1.05rem;
+            }
+
+            .menu-content h4{
+                font-size:.88rem;
+            }
+
+            .menu-content p{
+                font-size:.67rem;
+            }
+
+            .menu-arrow{
+                width:30px;
+                height:30px;
+                flex-basis:30px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg sticky-top">
-    <div class="container">
+<div class="page">
 
-        <a class="navbar-brand" href="{{ url_for('home') }}">
-            <i class="bi bi-boxes"></i>StockManager
-        </a>
+    <div class="menu-container">
 
-        <button class="navbar-toggler" type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div class="row g-3">
 
-        <div class="collapse navbar-collapse justify-content-end" id="navMenu">
-            <ul class="navbar-nav">
+            <!-- =========================
+                 PRODUCTS
+            ========================== -->
 
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('home') }}">Home</a>
-                </li>
+            <div class="col-12 col-md-4">
 
-                <li class="nav-item">
-                    <a class="nav-link active" href="{{ url_for('track') }}">ምርቶች</a>
-                </li>
+                <a href="{{ url_for('products_page') }}"
+                   class="menu-card products-card">
 
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('purchases') }}">ግዢዎች</a>
-                </li>
+                    <div class="menu-icon">
+                        <i class="bi bi-box-seam-fill"></i>
+                    </div>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('Selling') }}">ሽያጮች</a>
-                </li>
+                    <div class="menu-content">
+                        <h4>ዕቃዎች</h4>
+                        <p>የዕቃዎች ዝርዝር</p>
+                    </div>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('logout') }}">ውጣ</a>
-                </li>
+                    <div class="menu-arrow">
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
 
-            </ul>
-        </div>
-    </div>
-</nav>
-
-
-<!-- HERO -->
-<section class="hero">
-    <div class="container">
-        <span class="badge-pill">የእቃ ክምችት አስተዳደር</span>
-
-        <h1>ንግድዎን ይከታተሉ</h1>
-
-        <p>
-            ምርቶችን፣ የክምችት መጠንን፣
-            ደንበኞችን እና አቅራቢዎችን
-            ከአንድ የተደራጀ ገጽ ይቆጣጠሩ።
-        </p>
-    </div>
-</section>
-
-
-<!-- SUMMARY CARDS -->
-<div class="container summary-wrap mb-4">
-
-    <div class="row g-3">
-
-        <div class="col-6 col-md-3">
-            <div class="summary-card">
-                <div class="summary-icon icon-blue">
-                    <i class="bi bi-box-seam"></i>
-                </div>
-
-                <div class="summary-value">
-                    {{ products|length }}
-                </div>
-
-                <div class="summary-label">
-                    ጠቅላላ ምርቶች
-                </div>
-            </div>
-        </div>
-
-
-        <div class="col-6 col-md-3">
-            <div class="summary-card">
-                <div class="summary-icon icon-green">
-                    <i class="bi bi-stack"></i>
-                </div>
-
-                <div class="summary-value">
-                    {{ products|sum(attribute='current_quantity') if products else 0 }}
-                </div>
-
-                <div class="summary-label">
-                    ጠቅላላ ክምችት
-                </div>
-            </div>
-        </div>
-
-
-        <div class="col-6 col-md-3">
-            <div class="summary-card">
-                <div class="summary-icon icon-orange">
-                    <i class="bi bi-people"></i>
-                </div>
-
-                <div class="summary-value">
-                    {{ customers|length }}
-                </div>
-
-                <div class="summary-label">
-                    ጠቅላላ ደንበኞች
-                </div>
-            </div>
-        </div>
-
-
-        <div class="col-6 col-md-3">
-            <div class="summary-card">
-                <div class="summary-icon icon-red">
-                    <i class="bi bi-truck"></i>
-                </div>
-
-                <div class="summary-value">
-                    {{ suppliers|length }}
-                </div>
-
-                <div class="summary-label">
-                    ጠቅላላ አቅራቢዎች
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-
-<!-- QUICK ACTIONS -->
-<div class="container mb-4 quick-actions">
-
-    <div class="d-flex flex-wrap gap-2">
-
-        <a href="{{ url_for('inventory') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-1"></i>ምርት ጨምር
-        </a>
-
-        <a href="{{ url_for('purchases') }}" class="btn btn-outline-primary">
-            <i class="bi bi-cart-plus me-1"></i>አዲስ ግዢ
-        </a>
-
-        <a href="{{ url_for('Selling') }}" class="btn btn-outline-primary">
-            <i class="bi bi-graph-up-arrow me-1"></i>አዲስ ሽያጭ
-        </a>
-
-        <a href="{{ url_for('suppliers_customers') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-person-plus me-1"></i>ደንበኛ ጨምር
-        </a>
-
-        <a href="{{ url_for('suppliers_customers') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-building-add me-1"></i>አቅራቢ ጨምር
-        </a>
-
-    </div>
-</div>
-
-
-<!-- PRODUCT TRACKING -->
-<div class="container section-block">
-
-    <h2 class="section-title">የምርት ክምችት</h2>
-
-    <p class="section-desc">
-        ምርቶችዎን፣ የመሸጫ ዋጋዎችን፣ መጠኖችን
-        እና የክምችት መረጃዎችን ይከታተሉ።
-    </p>
-
-
-    <div class="filter-bar">
-
-        <div class="row g-3 align-items-end">
-
-            <div class="col-md-5">
-                <label class="form-label small fw-semibold">ፈልግ</label>
-
-                <input type="text"
-                       class="form-control"
-                       id="productSearch"
-                       placeholder="ምርቶችን ይፈልጉ...">
-            </div>
-
-
-            <div class="col-md-3">
-
-                <label class="form-label small fw-semibold">
-                    የክምችት ሁኔታ
-                </label>
-
-                <select class="form-select" id="stockFilter">
-
-                    <option value="all">ሁሉም</option>
-
-                    <option value="instock">
-                        በክምችት ውስጥ
-                    </option>
-
-                    <option value="lowstock">
-                        ክምችቱ እየቀነሰ ነው
-                    </option>
-
-                    <option value="outstock">
-                        ከክምችት ውጭ
-                    </option>
-
-                </select>
-            </div>
-
-
-            <div class="col-md-4">
-
-                <label class="form-label small fw-semibold">
-                    መለኪያ
-                </label>
-
-                <select class="form-select" id="measurementFilter">
-
-                    <option value="all">ሁሉም</option>
-
-                    {% set measurements = [] %}
-
-                    {% for product in products %}
-
-                        {% if product.measurement and product.measurement not in measurements %}
-
-                            {% set _ = measurements.append(product.measurement) %}
-
-                            <option value="{{ product.measurement|lower }}">
-                                {{ product.measurement }}
-                            </option>
-
-                        {% endif %}
-
-                    {% endfor %}
-
-                </select>
-
-            </div>
-
-        </div>
-    </div>
-
-
-    {% if products %}
-
-    <div class="table-card">
-
-        <div class="table-responsive">
-
-            <table class="table mb-0">
-
-                <thead>
-                    <tr>
-                        <th>ምርት</th>
-                        <th>ኮድ</th>
-                        <th>የመሸጫ ዋጋ</th>
-                        <th>መጠን</th>
-                        <th>መለኪያ</th>
-                        <th>ሁኔታ</th>
-                    </tr>
-                </thead>
-
-
-                <tbody>
-
-                    {% for product in products %}
-
-                    <tr class="product-row clickable-row"
-
-                        data-status="{{ 'instock' if product.current_quantity > 10 else ('lowstock' if product.current_quantity > 0 else 'outstock') }}"
-
-                        data-measurement="{{ product.measurement|lower if product.measurement else '' }}"
-
-                        data-search="{{ product.name|lower }} {{ product.stock_code|lower if product.stock_code else '' }} {{ product.measurement|lower if product.measurement else '' }}"
-
-                        onclick='openProductAction(
-                            {{ product.id }},
-                            {{ product.name|tojson }},
-                            {{ (product.stock_code or "N/A")|tojson }},
-                            {{ ("%.2f"|format(product.unit_price))|tojson }},
-                            {{ product.current_quantity|tojson }},
-                            {{ (product.measurement or "N/A")|tojson }}
-                        )'>
-
-                        <td>{{ product.name }}</td>
-
-                        <td>
-                            {{ product.stock_code if product.stock_code else 'N/A' }}
-                        </td>
-
-                        <td>
-                            {{ "{:,.2f}".format(product.unit_price) }} ETB
-                        </td>
-
-                        <td>{{ product.current_quantity }}</td>
-
-                        <td>
-                            {{ product.measurement if product.measurement else 'N/A' }}
-                        </td>
-
-                        <td>
-
-                            {% if product.current_quantity > 10 %}
-
-                            <span class="badge badge-instock">
-                                በክምችት ውስጥ
-                            </span>
-
-                            {% elif product.current_quantity > 0 %}
-
-                            <span class="badge badge-lowstock">
-                                ክምችቱ እየቀነሰ ነው
-                            </span>
-
-                            {% else %}
-
-                            <span class="badge badge-outstock">
-                                ከክምችት ውጭ
-                            </span>
-
-                            {% endif %}
-
-                        </td>
-
-                    </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-
-    {% else %}
-
-    <div class="empty-state">
-
-        <i class="bi bi-box"></i>
-
-        <h5>ምንም ምርት አልተገኘም</h5>
-
-        <p>ምርቶችዎ እዚህ ይታያሉ።</p>
-
-    </div>
-
-    {% endif %}
-
-</div>
-
-
-<!-- CUSTOMER TRACKING -->
-<div class="container section-block">
-
-    <h2 class="section-title">የደንበኞች አስተዳደር</h2>
-
-    <p class="section-desc">
-        ደንበኞችን እና የግብይት መረጃዎቻቸውን ይከታተሉ።
-    </p>
-
-
-    <div class="filter-bar">
-
-        <input type="text"
-               class="form-control"
-               id="customerSearch"
-               placeholder="ደንበኞችን ይፈልጉ...">
-
-    </div>
-
-
-    {% if customers %}
-
-    <div class="table-card">
-
-        <div class="table-responsive">
-
-            <table class="table mb-0">
-
-                <thead>
-
-                    <tr>
-                        <th>ደንበኛ</th>
-                        <th>ስልክ</th>
-                        <th>ኢሜይል</th>
-                        <th>ያልተከፈለ ዕዳ</th>
-                        <th>ሁኔታ</th>
-                    </tr>
-
-                </thead>
-
-
-                <tbody>
-
-                    {% for customer in customers %}
-
-                    <tr class="customer-row clickable-row"
-
-                        data-search="{{ customer.name|lower }} {{ customer.phone if customer.phone else '' }}"
-
-                        onclick='openCustomerAction(
-                            {{ customer.id }},
-                            {{ customer.name|tojson }},
-                            {{ (customer.phone or "N/A")|tojson }}
-                        )'>
-
-                        <td>{{ customer.name }}</td>
-
-                        <td>
-                            {{ customer.phone if customer.phone else 'N/A' }}
-                        </td>
-
-                        <td>
-                            {{ customer.email if customer.email else 'N/A' }}
-                        </td>
-
-                        <td>
-
-                            {% if customer.debt is defined %}
-
-                            <span class="{{ 'debt-text' if customer.debt > 0 else '' }}">
-                                {{ "{:,.2f}".format(customer.debt) }} ETB
-                            </span>
-
-                            {% else %}
-
-                            N/A
-
-                            {% endif %}
-
-                        </td>
-
-
-                        <td>
-
-                            {% if customer.debt is defined %}
-
-                                {% if customer.debt == 0 %}
-
-                                <span class="badge badge-status-paid">
-                                    ተከፍሏል
-                                </span>
-
-                                {% elif customer.debt > 0 and customer.paid_amount is defined and customer.paid_amount > 0 %}
-
-                                <span class="badge badge-status-partial">
-                                    በከፊል ተከፍሏል
-                                </span>
-
-                                {% else %}
-
-                                <span class="badge badge-status-unpaid">
-                                    ያልተከፈለ
-                                </span>
-
-                                {% endif %}
-
-                            {% else %}
-
-                            <span class="badge badge-active">
-                                ንቁ
-                            </span>
-
-                            {% endif %}
-
-                        </td>
-
-                    </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-
-    {% else %}
-
-    <div class="empty-state">
-
-        <i class="bi bi-people"></i>
-
-        <h5>ምንም ደንበኛ አልተገኘም</h5>
-
-        <p>የደንበኞች መረጃ እዚህ ይታያል።</p>
-
-    </div>
-
-    {% endif %}
-
-</div>
-
-
-<!-- SUPPLIER TRACKING -->
-<div class="container section-block mb-5">
-
-    <h2 class="section-title">የአቅራቢዎች አስተዳደር</h2>
-
-    <p class="section-desc">
-        አቅራቢዎችን፣ ግዢዎችን እና ያልተከፈሉ ሂሳቦችን ይከታተሉ።
-    </p>
-
-
-    <div class="filter-bar">
-
-        <input type="text"
-               class="form-control"
-               id="supplierSearch"
-               placeholder="አቅራቢዎችን ይፈልጉ...">
-
-    </div>
-
-
-    {% if suppliers %}
-
-    <div class="table-card">
-
-        <div class="table-responsive">
-
-            <table class="table mb-0">
-
-                <thead>
-
-                    <tr>
-                        <th>አቅራቢ</th>
-                        <th>ስልክ</th>
-                        <th>ግዢዎች</th>
-                        <th>ጠቅላላ ዕዳ</th>
-                        <th>የተከፈለ</th>
-                        <th>ቀሪ</th>
-                        <th>ሁኔታ</th>
-                    </tr>
-
-                </thead>
-
-
-                <tbody>
-
-                    {% for supplier in suppliers %}
-
-                    <tr class="supplier-row clickable-row"
-
-                        data-search="{{ supplier.name|lower }} {{ supplier.phone if supplier.phone else '' }}"
-
-                        onclick='openSupplierAction(
-                            {{ supplier.id }},
-                            {{ supplier.name|tojson }},
-                            {{ (supplier.phone or "N/A")|tojson }}
-                        )'>
-
-                        <td>{{ supplier.name }}</td>
-
-                        <td>
-                            {{ supplier.phone if supplier.phone else 'N/A' }}
-                        </td>
-
-                        <td>
-                            {{ supplier.purchase_count if supplier.purchase_count is defined else 'N/A' }}
-                        </td>
-
-                        <td>
-                            {{ "{:,.2f}".format(supplier.total_debt) if supplier.total_debt is defined else 'N/A' }} ETB
-                        </td>
-
-                        <td>
-                            {{ "{:,.2f}".format(supplier.total_paid) if supplier.total_paid is defined else 'N/A' }} ETB
-                        </td>
-
-                        <td class="debt-text">
-                            {{ "{:,.2f}".format(supplier.remaining_debt) if supplier.remaining_debt is defined else 'N/A' }} ETB
-                        </td>
-
-                        <td>
-
-                            {% if supplier.remaining_debt is defined %}
-
-                                {% if supplier.remaining_debt == 0 %}
-
-                                <span class="badge badge-status-paid">
-                                    ተከፍሏል
-                                </span>
-
-                                {% elif supplier.total_paid is defined and supplier.total_paid > 0 %}
-
-                                <span class="badge badge-status-partial">
-                                    በከፊል ተከፍሏል
-                                </span>
-
-                                {% else %}
-
-                                <span class="badge badge-status-unpaid">
-                                    ያልተከፈለ
-                                </span>
-
-                                {% endif %}
-
-                            {% else %}
-
-                            N/A
-
-                            {% endif %}
-
-                        </td>
-
-                    </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-
-    {% else %}
-
-    <div class="empty-state">
-
-        <i class="bi bi-truck"></i>
-
-        <h5>ምንም አቅራቢ አልተገኘም</h5>
-
-        <p>የአቅራቢዎች መረጃ እዚህ ይታያል።</p>
-
-    </div>
-
-    {% endif %}
-
-</div>
-
-
-<!-- ========================================= -->
-<!-- PRODUCT MODALS -->
-<!-- ========================================= -->
-
-<div class="modal fade action-modal" id="productActionModal" tabindex="-1">
-
-    <div class="modal-dialog modal-dialog-centered">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title" id="actionProductName">
-                    ምርት
-                </h5>
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
+                </a>
 
             </div>
 
 
-            <div class="modal-body">
+            <!-- =========================
+                 CUSTOMERS
+            ========================== -->
 
-                <div class="d-flex justify-content-between py-1">
-                    <span>ኮድ</span>
-                    <span id="actionProductCode">N/A</span>
-                </div>
+            <div class="col-12 col-md-4">
 
-                <div class="d-flex justify-content-between py-1">
-                    <span>የመሸጫ ዋጋ</span>
-                    <span id="actionProductPrice">0.00 ETB</span>
-                </div>
+                <a href="{{ url_for('customers_page') }}"
+                   class="menu-card customers-card">
 
-                <div class="d-flex justify-content-between py-1">
-                    <span>መጠን</span>
-                    <span id="actionProductQty">0</span>
-                </div>
+                    <div class="menu-icon">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
 
-                <div class="d-flex justify-content-between py-1">
-                    <span>መለኪያ</span>
-                    <span id="actionProductMeasurement">N/A</span>
-                </div>
+                    <div class="menu-content">
+                        <h4>ደንበኞች</h4>
+                        <p>የደንበኞች ዝርዝር</p>
+                    </div>
 
-            </div>
+                    <div class="menu-arrow">
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
 
-
-            <div class="modal-footer">
-
-                <button type="button"
-                        class="btn btn-primary"
-                        data-bs-toggle="modal"
-                        data-bs-target="#editProductConfirmModal"
-                        data-bs-dismiss="modal">
-
-                    <i class="bi bi-pencil me-1"></i>
-                    አስተካክል
-
-                </button>
-
-
-                <button type="button"
-                        class="btn btn-outline-danger"
-                        data-bs-toggle="modal"
-                        data-bs-target="#deleteProductConfirmModal"
-                        data-bs-dismiss="modal">
-
-                    <i class="bi bi-trash me-1"></i>
-                    ሰርዝ
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<div class="modal fade" id="editProductConfirmModal" tabindex="-1">
-
-    <div class="modal-dialog modal-dialog-centered">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title">
-                    ማስተካከልን ያረጋግጡ
-                </h5>
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
+                </a>
 
             </div>
 
 
-            <div class="modal-body">
+            <!-- =========================
+                 SUPPLIERS
+            ========================== -->
 
-                <p class="mb-0">
-                    <strong id="editProductName"></strong>ን
-                    ማስተካከል ይፈልጋሉ?
-                </p>
+            <div class="col-12 col-md-4">
 
-            </div>
+                <a href="{{ url_for('suppliers_page') }}"
+                   class="menu-card suppliers-card">
 
+                    <div class="menu-icon">
+                        <i class="bi bi-truck-front-fill"></i>
+                    </div>
 
-            <div class="modal-footer">
+                    <div class="menu-content">
+                        <h4>አቅራቢዎች</h4>
+                        <p>የአቅራቢዎች ዝርዝር</p>
+                    </div>
 
-                <button type="button"
-                        class="btn btn-outline-secondary"
-                        data-bs-dismiss="modal">
-                    ይቅር
-                </button>
-
-
-                <a href="#"
-                   id="editProductBtn"
-                   class="btn btn-primary">
-
-                    <i class="bi bi-pencil me-1"></i>
-                    አዎ፣ አስተካክል
+                    <div class="menu-arrow">
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
 
                 </a>
 
@@ -1138,781 +429,7 @@
     </div>
 
 </div>
-
-
-<!-- PRODUCT DELETE CONFIRM -->
-<div class="modal fade" id="deleteProductConfirmModal" tabindex="-1">
-
-    <div class="modal-dialog modal-dialog-centered">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title">
-                    መሰረዙን ያረጋግጡ
-                </h5>
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
-
-            </div>
-
-
-            <div class="modal-body">
-
-                <p class="mb-0">
-
-                    <strong id="deleteProductName"></strong>ን
-                    ማጥፋት እርግጠኛ ነዎት?
-
-                    ይህ ድርጊት መመለስ አይቻልም።
-
-                </p>
-
-            </div>
-
-
-            <div class="modal-footer">
-
-                <button type="button"
-                        class="btn btn-outline-secondary"
-                        data-bs-dismiss="modal">
-                    ይቅር
-                </button>
-
-
-                <!-- ACTION IS SET BY JAVASCRIPT -->
-                <form id="deleteProductForm"
-                      method="POST"
-                      action="">
-
-                    <button type="submit"
-                            class="btn btn-danger">
-
-                        <i class="bi bi-trash me-1"></i>
-                        ሰርዝ
-
-                    </button>
-
-                </form>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- ========================================= -->
-<!-- CUSTOMER MODALS -->
-<!-- ========================================= -->
-
-<div class="modal fade action-modal" id="customerActionModal" tabindex="-1">
-
-    <div class="modal-dialog modal-dialog-centered">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title" id="actionCustomerName">
-                    ደንበኛ
-                </h5>
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
-
-            </div>
-
-
-            <div class="modal-body">
-
-                <div class="d-flex justify-content-between py-1">
-
-                    <span>ስልክ</span>
-
-                    <span id="actionCustomerPhone">
-                        N/A
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <div class="modal-footer">
-
-                <button type="button"
-                        class="btn btn-primary"
-                        data-bs-toggle="modal"
-                        data-bs-target="#editCustomerConfirmModal"
-                        data-bs-dismiss="modal">
-
-                    <i class="bi bi-pencil me-1"></i>
-                    አስተካክል
-
-                </button>
-
-
-                <button type="button"
-                        class="btn btn-outline-danger"
-                        data-bs-toggle="modal"
-                        data-bs-target="#deleteCustomerConfirmModal"
-                        data-bs-dismiss="modal">
-
-                    <i class="bi bi-trash me-1"></i>
-                    ሰርዝ
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<div class="modal fade" id="editCustomerConfirmModal" tabindex="-1">
-
-    <div class="modal-dialog modal-dialog-centered">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title">
-                    ማስተካከልን ያረጋግጡ
-                </h5>
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
-
-            </div>
-
-
-            <div class="modal-body">
-
-                <p class="mb-0">
-
-                    <strong id="editCustomerName"></strong>ን
-                    ማስተካከል ይፈልጋሉ?
-
-                </p>
-
-            </div>
-
-
-            <div class="modal-footer">
-
-                <button type="button"
-                        class="btn btn-outline-secondary"
-                        data-bs-dismiss="modal">
-                    ይቅር
-                </button>
-
-
-                <a href="#"
-                   id="editCustomerBtn"
-                   class="btn btn-primary">
-
-                    <i class="bi bi-pencil me-1"></i>
-                    አዎ፣ አስተካክል
-
-                </a>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- CUSTOMER DELETE CONFIRM -->
-<div class="modal fade" id="deleteCustomerConfirmModal" tabindex="-1">
-
-    <div class="modal-dialog modal-dialog-centered">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title">
-                    መሰረዙን ያረጋግጡ
-                </h5>
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
-
-            </div>
-
-
-            <div class="modal-body">
-
-                <p class="mb-0">
-
-                    <strong id="deleteCustomerName"></strong>ን
-                    ማጥፋት እርግጠኛ ነዎት?
-
-                    ይህ ድርጊት መመለስ አይቻልም።
-
-                </p>
-
-            </div>
-
-
-            <div class="modal-footer">
-
-                <button type="button"
-                        class="btn btn-outline-secondary"
-                        data-bs-dismiss="modal">
-                    ይቅር
-                </button>
-
-
-                <!-- ACTION IS SET BY JAVASCRIPT -->
-                <form id="deleteCustomerForm"
-                      method="POST"
-                      action="">
-
-                    <button type="submit"
-                            class="btn btn-danger">
-
-                        <i class="bi bi-trash me-1"></i>
-                        ሰርዝ
-
-                    </button>
-
-                </form>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- ========================================= -->
-<!-- SUPPLIER MODALS -->
-<!-- ========================================= -->
-
-<div class="modal fade action-modal" id="supplierActionModal" tabindex="-1">
-
-    <div class="modal-dialog modal-dialog-centered">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title" id="actionSupplierName">
-                    አቅራቢ
-                </h5>
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
-
-            </div>
-
-
-            <div class="modal-body">
-
-                <div class="d-flex justify-content-between py-1">
-
-                    <span>ስልክ</span>
-
-                    <span id="actionSupplierPhone">
-                        N/A
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <div class="modal-footer">
-
-                <button type="button"
-                        class="btn btn-primary"
-                        data-bs-toggle="modal"
-                        data-bs-target="#editSupplierConfirmModal"
-                        data-bs-dismiss="modal">
-
-                    <i class="bi bi-pencil me-1"></i>
-                    አስተካክል
-
-                </button>
-
-
-                <button type="button"
-                        class="btn btn-outline-danger"
-                        data-bs-toggle="modal"
-                        data-bs-target="#deleteSupplierConfirmModal"
-                        data-bs-dismiss="modal">
-
-                    <i class="bi bi-trash me-1"></i>
-                    ሰርዝ
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<div class="modal fade" id="editSupplierConfirmModal" tabindex="-1">
-
-    <div class="modal-dialog modal-dialog-centered">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title">
-                    ማስተካከልን ያረጋግጡ
-                </h5>
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
-
-            </div>
-
-
-            <div class="modal-body">
-
-                <p class="mb-0">
-
-                    <strong id="editSupplierName"></strong>ን
-                    ማስተካከል ይፈልጋሉ?
-
-                </p>
-
-            </div>
-
-
-            <div class="modal-footer">
-
-                <button type="button"
-                        class="btn btn-outline-secondary"
-                        data-bs-dismiss="modal">
-                    ይቅር
-                </button>
-
-
-                <a href="#"
-                   id="editSupplierBtn"
-                   class="btn btn-primary">
-
-                    <i class="bi bi-pencil me-1"></i>
-                    አዎ፣ አስተካክል
-
-                </a>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- SUPPLIER DELETE CONFIRM -->
-<div class="modal fade" id="deleteSupplierConfirmModal" tabindex="-1">
-
-    <div class="modal-dialog modal-dialog-centered">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title">
-                    መሰረዙን ያረጋግጡ
-                </h5>
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
-
-            </div>
-
-
-            <div class="modal-body">
-
-                <p class="mb-0">
-
-                    <strong id="deleteSupplierName"></strong>ን
-                    ማጥፋት እርግጠኛ ነዎት?
-
-                    ይህ ድርጊት መመለስ አይቻልም።
-
-                </p>
-
-            </div>
-
-
-            <div class="modal-footer">
-
-                <button type="button"
-                        class="btn btn-outline-secondary"
-                        data-bs-dismiss="modal">
-                    ይቅር
-                </button>
-
-
-                <!-- ACTION IS SET BY JAVASCRIPT -->
-                <form id="deleteSupplierForm"
-                      method="POST"
-                      action="">
-
-                    <button type="submit"
-                            class="btn btn-danger">
-
-                        <i class="bi bi-trash me-1"></i>
-                        ሰርዝ
-
-                    </button>
-
-                </form>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- BOOTSTRAP -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-
-<script>
-
-    /* =========================================
-       SEARCH
-    ========================================= */
-
-    function setupSearch(inputId, rowClass) {
-
-        const searchInput = document.getElementById(inputId);
-
-        if (!searchInput) return;
-
-        searchInput.addEventListener('input', function() {
-
-            const query = this.value.toLowerCase().trim();
-
-            const rows = document.querySelectorAll('.' + rowClass);
-
-            rows.forEach(row => {
-
-                const searchData =
-                    row.getAttribute('data-search') || '';
-
-                if (searchData.includes(query)) {
-
-                    row.style.display = '';
-
-                } else {
-
-                    row.style.display = 'none';
-
-                }
-
-            });
-
-        });
-
-    }
-
-
-    setupSearch('productSearch', 'product-row');
-    setupSearch('customerSearch', 'customer-row');
-    setupSearch('supplierSearch', 'supplier-row');
-
-
-    /* =========================================
-       PRODUCT FILTER
-    ========================================= */
-
-    const stockFilter =
-        document.getElementById('stockFilter');
-
-    const measurementFilter =
-        document.getElementById('measurementFilter');
-
-
-    function filterProducts() {
-
-        if (!stockFilter || !measurementFilter) return;
-
-        const stockVal =
-            stockFilter.value;
-
-        const measVal =
-            measurementFilter.value;
-
-        const rows =
-            document.querySelectorAll('.product-row');
-
-
-        rows.forEach(row => {
-
-            const rowStatus =
-                row.getAttribute('data-status');
-
-            const rowMeas =
-                row.getAttribute('data-measurement');
-
-
-            const matchesStock =
-                stockVal === 'all' ||
-                rowStatus === stockVal;
-
-
-            const matchesMeas =
-                measVal === 'all' ||
-                rowMeas === measVal;
-
-
-            if (matchesStock && matchesMeas) {
-
-                row.style.display = '';
-
-            } else {
-
-                row.style.display = 'none';
-
-            }
-
-        });
-
-    }
-
-
-    if (stockFilter) {
-
-        stockFilter.addEventListener(
-            'change',
-            filterProducts
-        );
-
-    }
-
-
-    if (measurementFilter) {
-
-        measurementFilter.addEventListener(
-            'change',
-            filterProducts
-        );
-
-    }
-
-
-    /* =========================================
-       PRODUCT ACTION
-    ========================================= */
-
-    function openProductAction(
-        id,
-        name,
-        code,
-        price,
-        qty,
-        measurement
-    ) {
-
-        document.getElementById(
-            'actionProductName'
-        ).innerText = name;
-
-
-        document.getElementById(
-            'actionProductCode'
-        ).innerText = code;
-
-
-        document.getElementById(
-            'actionProductPrice'
-        ).innerText = price + ' ETB';
-
-
-        document.getElementById(
-            'actionProductQty'
-        ).innerText = qty;
-
-
-        document.getElementById(
-            'actionProductMeasurement'
-        ).innerText = measurement;
-
-
-        /* EDIT */
-        document.getElementById(
-            'editProductName'
-        ).innerText = name;
-
-
-        document.getElementById(
-            'editProductBtn'
-        ).href = "/edit/product/" + id;
-
-
-        /* DELETE - THIS SETS THE FORM ACTION */
-        document.getElementById(
-            'deleteProductName'
-        ).innerText = name;
-
-
-        document.getElementById(
-            'deleteProductForm'
-        ).action = "/delete/product/" + id;
-
-
-        const modal = new bootstrap.Modal(
-            document.getElementById(
-                'productActionModal'
-            )
-        );
-
-        modal.show();
-
-    }
-
-
-    /* =========================================
-       CUSTOMER ACTION
-    ========================================= */
-
-    function openCustomerAction(
-        id,
-        name,
-        phone
-    ) {
-
-        document.getElementById(
-            'actionCustomerName'
-        ).innerText = name;
-
-
-        document.getElementById(
-            'actionCustomerPhone'
-        ).innerText = phone;
-
-
-        /* EDIT */
-        document.getElementById(
-            'editCustomerName'
-        ).innerText = name;
-
-
-        document.getElementById(
-            'editCustomerBtn'
-        ).href = "/edit/customer/" + id;
-
-
-        /* DELETE - THIS SETS THE FORM ACTION */
-        document.getElementById(
-            'deleteCustomerName'
-        ).innerText = name;
-
-
-        document.getElementById(
-            'deleteCustomerForm'
-        ).action = "/delete/customer/" + id;
-
-
-        const modal = new bootstrap.Modal(
-            document.getElementById(
-                'customerActionModal'
-            )
-        );
-
-        modal.show();
-
-    }
-
-
-    /* =========================================
-       SUPPLIER ACTION
-    ========================================= */
-
-    function openSupplierAction(
-        id,
-        name,
-        phone
-    ) {
-
-        document.getElementById(
-            'actionSupplierName'
-        ).innerText = name;
-
-
-        document.getElementById(
-            'actionSupplierPhone'
-        ).innerText = phone;
-
-
-        /* EDIT */
-        document.getElementById(
-            'editSupplierName'
-        ).innerText = name;
-
-
-        document.getElementById(
-            'editSupplierBtn'
-        ).href = "/edit/supplier/" + id;
-
-
-        /* DELETE - THIS SETS THE FORM ACTION */
-        document.getElementById(
-            'deleteSupplierName'
-        ).innerText = name;
-
-
-        document.getElementById(
-            'deleteSupplierForm'
-        ).action = "/delete/supplier/" + id;
-
-
-        const modal = new bootstrap.Modal(
-            document.getElementById(
-                'supplierActionModal'
-            )
-        );
-
-        modal.show();
-
-    }
-
-</script>
 
 </body>
 </html>
+

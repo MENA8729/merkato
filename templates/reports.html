@@ -49,23 +49,49 @@
 
     .section-title{ font-weight:800; font-size:1.15rem; margin:32px 0 14px; }
 
-    /* SUMMARY CARDS */
+    /* SUMMARY CARDS — responsive so numbers shrink to fit 3 per row on phone */
     .stat-card{
         background:#fff; border-radius:14px; padding:18px;
         border:1px solid var(--border); box-shadow:0 4px 12px rgba(15,23,42,0.05);
-        height:100%;
+        height:100%; overflow:hidden;
     }
     .stat-icon{
         width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center;
-        font-size:1.1rem; color:#fff; margin-bottom:10px;
+        font-size:1.1rem; color:#fff; margin-bottom:10px; flex-shrink:0;
     }
     .icon-blue{ background:var(--blue); }
     .icon-green{ background:var(--green); }
     .icon-orange{ background:var(--orange); }
     .icon-red{ background:var(--red); }
     .icon-purple{ background:var(--purple); }
-    .stat-value{ font-size:1.2rem; font-weight:800; }
-    .stat-label{ color:var(--muted); font-size:0.78rem; font-weight:500; }
+    .stat-value{
+        font-size:clamp(0.78rem, 3.6vw, 1.2rem);
+        font-weight:800;
+        line-height:1.15;
+        word-break:break-word;
+        white-space:normal;
+    }
+    .stat-label{
+        color:var(--muted);
+        font-size:clamp(0.6rem, 2.2vw, 0.78rem);
+        font-weight:500;
+        line-height:1.25;
+        margin-top:2px;
+    }
+
+    @media (max-width:767.98px){
+        .stat-card{ padding:10px; border-radius:11px; }
+        .stat-icon{ width:32px; height:32px; font-size:0.9rem; border-radius:9px; margin-bottom:7px; }
+        .stat-value{ font-size:clamp(0.72rem, 4vw, 0.95rem); }
+        .stat-label{ font-size:clamp(0.56rem, 2.4vw, 0.68rem); }
+    }
+
+    @media (max-width:420px){
+        .stat-card{ padding:8px; }
+        .stat-icon{ width:28px; height:28px; font-size:0.8rem; }
+        .stat-value{ font-size:clamp(0.66rem, 4.4vw, 0.85rem); }
+        .stat-label{ font-size:clamp(0.52rem, 2.4vw, 0.62rem); }
+    }
 
     /* STOCK MOVEMENT */
     .movement-card{
@@ -140,16 +166,10 @@
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navMenu">
             <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">ዳሽቦርድ</a></li>
-                <!-- PLACEHOLDER: verify actual route name for Products page -->
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('track') }}">እቃዎች</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('purchases') }}">ግዢዎች</a></li>
-                <!-- PLACEHOLDER: verify actual route name for Sales page -->
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('Selling') }}">ሽያጮች</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('suppliers_customers') }}">ደንበኞች</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('suppliers_customers') }}">አቅራቢዎች</a></li>
                 <li class="nav-item"><a class="nav-link active" href="{{ url_for('report') }}">ሪፖርቶች</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('history') }}">ታሪክ</a></li>
             </ul>
         </div>
     </div>
@@ -173,31 +193,31 @@
         </form>
     </div>
 
-    <!-- DAILY SUMMARY CARDS -->
+    <!-- DAILY SUMMARY CARDS — 3 per row on phone and tablet, 4 on desktop -->
     <h5 class="section-title">የዕለቱ ማጠቃለያ</h5>
-    <div class="row g-3">
-        <div class="col-6 col-lg-3">
+    <div class="row g-2 g-lg-3">
+        <div class="col-4 col-lg-3">
             <div class="stat-card">
                 <div class="stat-icon icon-blue"><i class="bi bi-receipt"></i></div>
                 <div class="stat-value">{{ total_sales_count }}</div>
                 <div class="stat-label">ጠቅላላ ሽያጭ</div>
             </div>
         </div>
-        <div class="col-6 col-lg-3">
+        <div class="col-4 col-lg-3">
             <div class="stat-card">
                 <div class="stat-icon icon-blue"><i class="bi bi-graph-up-arrow"></i></div>
                 <div class="stat-value">{{ "{:,.2f}".format(total_sales_revenue) }} ETB</div>
                 <div class="stat-label">የሽያጭ ገቢ</div>
             </div>
         </div>
-        <div class="col-6 col-lg-3">
+        <div class="col-4 col-lg-3">
             <div class="stat-card">
                 <div class="stat-icon icon-green"><i class="bi bi-cash-stack"></i></div>
                 <div class="stat-value">{{ "{:,.2f}".format(total_collected_from_sales) }} ETB</div>
                 <div class="stat-label">ከሽያጭ የተሰበሰበ</div>
             </div>
         </div>
-        <div class="col-6 col-lg-3">
+        <div class="col-4 col-lg-3">
             <div class="stat-card">
                 <div class="stat-icon icon-red"><i class="bi bi-exclamation-circle"></i></div>
                 <div class="stat-value">{{ "{:,.2f}".format(total_new_customer_debt) }} ETB</div>
@@ -205,28 +225,29 @@
             </div>
         </div>
 
-        <div class="col-6 col-lg-3">
+
+        <div class="col-4 col-lg-3">
             <div class="stat-card">
                 <div class="stat-icon icon-orange"><i class="bi bi-cart-plus"></i></div>
                 <div class="stat-value">{{ total_purchases_count }}</div>
                 <div class="stat-label">ጠቅላላ ግዢ</div>
             </div>
         </div>
-        <div class="col-6 col-lg-3">
+        <div class="col-4 col-lg-3">
             <div class="stat-card">
                 <div class="stat-icon icon-orange"><i class="bi bi-cash"></i></div>
                 <div class="stat-value">{{ "{:,.2f}".format(total_purchase_cost) }} ETB</div>
                 <div class="stat-label">የግዢ ወጪ</div>
             </div>
         </div>
-        <div class="col-6 col-lg-3">
+        <div class="col-4 col-lg-3">
             <div class="stat-card">
                 <div class="stat-icon icon-green"><i class="bi bi-truck"></i></div>
                 <div class="stat-value">{{ "{:,.2f}".format(total_paid_to_suppliers) }} ETB</div>
                 <div class="stat-label">ለአቅራቢዎች የተከፈለ</div>
             </div>
         </div>
-        <div class="col-6 col-lg-3">
+        <div class="col-4 col-lg-3">
             <div class="stat-card">
                 <div class="stat-icon icon-purple"><i class="bi bi-wallet2"></i></div>
                 <div class="stat-value">{{ "{:,.2f}".format(total_supplier_payments) }} ETB</div>
@@ -234,7 +255,7 @@
             </div>
         </div>
 
-        <div class="col-6 col-lg-3">
+        <div class="col-4 col-lg-3">
             <div class="stat-card">
                 <div class="stat-icon icon-purple"><i class="bi bi-cash-coin"></i></div>
                 <div class="stat-value">{{ "{:,.2f}".format(total_customer_payments) }} ETB</div>
@@ -502,9 +523,14 @@
             <span>የዕለቱ የፋይናንስ እንቅስቃሴ</span>
             <span>{{ "{:,.2f}".format(daily_financial_activity) }} ETB</span>
         </div>
+        <div class="financial-row"><span>የተሸጠ ዕቃ ወጪ (COGS)</span><span>- {{ "{:,.2f}".format(total_cost_of_goods_sold) }} ETB</span></div>
+        <div class="financial-row total" style="color: var(--green);">
+            <span>የዕለቱ ትርፍ</span>
+            <span>{{ "{:,.2f}".format(total_profit) }} ETB</span>
+        </div>
         <div class="financial-note">
             <i class="bi bi-info-circle me-1"></i>
-            ይህ የዕለቱን የገንዘብ እና የንግድ እንቅስቃሴ ማጠቃለያ ነው — የትርፍ ስሌት አይደለም። የእቃ ወጪ፣ ሌሎች ወጪዎች ወይም የሂሳብ ማስተካከያዎችን አያካትትም።
+            ይህ የዕለቱን የገንዘብ እና የንግድ እንቅስቃሴ ማጠቃለያ ነው። የትርፍ ስሌቱ የተሰላው ከሽያጭ ገቢ ላይ የተሸጠውን ዕቃ አማካይ የግዢ ዋጋ በመቀነስ ነው።
         </div>
     </div>
 

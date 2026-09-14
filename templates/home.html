@@ -29,7 +29,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Menur Stock</title>
+<title>Kedir Stock</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -57,9 +57,6 @@
     --tile-7:#1e3a8a;
     --tile-8:#0b6b5f;
     --tile-9:#5b21b6;
-    --tile-10:#92400e;
-    --tile-11:#374151;
-    --tile-12:#0c4a6e;
 }
 
 *{ box-sizing:border-box; }
@@ -187,37 +184,19 @@ a{ text-decoration:none; }
     z-index:0;
 }
 
-/* Desktop */
 @media (min-width:992px){
-    .hero{
-        min-height:360px;
-    }
-
-    .hero-bg{
-        object-position:center center;
-    }
+    .hero{ min-height:360px; }
+    .hero-bg{ object-position:center center; }
 }
 
-/* Tablet */
 @media (min-width:768px) and (max-width:991px){
-    .hero{
-        min-height:320px;
-    }
-
-    .hero-bg{
-        object-position:center center;
-    }
+    .hero{ min-height:320px; }
+    .hero-bg{ object-position:center center; }
 }
 
-/* Phone */
 @media (max-width:767px){
-    .hero{
-        min-height:280px;
-    }
-
-    .hero-bg{
-        object-position:center center;
-    }
+    .hero{ min-height:280px; }
+    .hero-bg{ object-position:center center; }
 }
 
 .hero-overlay{
@@ -275,7 +254,7 @@ a{ text-decoration:none; }
     .hero-content{ padding:28px 18px; }
 }
 
-/* ============ BUSINESS MANAGEMENT GRID ============ */
+/* ============ BUSINESS MANAGEMENT GRID — NEW STYLE ============ */
 .section-title{
     text-align:center;
     font-weight:800;
@@ -291,84 +270,55 @@ a{ text-decoration:none; }
     font-size:0.95rem;
 }
 
-.biz-grid{ padding:60px 0; background:#fff; }
+.biz-grid{ padding:60px 0; background:#eef1f4; }
 
 .nav-card{
-    display:block;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
     background:#fff;
-    border-radius:14px;
-    padding:20px 16px;
+    border-radius:16px;
+    padding:26px 12px;
     height:100%;
-    border:1px solid var(--border-soft);
-    box-shadow:0 1px 3px rgba(17,24,39,0.04);
-    transition:all .25s ease;
+    border:none;
+    box-shadow:0 2px 8px rgba(17,24,39,0.06);
+    transition:all .2s ease;
     color:var(--gray-dark);
     text-align:center;
 }
 
 .nav-card:hover{
-    transform:translateY(-4px);
-    box-shadow:0 12px 24px rgba(17,24,39,0.08);
-    border-color:rgba(15,110,79,0.25);
+    transform:translateY(-3px);
+    box-shadow:0 10px 22px rgba(17,24,39,0.1);
     color:var(--gray-dark);
 }
 
 .nav-card .icon-wrap{
-    width:46px;
-    height:46px;
-    border-radius:12px;
+    width:52px;
+    height:52px;
+    border-radius:50%;
     display:flex;
     align-items:center;
     justify-content:center;
-    margin:0 auto 12px;
-    font-size:1.2rem;
+    font-size:1.4rem;
     color:#fff;
-    transition:transform .3s ease;
+    background:var(--green);
 }
-
-.nav-card:hover .icon-wrap{ transform:scale(1.08); }
 
 .nav-card h5{
     font-weight:700;
-    margin-bottom:4px;
-    font-size:0.95rem;
+    margin:0;
+    font-size:0.92rem;
     color:var(--navy);
-}
-
-.nav-card p{
-    color:var(--muted);
-    font-size:0.78rem;
-    margin-bottom:8px;
     line-height:1.3;
 }
 
-.nav-card i.arrow{
-    color:var(--green);
-    font-size:0.85rem;
-    transition:transform .3s ease;
-}
-
-.nav-card:hover i.arrow{ transform:translateX(6px); }
-
-.tile-1 .icon-wrap{ background:var(--tile-1); }
-.tile-2 .icon-wrap{ background:var(--tile-2); }
-.tile-3 .icon-wrap{ background:var(--tile-3); }
-.tile-4 .icon-wrap{ background:var(--tile-4); }
-.tile-5 .icon-wrap{ background:var(--tile-5); }
-.tile-6 .icon-wrap{ background:var(--tile-6); }
-.tile-7 .icon-wrap{ background:var(--tile-7); }
-.tile-8 .icon-wrap{ background:var(--tile-8); }
-.tile-9 .icon-wrap{ background:var(--tile-9); }
-.tile-10 .icon-wrap{ background:var(--tile-10); }
-.tile-11 .icon-wrap{ background:var(--tile-11); }
-.tile-12 .icon-wrap{ background:var(--tile-12); }
-
 @media (max-width:767px){
-    .nav-card{ padding:14px 10px; border-radius:12px; }
-    .nav-card .icon-wrap{ width:38px; height:38px; font-size:1rem; margin-bottom:8px; }
-    .nav-card h5{ font-size:0.8rem; }
-    .nav-card p{ display:none; }
-    .nav-card i.arrow{ font-size:0.75rem; }
+    .nav-card{ padding:20px 10px; border-radius:14px; }
+    .nav-card .icon-wrap{ width:44px; height:44px; font-size:1.15rem; }
+    .nav-card h5{ font-size:0.82rem; }
 }
 
 /* ============ OVERVIEW STATS ============ */
@@ -499,6 +449,62 @@ a{ text-decoration:none; }
     .hero-content h1{ font-size:1.5rem; }
 }
 
+/* ============ SETTINGS BOTTOM SHEET ============ */
+#stockSettingsSheet .modal-dialog{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    margin:0;
+    width:100%;
+    max-width:100%;
+    transform:translateY(100%);
+    transition:transform .3s ease-out;
+}
+
+#stockSettingsSheet.show .modal-dialog{ transform:translateY(0); }
+
+#stockSettingsSheet .modal-content{
+    border-radius:20px 20px 0 0;
+    border:none;
+    padding-bottom:env(safe-area-inset-bottom, 16px);
+    max-height:80vh;
+    overflow-y:auto;
+    box-shadow:0 -8px 30px rgba(0,0,0,0.18);
+}
+
+.sheet-handle{ width:44px; height:5px; background:#dee2e6; border-radius:10px; margin:12px auto 6px; }
+.sheet-title{ text-align:center; font-weight:800; font-size:1.05rem; color:var(--navy); padding:4px 20px 16px; }
+
+.sheet-actions{ display:flex; flex-direction:column; gap:10px; padding:0 20px 24px; }
+
+.sheet-action-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:#f4f6f8;
+    border:none;
+    border-radius:14px;
+    padding:14px 16px;
+    font-weight:600;
+    font-size:0.9rem;
+    color:var(--navy);
+    text-decoration:none;
+    transition:background .15s ease;
+}
+
+.sheet-action-row:hover, .sheet-action-row:active{ background:#e9ecef; color:var(--navy); }
+
+.sheet-action-icon{
+    width:42px; height:42px; min-width:42px; border-radius:11px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem; color:#fff;
+}
+
+.sheet-action-icon.add{ background:var(--green); }
+.sheet-action-icon.subtract{ background:#c0392b; }
+.sheet-action-icon.price{ background:#4c3aa8; }
+
 /* ============ FOOTER ============ */
 footer{
     background:var(--navy);
@@ -527,7 +533,7 @@ footer .copyright{ border-top:1px solid rgba(255,255,255,0.10); margin-top:24px;
         <nav class="d-none d-lg-flex align-items-center">
             <a class="nav-link" href="#">Home</a>
             <a class="nav-link" href="{{url_for('logout')}}">logout</a>
-            <a class="nav-link" href="{{url_for('track')}}">Products</a>
+            <a class="nav-link" href="{{url_for('products_page')}}">Products</a>
             <a class="nav-link" href="{{url_for('inventory')}}">Inventory</a>
             <a class="nav-link" href="{{url_for('Selling')}}">Sales</a>
             <a class="nav-link" href="{{url_for('purchases')}}">Purchases</a>
@@ -552,7 +558,7 @@ footer .copyright{ border-top:1px solid rgba(255,255,255,0.10); margin-top:24px;
     <button class="close-btn" id="menuClose" aria-label="Close menu"><i class="bi bi-x-lg"></i></button>
 
     <a href="#"><i class="bi bi-house"></i>Home</a>
-    <a href="{{url_for('track')}}"><i class="bi bi-box-seam"></i>Products</a>
+    <a href="{{url_for('products_page')}}"><i class="bi bi-box-seam"></i>Products</a>
     <a href="{{url_for('inventory')}}"><i class="bi bi-clipboard-data"></i>Inventory</a>
     <a href="{{url_for('Selling')}}"><i class="bi bi-cash-coin"></i>Sales</a>
     <a href="{{url_for('purchases')}}"><i class="bi bi-truck"></i>Purchases</a>
@@ -594,110 +600,126 @@ footer .copyright{ border-top:1px solid rgba(255,255,255,0.10); margin-top:24px;
             የሚያስፈልግዎት ሁሉ በአንድ ጠቅታ ብቻ።
         </p>
 
-        <div class="row g-3">
+        <div class="row g-3 row-cols-2 row-cols-md-3">
 
-            <div class="col-4 col-md-3">
-                <a href="{{url_for('track')}}" class="nav-card tile-1">
-                    <div class="icon-wrap"><i class="bi bi-box-seam"></i></div>
-                    <h5>ምርት፣ ደንበኛ እና አቅራቢ መረጃን ይመልከቱ እና ያስተካክሉ</h5>
-                    <p>ምርቶችዎን ያስተዳድሩ።</p>
-                    <i class="bi bi-arrow-right arrow"></i>
-                </a>
-            </div>
 
-            <div class="col-4 col-md-3">
-                <a href="{{url_for('customer_detail')}}" class="nav-card tile-2">
-                    <div class="icon-wrap"><i class="bi bi-tags"></i></div>
-                    <h5>ክፍያዎችን ይሰብስቡ</h5>
-                    <p>ምርቶችን በምድብ ያደራጁ።</p>
-                    <i class="bi bi-arrow-right arrow"></i>
-                </a>
-            </div>
-
-            <div class="col-4 col-md-3">
-                <a href="{{url_for('inventory')}}" class="nav-card tile-3">
-                    <div class="icon-wrap"><i class="bi bi-clipboard-data"></i></div>
-                    <h5>አዲስ ወይም ያለውን ምርት ይከታተሉ</h5>
-                    <p>ያለውን እቃ ይከታተሉ።</p>
-                    <i class="bi bi-arrow-right arrow"></i>
-                </a>
-            </div>
-
-            <div class="col-4 col-md-3">
-                <a href="{{url_for('Selling')}}" class="nav-card tile-4">
-                    <div class="icon-wrap"><i class="bi bi-cash-coin"></i></div>
+            <div class="col">
+                <a href="{{ url_for('sales_history_page') }}" class="nav-card">
+                    <div class="icon-wrap tile-1"><i class="bi bi-cash-coin"></i></div>
                     <h5>ሽያጭ</h5>
-                    <p>የሽያጭ ግብይቶችን ያስተዳድሩ።</p>
-                    <i class="bi bi-arrow-right arrow"></i>
                 </a>
             </div>
 
-            <div class="col-4 col-md-3">
-                <a href="/purchases" class="nav-card tile-5">
-                    <div class="icon-wrap"><i class="bi bi-truck"></i></div>
+            <div class="col">
+                <a href="{{ url_for('purchases_history_page') }}" class="nav-card">
+                    <div class="icon-wrap tile-5" style="background:var(--tile-5);"><i class="bi bi-tag"></i></div>
                     <h5>ግዢዎች</h5>
-                    <p>የግዢ መረጃዎችን ይከታተሉ።</p>
-                    <i class="bi bi-arrow-right arrow"></i>
                 </a>
             </div>
 
-            <div class="col-4 col-md-3">
-                <a href="{{url_for('dashboard')}}" class="nav-card tile-6">
-                    <div class="icon-wrap"><i class="bi bi-people"></i></div>
-                    <h5>የቅርብ ጊዜ እንቅስቃሴ</h5>
-                    <p>የደንበኞችን መረጃ ያስተዳድሩ።</p>
-                    <i class="bi bi-arrow-right arrow"></i>
+            <div class="col">
+                <a href="{{ url_for('customers_page') }}" class="nav-card">
+                    <div class="icon-wrap tile-2" style="background:var(--tile-2);"><i class="bi bi-person-vcard"></i></div>
+                    <h5>ደንበኞች</h5>
                 </a>
             </div>
 
-            <div class="col-4 col-md-3">
-                <a href="{{url_for('suppliers_customers')}}" class="nav-card tile-7">
-                    <div class="icon-wrap"><i class="bi bi-building"></i></div>
-                    <h5>አቅራቢዎች እና ደንበኞች</h5>
-                    <p>አቅራቢዎችን እና ደንበኞችን ያስተዳድሩ።</p>
-                    <i class="bi bi-arrow-right arrow"></i>
+            <div class="col">
+                <a href="{{ url_for('suppliers_page') }}" class="nav-card">
+                    <div class="icon-wrap tile-7" style="background:var(--tile-7);"><i class="bi bi-building"></i></div>
+                    <h5>አቅራቢዎች</h5>
                 </a>
             </div>
 
-            <div class="col-4 col-md-3">
-                <a href="{{url_for('detail')}}" class="nav-card tile-8">
-                    <div class="icon-wrap"><i class="bi bi-wallet"></i></div>
-                    <h5>ጠቅላላ ዕዳ</h5>
-                    <p>የንግድ ወጪዎችን ይከታተሉ።</p>
-                    <i class="bi bi-arrow-right arrow"></i>
+            <div class="col">
+                <a href="{{ url_for('products_page') }}" class="nav-card">
+                    <div class="icon-wrap tile-8" style="background:var(--tile-8);"><i class="bi bi-box-seam"></i></div>
+                    <h5>እቃዎች</h5>
                 </a>
             </div>
 
-            <div class="col-4 col-md-3">
-                <a href="{{url_for('report')}}" class="nav-card tile-9">
-                    <div class="icon-wrap"><i class="bi bi-bar-chart"></i></div>
+            <div class="col">
+                <a href="{{ url_for('expenses') }}" class="nav-card">
+                    <div class="icon-wrap tile-6" style="background:var(--tile-6);"><i class="bi bi-wallet2"></i></div>
+                    <h5>ወጪዎች</h5>
+                </a>
+            </div>
+
+            <div class="col">
+                <button type="button" class="nav-card" style="border:none; width:100%;" data-bs-toggle="modal" data-bs-target="#stockSettingsSheet">
+                    <div class="icon-wrap tile-3" style="background:var(--tile-3);"><i class="bi bi-box"></i></div>
+                    <h5>የስቶክ ማስተካከያዎች</h5>
+                </button>
+            </div>
+
+            <div class="col">
+                <a href="{{ url_for('report') }}" class="nav-card">
+                    <div class="icon-wrap tile-9" style="background:var(--tile-9);"><i class="bi bi-bar-chart"></i></div>
                     <h5>ሪፖርቶች</h5>
-                    <p>የንግድዎን አፈጻጸም ይተንትኑ።</p>
-                    <i class="bi bi-arrow-right arrow"></i>
                 </a>
             </div>
 
-            <div class="col-4 col-md-3">
-                <a href="{{url_for('history')}}" class="nav-card tile-10">
-                    <div class="icon-wrap"><i class="bi bi-arrow-left-right"></i></div>
-                    <h5>ግብይቶች</h5>
-                    <p>የግብይት ታሪክን ይመልከቱ።</p>
-                    <i class="bi bi-arrow-right arrow"></i>
+            <div class="col">
+                <a href="{{url_for('dashboard')}}" class="nav-card">
+                    <div class="icon-wrap tile-4" style="background:var(--tile-4);"><i class="bi bi-people"></i></div>
+                    <h5>የቅርብ ጊዜ እንቅስቃሴ</h5>
                 </a>
             </div>
 
-            <div class="col-4 col-md-3">
-                <a href="{{url_for('users')}}" class="nav-card tile-11">
-                    <div class="icon-wrap"><i class="bi bi-person-badge"></i></div>
-                    <h5>ተጠቃሚዎች</h5>
-                    <p>የስርዓቱን ተጠቃሚዎች ያስተዳድሩ።</p>
-                    <i class="bi bi-arrow-right arrow"></i>
+            <div class="col">
+                <a href="{{url_for('users')}}" class="nav-card">
+                    <div class="icon-wrap tile-4" style="background:var(--tile-4);"><i class="bi bi-people"></i></div>
+                    <h5>የተጠቃሚዎች</h5>
                 </a>
             </div>
+            <div class="col">
+    <a href="{{ url_for('new_action') }}" class="nav-card">
+        <div class="icon-wrap tile-5" style="background:var(--tile-5);">
+            <i class="bi bi-plus-square-fill"></i>
+        </div>
+        <h5>አዲስ</h5>
+    </a>
+</div>
 
         </div>
     </div>
 </section>
+
+<!-- ============ SETTINGS BOTTOM SHEET ============ -->
+<div class="modal fade" id="stockSettingsSheet" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="sheet-handle"></div>
+            <div class="sheet-title">የስቶክ ማስተካከያዎች</div>
+
+            <div class="sheet-actions">
+                <a href="{{ url_for('stock_add') }}" class="sheet-action-row">
+                    <span class="sheet-action-icon add"><i class="bi bi-plus-circle"></i></span>
+                    ወደ ስቶክ ጨምር
+                </a>
+                <a href="{{ url_for('select_customer_for_sales_edit') }}" class="sheet-action-row">
+    <span class="sheet-action-icon" style="background:#2563eb;"><i class="bi bi-receipt-cutoff"></i></span>
+    ሽያጭ ማስተካከያ
+</a>
+
+<a href="{{ url_for('select_supplier_for_purchases_edit') }}" class="sheet-action-row">
+    <span class="sheet-action-icon" style="background:#9d1c3a;"><i class="bi bi-cart-check"></i></span>
+    ግዢ ማስተካከያ
+</a>
+
+                <a href="{{ url_for('stock_subtract') }}" class="sheet-action-row">
+                    <span class="sheet-action-icon subtract"><i class="bi bi-dash-circle"></i></span>
+                    ከስቶክ ላይ ቀንስ
+                </a>
+
+                <a href="{{ url_for('change_price') }}" class="sheet-action-row">
+                    <span class="sheet-action-icon price"><i class="bi bi-tag"></i></span>
+                    የመሸጫ ዋጋ ቀይር
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- OVERVIEW -->
 <section class="overview">
@@ -810,9 +832,8 @@ footer .copyright{ border-top:1px solid rgba(255,255,255,0.10); margin-top:24px;
 <!-- MOBILE BOTTOM NAV -->
 <nav class="bottom-nav">
     <a href="#" class="active"><i class="bi bi-house"></i>Home</a>
-    <a href="#"><i class="bi bi-speedometer2"></i>Dashboard</a>
-    <a href="#"><i class="bi bi-plus-circle"></i>Add</a>
-    <a href="#"><i class="bi bi-clipboard-data"></i>Inventory</a>
+    <a href="{{ url_for('new_action') }}"><i class="bi bi-plus-circle"></i>new</a>
+    <
 </nav>
 
 <!-- FOOTER -->
@@ -840,7 +861,7 @@ footer .copyright{ border-top:1px solid rgba(255,255,255,0.10); margin-top:24px;
                 <h5>Links</h5>
 
                 <a href="#">About</a>
-                <a href="{{url_for('track')}}">Products</a>
+                <a href="#">Products</a>
 
                 <a href="mailto:kedirmuhammed323@gmail.com">
                     Contact
