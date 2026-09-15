@@ -62,9 +62,10 @@ from datetime import date, timedelta, datetime
 
 
 app = Flask(__name__)
-app.config['SESSION_PERMANENT'] = False
-app.config['SECRET_KEY'] = os.environ.get('8BYkEfBA6O6donzWlSihBXox7C0sKR6b')
-app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY','8BYkEfBA6O6donzWlSihBXox7C0sKR6b')
+app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=365)
+app.config['REMEMBER_COOKIE_HTTPONLY'] = True
+app.config['REMEMBER_COOKIE_SECURE'] = True
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_TLS'] = False
@@ -357,7 +358,7 @@ def login():
         if not password_correct:
             flash("Wrong password!")
             return redirect(url_for('login'))
-        login_user(existing_user,remember=False)
+        login_user(existing_user,remember=True)
         flash('Logged in successfully!', 'success')
         return redirect(url_for('home'))
 
