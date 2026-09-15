@@ -606,7 +606,7 @@ footer .copyright{ border-top:1px solid rgba(255,255,255,0.10); margin-top:24px;
             <div class="col">
                 <a href="{{ url_for('sales_history_page') }}" class="nav-card">
                     <div class="icon-wrap tile-1"><i class="bi bi-cash-coin"></i></div>
-                    <h5>ሽያጭ</h5>
+                    <h5>ሽያጭዎች</h5>
                 </a>
             </div>
 
@@ -646,18 +646,20 @@ footer .copyright{ border-top:1px solid rgba(255,255,255,0.10); margin-top:24px;
             </div>
 
             <div class="col">
+                <a href="{{ url_for('report') }}" class="nav-card">
+                    <div class="icon-wrap tile-9" style="background:var(--tile-9);"><i class="bi bi-bar-chart"></i></div>
+                    <h5>ሪፖርቶች</h5>
+                </a>
+            </div>
+
+            <div class="col">
                 <button type="button" class="nav-card" style="border:none; width:100%;" data-bs-toggle="modal" data-bs-target="#stockSettingsSheet">
                     <div class="icon-wrap tile-3" style="background:var(--tile-3);"><i class="bi bi-box"></i></div>
                     <h5>የስቶክ ማስተካከያዎች</h5>
                 </button>
             </div>
 
-            <div class="col">
-                <a href="{{ url_for('report') }}" class="nav-card">
-                    <div class="icon-wrap tile-9" style="background:var(--tile-9);"><i class="bi bi-bar-chart"></i></div>
-                    <h5>ሪፖርቶች</h5>
-                </a>
-            </div>
+
 
             <div class="col">
                 <a href="{{url_for('dashboard')}}" class="nav-card">
