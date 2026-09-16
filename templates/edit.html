@@ -141,21 +141,28 @@
                 </div>
 
                 <div class="mb-3">
-                    {{ form.quantity.label(class="form-label") }}
-                    {{ form.quantity(class="form-control", placeholder="0") }}
-                    {% for error in form.quantity.errors %}
-                        <div class="text-danger small mt-1">{{ error }}</div>
-                    {% endfor %}
-                </div>
+    {{ form.quantity.label(class="form-label") }}
+    {{ form.quantity(class="form-control", placeholder="0") }}
+    {% for error in form.quantity.errors %}
+        <div class="text-danger small mt-1">{{ error }}</div>
+    {% endfor %}
+</div>
 
-                <div class="mb-4">
-                    {{ form.unit_price.label(class="form-label") }}
-                    {{ form.unit_price(class="form-control", placeholder="0.00") }}
-                    {% for error in form.unit_price.errors %}
-                        <div class="text-danger small mt-1">{{ error }}</div>
-                    {% endfor %}
-                </div>
+<div class="mb-3">
+    {{ form.purchase_price.label(class="form-label") }}
+    {{ form.purchase_price(class="form-control", placeholder="0.00") }}
+    {% for error in form.purchase_price.errors %}
+        <div class="text-danger small mt-1">{{ error }}</div>
+    {% endfor %}
+</div>
 
+<div class="mb-4">
+    {{ form.unit_price.label(class="form-label") }}
+    {{ form.unit_price(class="form-control", placeholder="0.00") }}
+    {% for error in form.unit_price.errors %}
+        <div class="text-danger small mt-1">{{ error }}</div>
+    {% endfor %}
+</div>
             {% endif %}
 
             <button type="submit" class="btn btn-save">

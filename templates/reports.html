@@ -520,14 +520,13 @@
         <div class="financial-row"><span>ለአቅራቢዎች የተደረገ ክፍያ</span><span>- {{ "{:,.2f}".format(total_supplier_payments) }} ETB</span></div>
         <div class="financial-row"><span>ከደንበኞች የተቀበለ ክፍያ</span><span>+ {{ "{:,.2f}".format(total_customer_payments) }} ETB</span></div>
         <div class="financial-row total">
-            <span>የዕለቱ የፋይናንስ እንቅስቃሴ</span>
-            <span>{{ "{:,.2f}".format(daily_financial_activity) }} ETB</span>
+
         </div>
         <div class="financial-row"><span>የተሸጠ ዕቃ ወጪ (COGS)</span><span>- {{ "{:,.2f}".format(total_cost_of_goods_sold) }} ETB</span></div>
-        <div class="financial-row total" style="color: var(--green);">
-            <span>የዕለቱ ትርፍ</span>
-            <span>{{ "{:,.2f}".format(total_profit) }} ETB</span>
-        </div>
+        <div class="financial-row total" style="color: {{ 'var(--red)' if total_profit < 0 else 'var(--green)' }};">
+    <span>የዕለቱ ትርፍ</span>
+    <span>{{ "{:,.2f}".format(total_profit) }} ETB</span>
+</div>
         <div class="financial-note">
             <i class="bi bi-info-circle me-1"></i>
             ይህ የዕለቱን የገንዘብ እና የንግድ እንቅስቃሴ ማጠቃለያ ነው። የትርፍ ስሌቱ የተሰላው ከሽያጭ ገቢ ላይ የተሸጠውን ዕቃ አማካይ የግዢ ዋጋ በመቀነስ ነው።

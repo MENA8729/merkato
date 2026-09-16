@@ -76,7 +76,7 @@ a{ text-decoration:none; }
 .page-hero h1{ font-weight:800; }
 .page-hero p{ color:#dfeee5; margin:0; }
 
-.form-section{ padding:40px 0 90px 0; }
+.form-section{ padding:40px 0 140px 0; } /* extra bottom padding clears sticky save bar */
 .section-title{ text-align:center; font-weight:800; margin-bottom:30px; }
 
 .stock-card{
@@ -114,7 +114,7 @@ a{ text-decoration:none; }
     color:#8a978f; font-weight:600; font-size:0.85rem; pointer-events:none;
 }
 
-.add-stock-wrap{ text-align:center; margin:10px 0 30px 0; }
+.add-stock-wrap{ text-align:center; margin:10px 0 20px 0; }
 .add-stock-btn{
     display:inline-flex; align-items:center; gap:8px;
     background:#fff; border:2px dashed var(--green); color:var(--green-dark);
@@ -122,9 +122,26 @@ a{ text-decoration:none; }
 }
 .add-stock-btn:hover{ background:var(--green-soft); }
 
+/* ---- Sticky save bar (replaces the plain full-width submit button) ---- */
+.sticky-save-bar{
+    position:fixed; bottom:0; left:0; right:0;
+    background:#fff;
+    box-shadow:0 -4px 16px rgba(0,0,0,0.08);
+    z-index:80;
+}
+.sticky-save-inner{
+    max-width:900px; margin:0 auto;
+    padding:12px 18px 14px;
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+}
+.sticky-save-count{
+    display:flex; flex-direction:column;
+}
+.sticky-save-count .count-number{ font-weight:800; font-size:1.05rem; color:var(--green-dark); }
+.sticky-save-count .count-label{ font-size:0.72rem; color:#8a978f; font-weight:600; }
 .save-stock-btn{
-    background:var(--green-dark); color:#fff; font-weight:700; padding:14px 0; width:100%;
-    border-radius:12px; border:none; margin-top:10px;
+    background:var(--green-dark); color:#fff; font-weight:700; padding:12px 28px;
+    border-radius:12px; border:none; font-size:0.92rem;
 }
 .save-stock-btn:hover{ background:var(--green); }
 </style>
@@ -200,16 +217,24 @@ a{ text-decoration:none; }
                         </div>
 
                         <div class="row g-3">
-                            <div class="col-12">
+                            <!-- Row 1: Product name + Quantity side by side -->
+                            <div class="col-8">
                                 {{ stock.stock_name.label(class="form-label") }}
                                 {{ stock.stock_name(class="form-control", placeholder="የምርት ስም") }}
                             </div>
-
-                            <div class="col-6">
+                            <div class="col-4">
                                 {{ stock.quantity.label(class="form-label") }}
                                 {{ stock.quantity(class="form-control", placeholder="ብዛት", min="0", step="0.01") }}
                             </div>
 
+                            <!-- Row 2: Purchase price + Selling price side by side, shorter width -->
+                            <div class="col-6">
+                                {{ stock.purchase_price.label(class="form-label") }}
+                                <div class="price-input-wrap">
+                                    {{ stock.purchase_price(class="form-control", placeholder="ዋጋ", min="0", step="0.01") }}
+                                    <span class="currency-tag">ETB</span>
+                                </div>
+                            </div>
                             <div class="col-6">
                                 {{ stock.unit_price.label(class="form-label") }}
                                 <div class="price-input-wrap">
@@ -228,11 +253,22 @@ a{ text-decoration:none; }
                 </button>
             </div>
 
-            {{ form.submit(class="save-stock-btn") }}
-
         </form>
     </div>
 </section>
+
+<!-- STICKY SAVE BAR -->
+<div class="sticky-save-bar">
+    <div class="sticky-save-inner">
+        <div class="sticky-save-count">
+            <span class="count-number" id="productCount">1</span>
+            <span class="count-label">ምርቶች እየተመዘገቡ ነው</span>
+        </div>
+        <button type="submit" form="stockForm" class="save-stock-btn">
+            <i class="bi bi-check-circle me-1"></i> አስቀምጥ
+        </button>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -255,12 +291,18 @@ a{ text-decoration:none; }
 
     const stockContainer = document.getElementById('stockContainer');
     const addStockBtn = document.getElementById('addStockBtn');
+    const productCountEl = document.getElementById('productCount');
     let stockIndex = 1;
+
+    function updateProductCount(){
+        productCountEl.textContent = document.querySelectorAll('.stock-card').length;
+    }
 
     function renumberCards(){
         document.querySelectorAll('.stock-card').forEach((card, i) => {
             card.querySelector('.stock-number').textContent = 'ምርት #' + (i + 1);
         });
+        updateProductCount();
     }
 
     function attachRemoveEvent(card){
@@ -290,18 +332,28 @@ a{ text-decoration:none; }
             </div>
 
             <div class="row g-3">
-                <div class="col-12">
+                <div class="col-8">
                     <label class="form-label">የምርት ስም*</label>
                     <input type="text" class="form-control"
                            name="stocks-${index}-stock_name"
                            placeholder="የምርት ስም" required>
                 </div>
 
-                <div class="col-6">
+                <div class="col-4">
                     <label class="form-label">ብዛት*</label>
                     <input type="number" class="form-control"
                            name="stocks-${index}-quantity"
                            placeholder="ብዛት" min="0" step="0.01" required>
+                </div>
+
+                <div class="col-6">
+                    <label class="form-label">የግዢ ዋጋ*</label>
+                    <div class="price-input-wrap">
+                        <input type="number" class="form-control"
+                               name="stocks-${index}-purchase_price"
+                               placeholder="ዋጋ" min="0" step="0.01" required>
+                        <span class="currency-tag">ETB</span>
+                    </div>
                 </div>
 
                 <div class="col-6">
@@ -328,6 +380,7 @@ a{ text-decoration:none; }
     });
 
     document.querySelectorAll('.stock-card').forEach(attachRemoveEvent);
+    updateProductCount();
 </script>
 
 </body>

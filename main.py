@@ -205,34 +205,25 @@ class CustomerPayment(db.Model):
     created_at = db.Column(db.DateTime,default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
     date = db.Column(db.Date,default=date.today)
 
-
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(
-        db.Integer,
-        db.ForeignKey("users.id"),
-        nullable=True
-    )
-    created_at = db.Column(db.DateTime,default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
     name = db.Column(db.String(100))
     stock_code = db.Column(db.String(50))
     measurement = db.Column(db.String(20))
     current_quantity = db.Column(db.Float, default=0)
-    unit_price = db.Column(db.Float)
+    unit_price = db.Column(db.Float)                       # selling price — unchanged
+    purchase_price = db.Column(db.Float, nullable=True)    # NEW — default/cost price, nullable so existing rows are safe
 
-    # relationships — lets you do product.purchases and product.sales
     purchases = db.relationship('Purchase', backref='product')
     sales = db.relationship('Sale', backref='product')
 
 
 class Purchase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(
-        db.Integer,
-        db.ForeignKey("users.id"),
-        nullable=True
-    )
-    created_at = db.Column(db.DateTime,default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
     supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.id'))
     quantity = db.Column(db.Float)
@@ -243,22 +234,18 @@ class Purchase(db.Model):
 
     @property
     def total_price(self):
-        return self.quantity * self.unit_price   # calculated, not stored
+        return self.quantity * self.unit_price
 
 
 class Sale(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(
-        db.Integer,
-        db.ForeignKey("users.id"),
-        nullable=True
-    )
-    created_at = db.Column(db.DateTime,default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
-    product_id = db.Column(db.Integer,db.ForeignKey("product.id"), nullable=False)
-    customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"),nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("Africa/Addis_Ababa")))
+    product_id = db.Column(db.Integer, db.ForeignKey("product.id"), nullable=False)
+    customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"), nullable=False)
     quantity = db.Column(db.Float, nullable=False)
     unit_price = db.Column(db.Float, nullable=False)
-    current_payment = db.Column(db.Float,default=0)
+    current_payment = db.Column(db.Float, default=0)
     debt = db.Column(db.Float, default=0)
     date = db.Column(db.String(20))
 
@@ -512,41 +499,35 @@ def inventory():
 
         for stock in form.stocks.data:
 
-            # Check if this stock name already exists for this user
             existing_product = Product.query.filter_by(
                 name=stock['stock_name'],
                 user_id=current_user.id
             ).first()
 
             if existing_product:
-                flash(
-                    f"'{stock['stock_name']}' ቀድሞ ተመዝግቧል።",
-                    "danger"
-                )
+                flash(f"'{stock['stock_name']}' ቀድሞ ተመዝግቧል።", "danger")
                 return redirect(url_for('inventory'))
 
             new_product = Product(
                 name=stock['stock_name'],
-                stock_code="",          # no longer collected in the form
-                measurement="Piece",    # default, since it's no longer collected
+                stock_code="",
+                measurement="Piece",
                 current_quantity=stock['quantity'],
+                purchase_price=stock['purchase_price'],   # NEW
                 unit_price=stock['unit_price'],
                 user_id=current_user.id
             )
 
             db.session.add(new_product)
-
             flash("add successfully")
 
         db.session.commit()
-
         return redirect(url_for('inventory'))
 
-    return render_template(
-        "inventory.html",
-        form=form,
-        user_id=current_user.id
-    )
+    return render_template("inventory.html", form=form, user_id=current_user.id)
+
+
+
 
 
 
@@ -566,12 +547,7 @@ def purchases():
 
     if form.validate_on_submit():
 
-        EPSILON = 0.01  # tolerance for float rounding, so a tiny rounding
-                         # difference never silently blocks a save
-
-        # ==========================================================
-        # PASS 1: Validate everything before saving anything
-        # ==========================================================
+        EPSILON = 0.01
 
         errors_found = False
 
@@ -591,42 +567,28 @@ def purchases():
                 unit_price = float(item["unit_price"] or 0)
 
                 if quantity <= 0:
-                    flash(
-                        f"ቡድን #{group_index}: {product_name} - ብዛት ከዜሮ በላይ መሆን አለበት።",
-                        "danger"
-                    )
+                    flash(f"ቡድን #{group_index}: {product_name} - ብዛት ከዜሮ በላይ መሆን አለበት።", "danger")
                     errors_found = True
 
                 if unit_price <= 0:
-                    flash(
-                        f"ቡድን #{group_index}: {product_name} - ዋጋ ከዜሮ በላይ መሆን አለበት።",
-                        "danger"
-                    )
+                    flash(f"ቡድን #{group_index}: {product_name} - ዋጋ ከዜሮ በላይ መሆን አለበት።", "danger")
                     errors_found = True
 
             overall_payment = float(group["payment"] or 0)
 
             if overall_payment < 0:
-                flash(
-                    f"ቡድን #{group_index}: የክፍያ መጠን አሉታዊ ሊሆን አይችልም።",
-                    "danger"
-                )
+                flash(f"ቡድን #{group_index}: የክፍያ መጠን አሉታዊ ሊሆን አይችልም።", "danger")
                 errors_found = True
 
         if errors_found:
-
             purchases_list = Purchase.query.all()
-
             return render_template(
                 "purchase.html",
                 form=form,
                 purchases=purchases_list,
+                products=Product.query.all(),   # ADDED
                 user_id=current_user.id
             )
-
-        # ==========================================================
-        # PASS 2: Everything valid - create purchases
-        # ==========================================================
 
         groups_saved = 0
 
@@ -644,9 +606,6 @@ def purchases():
 
             overall_payment = float(group["payment"] or 0)
 
-            # Clamp instead of reject: if payment is over the total only
-            # because of floating point rounding, silently cap it rather
-            # than refusing to save the whole purchase.
             if overall_payment > grand_total:
                 overall_payment = grand_total
 
@@ -662,7 +621,6 @@ def purchases():
                 item_payment = min(remaining_payment, total)
                 item_debt = max(total - item_payment, 0)
 
-                # Guard against negative-zero / tiny float dust
                 if abs(item_debt) < EPSILON:
                     item_debt = 0.0
 
@@ -698,12 +656,6 @@ def purchases():
 
     else:
         print("FORM ERRORS:", form.errors)
-
-        # Flash WTForms' own field-level validation errors
-        # (e.g. missing product/supplier selection, DataRequired failures)
-        for group_index, group_errors in form.groups.errors.items() if hasattr(form.groups.errors, "items") else enumerate(form.groups.errors):
-            pass  # placeholder removed below - see note
-
         if request.method == "POST":
             flash("እባክዎ ከታች ያሉትን ስህተቶች ያስተካክሉ እና እንደገና ይሞክሩ።", "danger")
 
@@ -713,11 +665,9 @@ def purchases():
         "purchase.html",
         form=form,
         purchases=purchases_list,
+        products=Product.query.all(),   # ADDED
         user_id=current_user.id
     )
-
-
-
 
 
 
@@ -1774,25 +1724,26 @@ def edit(item_type, item_id):
         )
 
     # --------------------------------
+    # --------------------------------
     # PRODUCT
     # --------------------------------
     elif item_type == "product":
 
         product = db.get_or_404(Product, item_id)
+        form = StockForm()
 
-        if request.method == "POST":
-            form = StockForm(request.form)
-        else:
-            form = StockForm(
-                stock_name=product.name,
-                quantity=product.current_quantity,
-                unit_price=product.unit_price
-            )
+        if request.method == "GET":
+            form.stock_name.data = product.name
+            form.quantity.data = product.current_quantity
+            form.purchase_price.data = product.purchase_price  # NEW
+            form.unit_price.data = product.unit_price
 
-        if request.method == "POST" and form.validate():
+        if form.validate_on_submit():
             product.name = form.stock_name.data
             product.current_quantity = form.quantity.data
+            product.purchase_price = form.purchase_price.data  # NEW
             product.unit_price = form.unit_price.data
+
             db.session.commit()
 
             flash("Product updated successfully.", "success")
@@ -2254,9 +2205,13 @@ def report():
         ).filter(Purchase.product_id == pid).first()
 
         if qty_sum:
+            # Real purchase history exists — use it, unchanged
             avg_cost_by_product[pid] = (cost_sum or 0) / qty_sum
         else:
-            avg_cost_by_product[pid] = 0  # no purchase history — treat cost as 0
+            # Never purchased — use the product's saved default cost instead of 0
+            product = db.session.get(Product, pid)
+            avg_cost_by_product[pid] = (product.purchase_price or 0) if product else 0
+
 
     total_cost_of_goods_sold = 0
     for s in sales:
@@ -3478,17 +3433,6 @@ def stock_subtract():
     return render_template('stock_subtract.html', products=products)
 
 
-@app.route('/change-price', methods=['GET', 'POST'])
-@admin_only
-def change_price():
-    products = Product.query.all()
-    if request.method == 'POST':
-        product = Product.query.get_or_404(int(request.form['product_id']))
-        product.unit_price = float(request.form['unit_price'])
-        db.session.commit()
-        flash(f'{product.name} ዋጋ ተቀይሯል።', 'success')
-        return redirect(url_for('change_price'))
-    return render_template('change_price.html', products=products)
 
 
 
@@ -3496,7 +3440,7 @@ def change_price():
 
 @app.route("/edit/sales/select-customer")
 @login_required
-@admin_only
+@emp_allowed
 def select_customer_for_sales_edit():
     customers = Customer.query.order_by(Customer.name).all()
     return render_template("select_customer_for_edit.html", customers=customers)
@@ -3508,6 +3452,113 @@ def select_customer_for_sales_edit():
 def select_supplier_for_purchases_edit():
     suppliers = Supplier.query.order_by(Supplier.name).all()
     return render_template("select_supplier_for_edit.html", suppliers=suppliers)
+
+
+
+@app.route('/change-price', methods=['GET', 'POST'])
+@login_required
+@emp_allowed
+def change_price():
+    products = Product.query.all()
+
+    if request.method == 'POST':
+
+        index = 0
+        updates = []
+        errors_found = False
+
+        while f'items-{index}-product_id' in request.form:
+
+            product_id = request.form.get(f'items-{index}-product_id')
+            new_price_raw = request.form.get(f'items-{index}-new_price')
+
+            product = Product.query.get(product_id) if product_id else None
+
+            if not product:
+                flash('የተመረጠ ምርት አልተገኘም።', 'danger')
+                errors_found = True
+                index += 1
+                continue
+
+            try:
+                new_price = float(new_price_raw)
+            except (TypeError, ValueError):
+                new_price = -1
+
+            if new_price <= 0:
+                flash(f'{product.name} ላይ ዋጋ ከዜሮ በላይ መሆን አለበት።', 'danger')
+                errors_found = True
+                index += 1
+                continue
+
+            updates.append((product, new_price))
+            index += 1
+
+        if errors_found:
+            return render_template('change_price.html', products=products)
+
+        for product, new_price in updates:
+            product.unit_price = new_price
+
+        db.session.commit()
+
+        flash(f'{len(updates)} ምርት(ቶች) ዋጋ ተቀይሯል።', 'success')
+        return redirect(url_for('change_price'))
+
+    return render_template('change_price.html', products=products)
+
+
+@app.route('/change-purchase-price', methods=['GET', 'POST'])
+@login_required
+@emp_allowed
+def change_purchase_price():
+    products = Product.query.all()
+
+    if request.method == 'POST':
+
+        index = 0
+        updates = []
+        errors_found = False
+
+        while f'items-{index}-product_id' in request.form:
+
+            product_id = request.form.get(f'items-{index}-product_id')
+            new_price_raw = request.form.get(f'items-{index}-new_price')
+
+            product = Product.query.get(product_id) if product_id else None
+
+            if not product:
+                flash('የተመረጠ ምርት አልተገኘም።', 'danger')
+                errors_found = True
+                index += 1
+                continue
+
+            try:
+                new_price = float(new_price_raw)
+            except (TypeError, ValueError):
+                new_price = -1
+
+            if new_price <= 0:
+                flash(f'{product.name} ላይ ዋጋ ከዜሮ በላይ መሆን አለበት።', 'danger')
+                errors_found = True
+                index += 1
+                continue
+
+            updates.append((product, new_price))
+            index += 1
+
+        if errors_found:
+            return render_template('change_purchase_price.html', products=products)
+
+        for product, new_price in updates:
+            product.purchase_price = new_price
+
+        db.session.commit()
+
+        flash(f'{len(updates)} ምርት(ቶች) የግዢ ዋጋ ተቀይሯል።', 'success')
+        return redirect(url_for('change_purchase_price'))
+
+    return render_template('change_purchase_price.html', products=products)
 
 
 

@@ -205,11 +205,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);}
          data-status="{{ status }}"
          data-search="{{ product.name|lower }}"
          onclick='openProductAction(
-             {{ product.id }},
-             {{ product.name|tojson }},
-             {{ ("%.2f"|format(product.unit_price))|tojson }},
-             {{ product.current_quantity|tojson }}
-         )'>
+    {{ product.id }},
+    {{ product.name|tojson }},
+    {{ ("%.2f"|format(product.unit_price))|tojson }},
+    {{ ("%.2f"|format(product.purchase_price or 0))|tojson }},
+    {{ product.current_quantity|tojson }}
+)'>
         <div class="product-main">
 
             <div class="product-name-wrap">
@@ -250,8 +251,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);}
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 <h5 id="actionProductName">ምርት</h5>
                 <div class="action-sheet-meta">
-                    <strong id="actionProductPrice">0.00 ETB</strong> · <span id="actionProductQty">0</span> pc
-                </div>
+        <strong id="actionProductPrice">0.00 ETB</strong> · <span id="actionProductQty">0</span> pc
+        </div>
+        <div class="action-sheet-meta">
+        የግዢ ዋጋ: <strong id="actionProductPurchasePrice">0.00 ETB</strong>
+        </div>
             </div>
             <div class="action-sheet-body">
                 <div class="action-icon-grid">
@@ -320,9 +324,10 @@ stockFilter.addEventListener('change', function(){
     });
 });
 
-function openProductAction(id, name, price, qty){
+function openProductAction(id, name, price, purchasePrice, qty){
     document.getElementById('actionProductName').innerText = name;
     document.getElementById('actionProductPrice').innerText = price + ' ETB';
+    document.getElementById('actionProductPurchasePrice').innerText = purchasePrice + ' ETB';
     document.getElementById('actionProductQty').innerText = qty;
     document.getElementById('editProductName').innerText = name;
     document.getElementById('editProductBtn').href = "/edit/product/" + id;

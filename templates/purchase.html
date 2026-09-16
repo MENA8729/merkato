@@ -208,12 +208,15 @@ const EPSILON = 0.01;
 
 const productsData = {
     {% for value, label in form.groups[0].form.purchase[0].product.choices %}
-    "{{ value }}": { name: {{ label|tojson }}, stock: 0 },
+    "{{ value }}": { name: {{ label|tojson }}, stock: 0, purchasePrice: 0 },
     {% endfor %}
 };
 {% if products %}
 {% for product in products %}
-if(productsData["{{ product.id }}"]) { productsData["{{ product.id }}"].stock = {{ product.current_quantity|default(0, true)|tojson }}; }
+if(productsData["{{ product.id }}"]) {
+    productsData["{{ product.id }}"].stock = {{ product.current_quantity|default(0, true)|tojson }};
+    productsData["{{ product.id }}"].purchasePrice = {{ product.purchase_price|default(0, true)|tojson }};
+}
 {% endfor %}
 {% endif %}
 
@@ -394,13 +397,15 @@ function initItemCard(itemCard, groupEl){
                 return;
             }
 
-            const stock = productsData[id] ? productsData[id].stock : 0;
+           const stock = productsData[id] ? productsData[id].stock : 0;
+            const savedPrice = productsData[id] ? productsData[id].purchasePrice : 0;
             itemCard.dataset.productId = id;
             itemCard.dataset.productName = name;
             itemCard.dataset.productStock = stock;
             nameEl.classList.remove("placeholder");
             nameEl.innerHTML = `${name} <i class="bi bi-chevron-down"></i>`;
             if(!qtyInput.value) qtyInput.value = 1;
+            if(!priceInput.value){ priceInput.value = savedPrice > 0 ? savedPrice : ''; }
             validateItemInputs(itemCard);
             recalcGroup(groupEl);
         }, true);

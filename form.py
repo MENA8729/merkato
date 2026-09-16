@@ -13,57 +13,51 @@ class StockForm(FlaskForm):
     unit_price = DecimalField("የሽያጭ ዋጋ*", validators=[DataRequired(), NumberRange(min=0)])
 
 
+class StockForm(FlaskForm):
+    class Meta:
+        csrf = False
+
+    stock_name = StringField("የምርት ስም*", validators=[DataRequired()])
+    quantity = DecimalField("ብዛት*", validators=[DataRequired(), NumberRange(min=0)])
+    purchase_price = DecimalField("የግዢ ዋጋ*", validators=[DataRequired(), NumberRange(min=0)])   # NEW
+    unit_price = DecimalField("የሽያጭ ዋጋ*", validators=[DataRequired(), NumberRange(min=0)])
+
+
 class InventoryForm(FlaskForm):
     stocks = FieldList(FormField(StockForm), min_entries=1)
     submit = SubmitField("አስቀምጥ")
-
 
 
 class PurchaseForm(FlaskForm):
     class Meta:
         csrf = False
 
-    product = SelectField(
-        "Product",
-        coerce=int,
-        validators=[DataRequired()]
-    )
-
-    quantity = DecimalField(
-        "Quantity",
-        validators=[DataRequired(), NumberRange(min=0)]
-    )
-
-    unit_price = DecimalField(
-        "Purchase Price",
-        validators=[DataRequired(), NumberRange(min=0)]
-    )
+    product = SelectField("Product", coerce=int, validators=[DataRequired()])
+    quantity = DecimalField("Quantity", validators=[DataRequired(), NumberRange(min=0)])
+    unit_price = DecimalField("Purchase Price", validators=[DataRequired(), NumberRange(min=0)])
 
 
 class PurchaseGroupForm(FlaskForm):
     class Meta:
         csrf = False
 
-    supplier = SelectField(
-        "Supplier",
-        coerce=int,
-        validators=[DataRequired()]
-    )
-
+    supplier = SelectField("Supplier", coerce=int, validators=[DataRequired()])
     purchase = FieldList(FormField(PurchaseForm), min_entries=1)
-
-    payment = DecimalField(
-        "Current Payment",
-        validators=[Optional(), NumberRange(min=0)],
-        default=0
-    )
-
+    payment = DecimalField("Current Payment", validators=[Optional(), NumberRange(min=0)], default=0)
     debt = FloatField()
 
 
 class MultiPurchaseForm(FlaskForm):
     groups = FieldList(FormField(PurchaseGroupForm), min_entries=1)
     submit = SubmitField("Buy Stock")
+
+
+# NEW — used only by the edit-product route below
+class EditProductForm(FlaskForm):
+    stock_name = StringField("Product name", validators=[DataRequired()])
+    quantity = DecimalField("Quantity", validators=[DataRequired(), NumberRange(min=0)])
+    purchase_price = DecimalField("Purchase Price", validators=[DataRequired(), NumberRange(min=0)])   # NEW
+    unit_price = DecimalField("Selling Price", validators=[DataRequired(), NumberRange(min=0)])
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, FloatField, SubmitField, FieldList, FormField
