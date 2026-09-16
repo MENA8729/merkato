@@ -701,6 +701,7 @@ def detail():
 
     # ---------------------------------------------------------
     # Also include suppliers with balance_owed
+    # (kept, same as AddDebt is kept for customers)
     # ---------------------------------------------------------
     suppliers = db.session.execute(
         db.select(Supplier)
@@ -720,7 +721,8 @@ def detail():
     grand_total_debt = Decimal("0")
 
     # ---------------------------------------------------------
-    # Calculate each supplier
+    # Calculate each supplier — rebuilt from raw purchase totals,
+    # same approach as customer_detail, NOT from Purchase.debt
     # ---------------------------------------------------------
     for supplier_id in supplier_ids:
 
@@ -733,26 +735,33 @@ def detail():
             continue
 
         # -----------------------------------------------------
-        # Purchases
+        # TOTAL PURCHASED (purchases) — rebuilt from quantity x
+        # unit_price, not from Purchase.debt
         # -----------------------------------------------------
         purchases = Purchase.query.filter_by(
             supplier_id=supplier_id
         ).all()
 
-        purchase_debt = Decimal("0")
-
-        for purchase in purchases:
-
-            debt = Decimal(
-                str(purchase.debt or 0)
+        total_purchased_via_purchases = sum(
+            (
+                Decimal(str(p.quantity or 0)) * Decimal(str(p.unit_price or 0))
             )
+            for p in purchases
+        )
 
-            # Never count negative purchase debt
-            if debt > 0:
-                purchase_debt += debt
+        # Payments already recorded AT the time of purchase
+        payments_at_purchase_time = sum(
+            (
+                Decimal(str(p.payment or 0))
+            )
+            for p in purchases
+        )
 
         # -----------------------------------------------------
-        # Additional supplier balance
+        # ADDITIONAL BALANCE OWED — treated like AddDebt on the
+        # customer side: a separate manual debt entry, never
+        # itself reduced by SupplierPayment (confirm this holds
+        # true in your app before trusting it long-term)
         # -----------------------------------------------------
         balance_owed = Decimal(
             str(supplier.balance_owed or 0)
@@ -762,42 +771,39 @@ def detail():
             balance_owed = Decimal("0")
 
         # -----------------------------------------------------
-        # Total debt before payments
+        # TOTAL DEBT (everything ever owed, before later payments)
         # -----------------------------------------------------
-        total_debt = (
-            purchase_debt
-            + balance_owed
-        )
+        total_debt = total_purchased_via_purchases + balance_owed
 
         # -----------------------------------------------------
-        # Payments
+        # LATER PAYMENTS (SupplierPayment table — paid after
+        # the purchase was recorded)
         # -----------------------------------------------------
-        payments = SupplierPayment.query.filter_by(
+        later_payments = SupplierPayment.query.filter_by(
             supplier_id=supplier_id
         ).all()
 
-        total_paid = Decimal("0")
-
-        for payment in payments:
-
-            paid = Decimal(
-                str(payment.amount or 0)
+        total_later_payments = sum(
+            (
+                Decimal(str(p.amount or 0))
             )
-
-            if paid > 0:
-                total_paid += paid
-
-        # -----------------------------------------------------
-        # Remaining debt
-        # -----------------------------------------------------
-        remaining_debt = (
-            total_debt
-            - total_paid
+            for p in later_payments
+            if (p.amount or 0) > 0
         )
 
-        # Never display negative debt
-        if remaining_debt < 0:
-            remaining_debt = Decimal("0")
+        # -----------------------------------------------------
+        # TOTAL PAID = payments made at purchase time + payments
+        # made later
+        # -----------------------------------------------------
+        total_paid = payments_at_purchase_time + total_later_payments
+
+        # -----------------------------------------------------
+        # REMAINING DEBT
+        # -----------------------------------------------------
+        remaining_debt = max(
+            total_debt - total_paid,
+            Decimal("0")
+        )
 
         # -----------------------------------------------------
         # Only show suppliers who still owe money
@@ -826,8 +832,6 @@ def detail():
         grand_total_debt=grand_total_debt,
         user_id=current_user.id
     )
-
-
 # =============================================================
 # PAY SUPPLIER DEBT
 # =============================================================
@@ -1428,31 +1432,40 @@ def customer_detail():
         .distinct()
     ]
 
-    # Combine customers from both Sale and AddDebt
     customer_ids = list(
         set(sale_customer_ids) | set(debt_customer_ids)
     )
 
     customer_details = []
 
-    # Use Decimal instead of float for money
     grand_total_debt = Decimal("0")
 
     for customer_id in customer_ids:
 
+        # ==========================================================
+        # Rebuild total sold and total paid from raw transactions —
+        # NOT from Sale.debt, since that field goes stale the
+        # moment a later CustomerPayment comes in (confirmed earlier).
+        # ==========================================================
+
         # -------------------------
-        # SALES DEBT
+        # TOTAL SOLD (sales)
         # -------------------------
         sales = Sale.query.filter_by(
             customer_id=customer_id
         ).all()
 
-        sales_debt = sum(
+        total_sold_via_sales = sum(
             (
-                max(
-                    Decimal(str(s.debt or 0)),
-                    Decimal("0")
-                )
+                Decimal(str(s.quantity or 0)) * Decimal(str(s.unit_price or 0))
+            )
+            for s in sales
+        )
+
+        # Payments already recorded AT the time of sale
+        payments_at_sale_time = sum(
+            (
+                Decimal(str(s.current_payment or 0))
             )
             for s in sales
         )
@@ -1466,38 +1479,38 @@ def customer_detail():
 
         additional_debt = sum(
             (
-                max(
-                    Decimal(str(d.amount or 0)),
-                    Decimal("0")
-                )
+                Decimal(str(d.amount or 0))
             )
             for d in additional_debt_records
         )
 
         # -------------------------
-        # TOTAL DEBT
+        # TOTAL DEBT (everything ever owed, before any later payment)
         # -------------------------
-        total_debt = sales_debt + additional_debt
+        total_debt = total_sold_via_sales + additional_debt
 
         # -------------------------
-        # PAYMENTS
+        # LATER PAYMENTS (CustomerPayment table — paid after the sale)
         # -------------------------
-        payments = CustomerPayment.query.filter_by(
+        later_payments = CustomerPayment.query.filter_by(
             customer_id=customer_id
         ).all()
 
-        total_paid = sum(
+        total_later_payments = sum(
             (
-                max(
-                    Decimal(str(p.amount or 0)),
-                    Decimal("0")
-                )
+                Decimal(str(p.amount or 0))
             )
-            for p in payments
+            for p in later_payments
         )
 
         # -------------------------
-        # REMAINING DEBT
+        # TOTAL PAID = payments made at sale time + payments made later
+        # -------------------------
+        total_paid = payments_at_sale_time + total_later_payments
+
+        # -------------------------
+        # REMAINING DEBT — single source of truth, matches the
+        # statement page exactly since both rebuild from raw data
         # -------------------------
         remaining_debt = max(
             total_debt - total_paid,
@@ -1522,7 +1535,6 @@ def customer_detail():
 
         grand_total_debt += remaining_debt
 
-    # Highest debt first
     customer_details.sort(
         key=lambda x: x["remaining_debt"],
         reverse=True
@@ -1534,6 +1546,7 @@ def customer_detail():
         grand_total_debt=grand_total_debt,
         user_id=current_user.id
     )
+
 
 @app.route("/pay_customer_debt", methods=["POST"])
 @login_required
@@ -2888,7 +2901,6 @@ def customer_debt_statement_share(customer_id):
         pdf_url=pdf_url
     )
 
-
 @app.route("/edit_purchase/<int:purchase_id>", methods=["POST"])
 @login_required
 @admin_only
@@ -2915,24 +2927,41 @@ def edit_purchase(purchase_id):
         return redirect(url_for("supplier_purchase_history", supplier_id=original_supplier_id))
 
     old_supplier_id = purchase.supplier_id
-    new_debt = (quantity * unit_price) - payment
+    new_total = quantity * unit_price
+    new_debt = new_total - payment
     is_moving = old_supplier_id != new_supplier_id
 
-    def supplier_remaining_debt(supplier_id, exclude_purchase_id=None, extra_debt=0):
+    def supplier_remaining_debt(supplier_id, exclude_purchase_id=None, extra_total=0, extra_payment=0):
+        # Rebuild from raw totals, NOT from Purchase.debt (which can go
+        # stale — same fix already applied in /detail and customer_detail)
         purchases = Purchase.query.filter(
             Purchase.supplier_id == supplier_id,
             Purchase.id != exclude_purchase_id
         ).all()
 
-        total_debt = sum(p.debt or 0 for p in purchases if (p.debt or 0) > 0)
-        total_debt += max(extra_debt, 0)
+        total_purchased = sum(
+            (p.quantity or 0) * (p.unit_price or 0) for p in purchases
+        )
+        total_purchased += max(extra_total, 0)
+
+        payments_at_purchase_time = sum(
+            (p.payment or 0) for p in purchases
+        )
+        payments_at_purchase_time += max(extra_payment, 0)
 
         supplier = Supplier.query.get(supplier_id)
+        balance_owed = 0
         if supplier and supplier.balance_owed and supplier.balance_owed > 0:
-            total_debt += supplier.balance_owed
+            balance_owed = supplier.balance_owed
 
-        payments = SupplierPayment.query.filter_by(supplier_id=supplier_id).all()
-        total_paid = sum(pay.amount or 0 for pay in payments if (pay.amount or 0) > 0)
+        total_debt = total_purchased + balance_owed
+
+        later_payments = SupplierPayment.query.filter_by(supplier_id=supplier_id).all()
+        total_later_payments = sum(
+            (pay.amount or 0) for pay in later_payments if (pay.amount or 0) > 0
+        )
+
+        total_paid = payments_at_purchase_time + total_later_payments
 
         return total_debt - total_paid
 
@@ -2940,19 +2969,21 @@ def edit_purchase(purchase_id):
     # Check ORIGIN supplier
     # ---------------------------------------------------------
     if old_supplier_id:
-        origin_extra_debt = new_debt if not is_moving else 0
+        origin_extra_total = new_total if not is_moving else 0
+        origin_extra_payment = payment if not is_moving else 0
 
         origin_remaining = supplier_remaining_debt(
             old_supplier_id,
             exclude_purchase_id=purchase.id,
-            extra_debt=origin_extra_debt
+            extra_total=origin_extra_total,
+            extra_payment=origin_extra_payment
         )
 
         if origin_remaining < 0:
             old_supplier = Supplier.query.get(old_supplier_id)
             flash(
                 f"Cannot save — this change would make {old_supplier.name if old_supplier else 'the original supplier'}'s "
-                f"remaining debt negative ({origin_remaining:,.2f} ETB).",
+                f"total remaining debt negative ({origin_remaining:,.2f} ETB).",
                 "danger"
             )
             return redirect(url_for("supplier_purchase_history", supplier_id=original_supplier_id))
@@ -2964,12 +2995,13 @@ def edit_purchase(purchase_id):
         destination_remaining = supplier_remaining_debt(
             new_supplier_id,
             exclude_purchase_id=purchase.id,
-            extra_debt=new_debt
+            extra_total=new_total,
+            extra_payment=payment
         )
 
         if destination_remaining < 0:
             flash(
-                f"Cannot move this purchase to {new_supplier.name} — it would make their remaining debt negative "
+                f"Cannot move this purchase to {new_supplier.name} — it would make their total remaining debt negative "
                 f"({destination_remaining:,.2f} ETB).",
                 "danger"
             )
@@ -3027,25 +3059,39 @@ def edit_sale(sale_id):
         return redirect(url_for("customer_sales_history", customer_id=original_customer_id))
 
     old_customer_id = sale.customer_id
-    new_debt = (quantity * unit_price) - current_payment
+    new_total = quantity * unit_price
+    new_debt = new_total - current_payment
     is_moving = old_customer_id != new_customer_id
 
-    def customer_remaining_debt(customer_id, exclude_sale_id=None, extra_debt=0):
+    def customer_remaining_debt(customer_id, exclude_sale_id=None, extra_total=0, extra_payment=0):
+        # Rebuild from raw totals, NOT from Sale.debt (which can go
+        # stale — same fix already applied in customer_detail)
         sales = Sale.query.filter(
             Sale.customer_id == customer_id,
             Sale.id != exclude_sale_id
         ).all()
 
-        sales_debt = sum(s.debt or 0 for s in sales if (s.debt or 0) > 0)
-        sales_debt += max(extra_debt, 0)
+        total_sold = sum(
+            (s.quantity or 0) * (s.unit_price or 0) for s in sales
+        )
+        total_sold += max(extra_total, 0)
+
+        payments_at_sale_time = sum(
+            (s.current_payment or 0) for s in sales
+        )
+        payments_at_sale_time += max(extra_payment, 0)
 
         additional_debt_records = AddDebt.query.filter_by(customer_id=customer_id).all()
         additional_debt = sum(d.amount or 0 for d in additional_debt_records)
 
-        total_debt = sales_debt + additional_debt
+        total_debt = total_sold + additional_debt
 
-        payments = CustomerPayment.query.filter_by(customer_id=customer_id).all()
-        total_paid = sum(p.amount or 0 for p in payments if (p.amount or 0) > 0)
+        later_payments = CustomerPayment.query.filter_by(customer_id=customer_id).all()
+        total_later_payments = sum(
+            (p.amount or 0) for p in later_payments if (p.amount or 0) > 0
+        )
+
+        total_paid = payments_at_sale_time + total_later_payments
 
         return total_debt - total_paid
 
@@ -3053,19 +3099,21 @@ def edit_sale(sale_id):
     # Check ORIGIN customer
     # ---------------------------------------------------------
     if old_customer_id:
-        origin_extra_debt = new_debt if not is_moving else 0
+        origin_extra_total = new_total if not is_moving else 0
+        origin_extra_payment = current_payment if not is_moving else 0
 
         origin_remaining = customer_remaining_debt(
             old_customer_id,
             exclude_sale_id=sale.id,
-            extra_debt=origin_extra_debt
+            extra_total=origin_extra_total,
+            extra_payment=origin_extra_payment
         )
 
         if origin_remaining < 0:
             old_customer = Customer.query.get(old_customer_id)
             flash(
                 f"Cannot save — this change would make {old_customer.name if old_customer else 'the original customer'}'s "
-                f"remaining debt negative ({origin_remaining:,.2f} ETB).",
+                f"total remaining debt negative ({origin_remaining:,.2f} ETB).",
                 "danger"
             )
             return redirect(url_for("customer_sales_history", customer_id=original_customer_id))
@@ -3077,12 +3125,13 @@ def edit_sale(sale_id):
         destination_remaining = customer_remaining_debt(
             new_customer_id,
             exclude_sale_id=sale.id,
-            extra_debt=new_debt
+            extra_total=new_total,
+            extra_payment=current_payment
         )
 
         if destination_remaining < 0:
             flash(
-                f"Cannot move this sale to {new_customer.name} — it would make their remaining debt negative "
+                f"Cannot move this sale to {new_customer.name} — it would make their total remaining debt negative "
                 f"({destination_remaining:,.2f} ETB).",
                 "danger"
             )
