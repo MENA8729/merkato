@@ -255,7 +255,7 @@ a{ text-decoration:none; }
     .hero-content{ padding:28px 18px; }
 }
 
-/* ============ BUSINESS MANAGEMENT GRID — NEW STYLE ============ */
+/* ============ BUSINESS MANAGEMENT GRID ============ */
 .section-title{
     text-align:center;
     font-weight:800;
@@ -450,8 +450,8 @@ a{ text-decoration:none; }
     .hero-content h1{ font-size:1.5rem; }
 }
 
-/* ============ SETTINGS BOTTOM SHEET ============ */
-#stockSettingsSheet .modal-dialog{
+/* ============ HISTORY BOTTOM SHEET — centered, sliding up from the bottom ============ */
+#historySheet .modal-dialog{
     position:fixed;
     bottom:0;
     left:0;
@@ -463,9 +463,9 @@ a{ text-decoration:none; }
     transition:transform .3s ease-out;
 }
 
-#stockSettingsSheet.show .modal-dialog{ transform:translateY(0); }
+#historySheet.show .modal-dialog{ transform:translateY(0); }
 
-#stockSettingsSheet .modal-content{
+#historySheet .modal-content{
     border-radius:20px 20px 0 0;
     border:none;
     padding-bottom:env(safe-area-inset-bottom, 16px);
@@ -475,36 +475,58 @@ a{ text-decoration:none; }
 }
 
 .sheet-handle{ width:44px; height:5px; background:#dee2e6; border-radius:10px; margin:12px auto 6px; }
-.sheet-title{ text-align:center; font-weight:800; font-size:1.05rem; color:var(--navy); padding:4px 20px 16px; }
+.sheet-title{ text-align:center; font-weight:800; font-size:1.05rem; color:var(--navy); padding:4px 20px 18px; }
 
-.sheet-actions{ display:flex; flex-direction:column; gap:10px; padding:0 20px 24px; }
+/* 3 horizontal on desktop, 2+1 on phone — always horizontal rows, never a vertical stack */
+.sheet-actions-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:12px;
+    padding:0 20px 26px;
+}
 
-.sheet-action-row{
+@media (min-width:576px){
+    .sheet-actions-grid{ grid-template-columns:repeat(3, 1fr); }
+}
+
+.sheet-action-btn{
     display:flex;
+    flex-direction:column;
     align-items:center;
-    gap:14px;
+    justify-content:center;
+    gap:8px;
     background:#f4f6f8;
     border:none;
     border-radius:14px;
-    padding:14px 16px;
-    font-weight:600;
-    font-size:0.9rem;
-    color:var(--navy);
+    padding:18px 8px;
     text-decoration:none;
-    transition:background .15s ease;
+    color:var(--navy);
+    font-weight:600;
+    font-size:0.82rem;
+    text-align:center;
+    transition:background .15s ease, transform .15s ease;
 }
 
-.sheet-action-row:hover, .sheet-action-row:active{ background:#e9ecef; color:var(--navy); }
+.sheet-action-btn:hover, .sheet-action-btn:active{
+    background:#e9ecef;
+    color:var(--navy);
+    transform:translateY(-2px);
+}
 
 .sheet-action-icon{
-    width:42px; height:42px; min-width:42px; border-radius:11px;
+    width:44px; height:44px; border-radius:12px;
     display:flex; align-items:center; justify-content:center;
-    font-size:1.1rem; color:#fff;
+    font-size:1.15rem; color:#fff;
 }
 
-.sheet-action-icon.add{ background:var(--green); }
-.sheet-action-icon.subtract{ background:#c0392b; }
-.sheet-action-icon.price{ background:#4c3aa8; }
+/* the 3rd item on phone sits alone in its own row, centered under the first two */
+@media (max-width:575.98px){
+    .sheet-action-btn:nth-child(3){
+        grid-column:1 / span 2;
+        max-width:calc(50% - 6px);
+        margin:0 auto;
+    }
+}
 
 /* ============ FOOTER ============ */
 footer{
@@ -604,18 +626,12 @@ footer .copyright{ border-top:1px solid rgba(255,255,255,0.10); margin-top:24px;
 
         <div class="row g-3 row-cols-2 row-cols-md-3">
 
-
             <div class="col">
-                <a href="{{ url_for('sales_history_page') }}" class="nav-card">
-                    <div class="icon-wrap tile-1"><i class="bi bi-cash-coin"></i></div>
-                    <h5>ሽያጭዎች</h5>
-                </a>
-            </div>
-
-            <div class="col">
-                <a href="{{ url_for('purchases_history_page') }}" class="nav-card">
-                    <div class="icon-wrap tile-5" style="background:var(--tile-5);"><i class="bi bi-tag"></i></div>
-                    <h5>ግዢዎች</h5>
+                <a href="{{ url_for('new_action') }}" class="nav-card">
+                    <div class="icon-wrap tile-5" style="background:var(--tile-5);">
+                        <i class="bi bi-plus-square-fill"></i>
+                    </div>
+                    <h5>አዲስ</h5>
                 </a>
             </div>
 
@@ -655,13 +671,11 @@ footer .copyright{ border-top:1px solid rgba(255,255,255,0.10); margin-top:24px;
             </div>
 
             <div class="col">
-                <button type="button" class="nav-card" style="border:none; width:100%;" data-bs-toggle="modal" data-bs-target="#stockSettingsSheet">
-                    <div class="icon-wrap tile-3" style="background:var(--tile-3);"><i class="bi bi-box"></i></div>
-                    <h5>የስቶክ ማስተካከያዎች</h5>
+                <button type="button" class="nav-card" style="border:none; width:100%;" data-bs-toggle="modal" data-bs-target="#historySheet">
+                    <div class="icon-wrap tile-3" style="background:var(--tile-3);"><i class="bi bi-clock-history"></i></div>
+                    <h5>ታሪኮች</h5>
                 </button>
             </div>
-
-
 
             <div class="col">
                 <a href="{{url_for('dashboard')}}" class="nav-card">
@@ -676,54 +690,33 @@ footer .copyright{ border-top:1px solid rgba(255,255,255,0.10); margin-top:24px;
                     <h5>የተጠቃሚዎች</h5>
                 </a>
             </div>
-            <div class="col">
-    <a href="{{ url_for('new_action') }}" class="nav-card">
-        <div class="icon-wrap tile-5" style="background:var(--tile-5);">
-            <i class="bi bi-plus-square-fill"></i>
-        </div>
-        <h5>አዲስ</h5>
-    </a>
-</div>
 
         </div>
     </div>
 </section>
 
-<!-- ============ SETTINGS BOTTOM SHEET ============ -->
-<div class="modal fade" id="stockSettingsSheet" tabindex="-1" aria-hidden="true">
+<!-- ============ HISTORY BOTTOM SHEET ============ -->
+<div class="modal fade" id="historySheet" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="sheet-handle"></div>
-            <div class="sheet-title">የስቶክ ማስተካከያዎች</div>
+            <div class="sheet-title">ታሪኮች</div>
 
-            <div class="sheet-actions">
-                <a href="{{ url_for('stock_add') }}" class="sheet-action-row">
-                    <span class="sheet-action-icon add"><i class="bi bi-plus-circle"></i></span>
-                    ወደ ስቶክ ጨምር
-                </a>
-                <a href="{{ url_for('select_customer_for_sales_edit') }}" class="sheet-action-row">
-    <span class="sheet-action-icon" style="background:#2563eb;"><i class="bi bi-receipt-cutoff"></i></span>
-    ሽያጭ ማስተካከያ
-</a>
-
-<a href="{{ url_for('select_supplier_for_purchases_edit') }}" class="sheet-action-row">
-    <span class="sheet-action-icon" style="background:#9d1c3a;"><i class="bi bi-cart-check"></i></span>
-    ግዢ ማስተካከያ
-</a>
-
-                <a href="{{ url_for('stock_subtract') }}" class="sheet-action-row">
-                    <span class="sheet-action-icon subtract"><i class="bi bi-dash-circle"></i></span>
-                    ከስቶክ ላይ ቀንስ
+            <div class="sheet-actions-grid">
+                <a href="{{ url_for('sales_history_page') }}" class="sheet-action-btn">
+                    <span class="sheet-action-icon" style="background:var(--tile-1);"><i class="bi bi-cash-coin"></i></span>
+                    ሽያጭ ታሪክ
                 </a>
 
-                <a href="{{ url_for('change_price') }}" class="sheet-action-row">
-                    <span class="sheet-action-icon price"><i class="bi bi-tag"></i></span>
-                    የመሸጫ ዋጋ ቀይር
+                <a href="{{ url_for('purchases_history_page') }}" class="sheet-action-btn">
+                    <span class="sheet-action-icon" style="background:var(--tile-5);"><i class="bi bi-tag"></i></span>
+                    ግዢ ታሪክ
                 </a>
-                <a href="{{ url_for('change_purchase_price') }}" class="sheet-action-row">
-    <span class="sheet-action-icon"><i class="bi bi-tag-fill"></i></span>
-    <span class="action-label">የግዢ ዋጋ ቀይር</span>
-</a>
+
+                <a href="{{ url_for('settings_history') }}" class="sheet-action-btn">
+                    <span class="sheet-action-icon" style="background:var(--tile-3);"><i class="bi bi-sliders"></i></span>
+                    ማስተካከያ ታሪክ
+                </a>
             </div>
         </div>
     </div>
@@ -841,7 +834,7 @@ footer .copyright{ border-top:1px solid rgba(255,255,255,0.10); margin-top:24px;
 <nav class="bottom-nav">
     <a href="#" class="active"><i class="bi bi-house"></i>Home</a>
     <a href="{{ url_for('new_action') }}"><i class="bi bi-plus-circle"></i>new</a>
-    <
+
 </nav>
 
 <!-- FOOTER -->

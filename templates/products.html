@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--blue:#2563eb;--green:#16a34a;--orange:#ea580c;--red:#dc2626;--purple:#7c3aed;--dark:#1e293b;--muted:#64748b;--bg:#f4f6f8;}
+:root{--blue:#2563eb;--green:#16a34a;--orange:#ea580c;--red:#dc2626;--purple:#7c3aed;--dark:#1e293b;--navy:#0f172a;--muted:#64748b;--bg:#f4f6f8;}
 *{box-sizing:border-box;} html,body{overflow-x:hidden;max-width:100%;}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);}
 .navbar{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:14px 0;}
@@ -57,23 +57,32 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);}
 
 /* ---- Product list ---- */
 .product-list{background:#fff;border-radius:16px;box-shadow:0 4px 14px rgba(0,0,0,.05);overflow:hidden;}
-.product-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background .15s ease;}
+.product-row{display:flex;align-items:stretch;justify-content:space-between;gap:12px;padding:0 18px 0 0;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background .15s ease;min-height:76px;}
 .product-row:last-child{border-bottom:none;}
 .product-row:hover{background:#f8fafc;}
 
-.product-main{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.product-main{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1;}
 
-/* ---- Product icon — enlarged ---- */
-.product-name-wrap{display:flex;align-items:center;gap:11px;min-width:0;}
-.product-icon{width:44px;height:44px;border-radius:11px;background:#eff6ff;color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.3rem;}
+/* ---- Product box: flush gray panel, no shape/shadow of its own, just part of the row ---- */
+.product-name-wrap{display:flex;align-items:stretch;gap:14px;min-width:0;height:100%;}
+.product-photo{
+    width:64px;flex-shrink:0;
+    background:#94a3b8;
+    border-radius:0;
+    margin:0;
+    box-shadow:none;
+    border:none;
+    align-self:stretch;
+}
+.product-main-text{display:flex;flex-direction:column;justify-content:center;gap:4px;padding:14px 0;min-width:0;}
 .product-name{font-weight:700;font-size:.98rem;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-.product-qty{font-weight:600;font-size:.9rem;margin-left:55px;}
+.product-qty{font-weight:600;font-size:.9rem;}
 .product-qty.qty-instock{color:var(--green);}
 .product-qty.qty-lowstock{color:#b45309;}
 .product-qty.qty-outstock{color:var(--red);}
 
-.product-side{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.product-side{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:4px;flex-shrink:0;padding:14px 0;}
 .product-price{font-weight:700;font-size:.95rem;color:var(--dark);white-space:nowrap;}
 .product-status{font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;}
 .status-instock{background:#dcfce7;color:var(--green);}
@@ -86,19 +95,22 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);}
 .empty-state p{color:var(--muted);}
 .quick-actions .btn{border-radius:10px;font-weight:600;font-size:.88rem;}
 
-/* ---- Bottom sheet action popup — ALWAYS a bottom sheet, simplified ---- */
-.action-modal .modal-dialog{
+/* ---- Bottom sheet action popup — beats Bootstrap's own .modal.fade rules ---- */
+.modal.fade.action-modal .modal-dialog{
     position:fixed; bottom:0; left:0; right:0; margin:0;
     max-width:100%; width:100%;
-    transform:translateY(100%);
-    transition:transform .3s ease-out;
+    transform:translateY(100%) !important;
+    transition:transform .3s ease-out !important;
 }
-.action-modal.show .modal-dialog{ transform:translateY(0); }
+.modal.show.action-modal .modal-dialog{
+    transform:translateY(0) !important;
+}
 .action-modal .modal-content{
     border-radius:20px 20px 0 0; border:none;
     max-height:80vh; overflow-y:auto;
     padding-bottom:env(safe-area-inset-bottom, 14px);
     box-shadow:0 -8px 30px rgba(0,0,0,.15);
+    background:#fff;
 }
 
 .sheet-handle{width:44px;height:5px;background:#dee2e6;border-radius:10px;margin:12px auto 4px;}
@@ -110,12 +122,20 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);}
 .action-sheet-meta strong{color:var(--dark);font-weight:700;}
 
 .action-sheet-body{padding:8px 20px 24px;}
-.action-icon-grid{display:flex;justify-content:center;gap:26px;}
-.action-icon-btn{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:none;cursor:pointer;}
-.action-icon-circle{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.3rem;}
+
+/* Always 3 across, horizontal, even on phone — standard semantic colors */
+.action-icon-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:14px;
+    justify-items:center;
+}
+.action-icon-btn{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:none;cursor:pointer;width:100%;}
+.action-icon-circle{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;}
 .action-icon-circle.icon-edit{background:var(--blue);}
 .action-icon-circle.icon-delete{background:var(--red);}
-.action-icon-btn span{font-size:.8rem;font-weight:600;color:var(--dark);}
+.action-icon-circle.icon-history{background:#6b7280;}
+.action-icon-btn span{font-size:.76rem;font-weight:600;color:var(--dark);text-align:center;}
 
 .confirm-modal .modal-content{border-radius:18px;border:none;}
 .confirm-modal .modal-header{flex-direction:row-reverse;justify-content:space-between;}
@@ -128,10 +148,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);}
   .confirm-modal.fade .modal-dialog{transform:translateY(100%);transition:transform .3s ease-out;}
   .confirm-modal.show .modal-dialog{transform:translateY(0);}
 
-  .product-row{padding:14px 15px;}
-  .product-icon{width:40px;height:40px;font-size:1.15rem;}
-  .product-qty{margin-left:51px;}
+  .product-row{min-height:68px;}
+  .product-photo{width:56px;}
   .product-price{font-size:.82rem;}
+
+  .action-icon-circle{width:44px;height:44px;font-size:1.05rem;}
+  .action-icon-btn span{font-size:.68rem;}
 }
 </style>
 </head>
@@ -212,15 +234,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);}
     {{ product.current_quantity|tojson }}
 )'>
         <div class="product-main">
-
             <div class="product-name-wrap">
-                <div class="product-icon">
-                    <i class="bi bi-box-seam-fill"></i>
+                <div class="product-photo"></div>
+                <div class="product-main-text">
+                    <div class="product-name">{{ product.name }}</div>
+                    <div class="product-qty qty-{{ status }}">{{ product.current_quantity }} pc</div>
                 </div>
-                <div class="product-name">{{ product.name }}</div>
             </div>
-
-            <div class="product-qty qty-{{ status }}">{{ product.current_quantity }} pc</div>
         </div>
 
         <div class="product-side">
@@ -242,8 +262,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);}
 </div>
 {% endif %}
 
-<!-- PRODUCT ACTION MODAL (bottom sheet, simplified) -->
-<div class="modal fade action-modal" id="productActionModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+<!-- PRODUCT ACTION MODAL (bottom sheet, 3 across: edit / delete / history) -->
+<div class="modal fade action-modal" id="productActionModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="sheet-handle"></div>
@@ -267,6 +287,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);}
                         <span class="action-icon-circle icon-delete"><i class="bi bi-trash"></i></span>
                         <span>ሰርዝ</span>
                     </button>
+                    <a href="#" id="viewProductHistoryBtn" class="action-icon-btn">
+                        <span class="action-icon-circle icon-history"><i class="bi bi-clock-history"></i></span>
+                        <span>ታሪክ</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -333,6 +357,7 @@ function openProductAction(id, name, price, purchasePrice, qty){
     document.getElementById('editProductBtn').href = "/edit/product/" + id;
     document.getElementById('deleteProductName').innerText = name;
     document.getElementById('deleteProductForm').action = "/delete/product/" + id;
+    document.getElementById('viewProductHistoryBtn').href = "/product/" + id + "/history";
     new bootstrap.Modal(document.getElementById('productActionModal')).show();
 }
 </script>

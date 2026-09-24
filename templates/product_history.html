@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>የምርት ታሪክ</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#2563eb;--green:#16a34a;--orange:#ea580c;--red:#dc2626;--purple:#7c3aed;--dark:#1e293b;--muted:#64748b;--bg:#f4f6f8;--border:#e5e9ee;}
+*{box-sizing:border-box;} html,body{overflow-x:hidden;max-width:100%;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);}
+
+.navbar{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:14px 0;}
+.navbar-brand{font-weight:800;color:var(--blue)!important;font-size:1.3rem;}
+.navbar-brand i{margin-right:6px;}
+
+.hero{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;padding:36px 0 50px;text-align:center;}
+.hero h1{font-weight:800;font-size:clamp(1.3rem,4vw,1.9rem);margin-bottom:6px;}
+.hero p{color:#dbeafe;font-size:.9rem;margin:0;}
+
+.page-wrap{max-width:760px;margin:0 auto;padding:0 16px 60px;}
+
+.back-btn{margin-top:-24px;position:relative;z-index:5;margin-bottom:18px;}
+.back-btn a{background:#fff;border-radius:10px;padding:9px 16px;font-weight:600;font-size:.86rem;color:var(--dark);box-shadow:0 4px 14px rgba(0,0,0,.08);text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+.back-btn a:hover{color:var(--blue);}
+
+.filter-pills{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:20px;}
+.filter-pill{flex-shrink:0;background:#fff;border:1px solid var(--border);border-radius:20px;padding:7px 16px;font-size:.82rem;font-weight:600;color:var(--muted);white-space:nowrap;}
+.filter-pill.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+.timeline-list{background:#fff;border-radius:16px;box-shadow:0 4px 14px rgba(0,0,0,.05);overflow:hidden;}
+.timeline-item{display:flex;gap:12px;padding:14px 18px;border-bottom:1px solid #f1f5f9;align-items:flex-start;}
+.timeline-item:last-child{border-bottom:none;}
+
+.timeline-icon{width:40px;height:40px;min-width:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;}
+.icon-sale{background:var(--green);}
+.icon-purchase{background:var(--orange);}
+.icon-stock_add{background:#16a34a;}
+.icon-stock_subtract{background:var(--red);}
+.icon-price_change{background:var(--purple);}
+
+.timeline-body{flex:1;min-width:0;}
+.timeline-text{font-weight:600;font-size:.9rem;color:var(--dark);line-height:1.35;}
+.timeline-detail{font-size:.8rem;color:var(--muted);margin-top:2px;}
+.timeline-date{font-size:.74rem;color:var(--muted);margin-top:4px;}
+
+.empty-state{text-align:center;padding:60px 20px;background:#fff;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.05);}
+.empty-state i{font-size:2.6rem;color:#cbd5e1;margin-bottom:14px;}
+
+@media (max-width:576px){
+    .timeline-item{padding:12px 14px;gap:10px;}
+    .timeline-icon{width:34px;height:34px;font-size:.88rem;}
+    .timeline-text{font-size:.84rem;}
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('home') }}"><i class="bi bi-boxes"></i>StockManager</a>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <h1>{{ product.name }}</h1>
+        <p>ሙሉ የምርት ታሪክ — ሽያጭ፣ ግዢ፣ የስቶክ ለውጥ እና የዋጋ ለውጥ</p>
+    </div>
+</section>
+
+<div class="page-wrap">
+    <div class="back-btn">
+        <a href="{{ url_for('track') }}"><i class="bi bi-arrow-right"></i>ወደ ምርቶች ተመለስ</a>
+    </div>
+
+    <div class="filter-pills" id="filterPills">
+        <button class="filter-pill active" data-filter="all">ሁሉም</button>
+        <button class="filter-pill" data-filter="sale">ሽያጭ</button>
+        <button class="filter-pill" data-filter="purchase">ግዢ</button>
+        <button class="filter-pill" data-filter="stock_add">ስቶክ ተጨመረ</button>
+        <button class="filter-pill" data-filter="stock_subtract">ስቶክ ተቀነሰ</button>
+        <button class="filter-pill" data-filter="price_change">የዋጋ ለውጥ</button>
+    </div>
+
+    {% if timeline %}
+    <div class="timeline-list" id="timelineList">
+        {% for item in timeline %}
+        <div class="timeline-item" data-type="{{ item.type }}">
+            <div class="timeline-icon icon-{{ item.type }}">
+                {% if item.type == 'sale' %}<i class="bi bi-bag-check"></i>
+                {% elif item.type == 'purchase' %}<i class="bi bi-cart-plus"></i>
+                {% elif item.type == 'stock_add' %}<i class="bi bi-plus-circle"></i>
+                {% elif item.type == 'stock_subtract' %}<i class="bi bi-dash-circle"></i>
+                {% elif item.type == 'price_change' %}<i class="bi bi-tag"></i>
+                {% endif %}
+            </div>
+            <div class="timeline-body">
+                <div class="timeline-text">{{ item.text }}</div>
+                <div class="timeline-detail">{{ item.detail }}</div>
+                <div class="timeline-date"><i class="bi bi-calendar3 me-1"></i>{{ item.date }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="empty-state" id="filterEmptyState" style="display:none;">
+        <i class="bi bi-funnel"></i>
+        <h5>ምንም ውጤት አልተገኘም</h5>
+        <p class="text-muted mb-0">ለዚህ ማጣሪያ ምንም ታሪክ የለም።</p>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-clock-history"></i>
+        <h5>ምንም ታሪክ የለም</h5>
+        <p class="text-muted mb-0">ለዚህ ምርት እስካሁን ምንም እንቅስቃሴ አልተመዘገበም።</p>
+    </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const pills = document.querySelectorAll('.filter-pill');
+const items = document.querySelectorAll('.timeline-item');
+const emptyState = document.getElementById('filterEmptyState');
+
+pills.forEach(pill => {
+    pill.addEventListener('click', function(){
+        pills.forEach(p => p.classList.remove('active'));
+        this.classList.add('active');
+
+        const filter = this.getAttribute('data-filter');
+        let anyVisible = false;
+
+        items.forEach(item => {
+            const match = (filter === 'all' || item.getAttribute('data-type') === filter);
+            item.style.display = match ? '' : 'none';
+            if(match) anyVisible = true;
+        });
+
+        if(emptyState) emptyState.style.display = anyVisible ? 'none' : 'block';
+    });
+});
+</script>
+
+</body>
+</html>

@@ -215,7 +215,7 @@ class Product(db.Model):
     current_quantity = db.Column(db.Float, default=0)
     unit_price = db.Column(db.Float)                       # selling price — unchanged
     purchase_price = db.Column(db.Float, nullable=True)    # NEW — default/cost price, nullable so existing rows are safe
-
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
     purchases = db.relationship('Purchase', backref='product')
     sales = db.relationship('Sale', backref='product')
 
@@ -316,6 +316,32 @@ class AddDebt(db.Model):
     amount = db.Column(db.Float, nullable=False)
     reason = db.Column(db.String(255))
     date = db.Column(db.Date, default=date.today)
+
+class StockAdjustment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
+    change_type = db.Column(db.String(10))  # 'add' or 'subtract'
+    quantity = db.Column(db.Float)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    product = db.relationship('Product')
+    user = db.relationship('User')
+
+
+class PriceChange(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
+    price_type = db.Column(db.String(10))  # 'selling' or 'purchase'
+    old_price = db.Column(db.Float)
+    new_price = db.Column(db.Float)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    product = db.relationship('Product')
+    user = db.relationship('User')
+
+
 
 
 
@@ -537,7 +563,7 @@ def inventory():
 def purchases():
     form = MultiPurchaseForm()
 
-    product_choices = [(p.id, p.name) for p in Product.query.all()]
+    product_choices = [(p.id, p.name) for p in Product.query.filter_by(is_deleted=False).all()]
     supplier_choices = [(s.id, s.name) for s in Supplier.query.all()]
 
     for group in form.groups:
@@ -1138,7 +1164,7 @@ def Selling():
     sale_form = SaleForm()
 
     # Choices MUST be repopulated before validation
-    products = Product.query.all()
+    products = Product.query.filter_by(is_deleted=False).all()
     customers = Customer.query.all()
 
     product_choices = [(p.id, p.name) for p in products]
@@ -1849,7 +1875,11 @@ def delete(item_type, item_id):
     # PRODUCT
     # ==========================================
     elif item_type == "product":
-        flash("you can't delete the product either make it 0 amount or edit it ።", "success")
+        product = Product.query.get_or_404(item_id)
+        product.is_deleted = True
+        db.session.commit()
+        flash('ምርቱ ተሰርዟል', 'success')
+        return redirect(url_for('products_page'))
 
 
     # ==========================================
@@ -3293,7 +3323,7 @@ def supplier_purchase_history(supplier_id):
 @login_required
 @emp_allowed
 def products_page():
-    products = Product.query.all()
+    products = Product.query.filter_by(is_deleted=False).all()
     return render_template(
         "products.html",
         products=products,
@@ -3450,15 +3480,22 @@ def expenses():
 
 
 
-
 @app.route('/stock/add', methods=['GET', 'POST'])
 @admin_only
 def stock_add():
-    products = Product.query.all()
+    products = Product.query.filter_by(is_deleted=False).all()
     if request.method == 'POST':
         product = Product.query.get_or_404(int(request.form['product_id']))
         qty = float(request.form['quantity'])
         product.current_quantity += qty
+
+        db.session.add(StockAdjustment(
+            product_id=product.id,
+            change_type='add',
+            quantity=qty,
+            user_id=current_user.id if current_user.is_authenticated else None
+        ))
+
         db.session.commit()
         flash(f'{product.name} ላይ {qty} ተጨምሯል።', 'success')
         return redirect(url_for('stock_add'))
@@ -3468,7 +3505,7 @@ def stock_add():
 @app.route('/stock/subtract', methods=['GET', 'POST'])
 @admin_only
 def stock_subtract():
-    products = Product.query.all()
+    products = Product.query.filter_by(is_deleted=False).all()
     if request.method == 'POST':
         product = Product.query.get_or_404(int(request.form['product_id']))
         qty = float(request.form['quantity'])
@@ -3476,39 +3513,25 @@ def stock_subtract():
             flash('የሚቀነሰው መጠን ካለው ክምችት መብለጥ አይችልም።', 'danger')
             return redirect(url_for('stock_subtract'))
         product.current_quantity -= qty
+
+        db.session.add(StockAdjustment(
+            product_id=product.id,
+            change_type='subtract',
+            quantity=qty,
+            user_id=current_user.id if current_user.is_authenticated else None
+        ))
+
         db.session.commit()
         flash(f'{product.name} ላይ {qty} ተቀንሷል።', 'success')
         return redirect(url_for('stock_subtract'))
     return render_template('stock_subtract.html', products=products)
 
 
-
-
-
-
-
-@app.route("/edit/sales/select-customer")
-@login_required
-@emp_allowed
-def select_customer_for_sales_edit():
-    customers = Customer.query.order_by(Customer.name).all()
-    return render_template("select_customer_for_edit.html", customers=customers)
-
-
-@app.route("/edit/purchases/select-supplier")
-@login_required
-@admin_only
-def select_supplier_for_purchases_edit():
-    suppliers = Supplier.query.order_by(Supplier.name).all()
-    return render_template("select_supplier_for_edit.html", suppliers=suppliers)
-
-
-
 @app.route('/change-price', methods=['GET', 'POST'])
 @login_required
 @emp_allowed
 def change_price():
-    products = Product.query.all()
+    products = Product.query.filter_by(is_deleted=False).all()
 
     if request.method == 'POST':
 
@@ -3547,7 +3570,16 @@ def change_price():
             return render_template('change_price.html', products=products)
 
         for product, new_price in updates:
+            old_price = product.unit_price
             product.unit_price = new_price
+
+            db.session.add(PriceChange(
+                product_id=product.id,
+                price_type='selling',
+                old_price=old_price,
+                new_price=new_price,
+                user_id=current_user.id if current_user.is_authenticated else None
+            ))
 
         db.session.commit()
 
@@ -3561,7 +3593,7 @@ def change_price():
 @login_required
 @emp_allowed
 def change_purchase_price():
-    products = Product.query.all()
+    products = Product.query.filter_by(is_deleted=False).all()
 
     if request.method == 'POST':
 
@@ -3600,7 +3632,16 @@ def change_purchase_price():
             return render_template('change_purchase_price.html', products=products)
 
         for product, new_price in updates:
+            old_price = product.purchase_price
             product.purchase_price = new_price
+
+            db.session.add(PriceChange(
+                product_id=product.id,
+                price_type='purchase',
+                old_price=old_price,
+                new_price=new_price,
+                user_id=current_user.id if current_user.is_authenticated else None
+            ))
 
         db.session.commit()
 
@@ -3608,6 +3649,131 @@ def change_purchase_price():
         return redirect(url_for('change_purchase_price'))
 
     return render_template('change_purchase_price.html', products=products)
+
+
+
+
+
+
+
+
+
+@app.route("/edit/sales/select-customer")
+@login_required
+@emp_allowed
+def select_customer_for_sales_edit():
+    customers = Customer.query.order_by(Customer.name).all()
+    return render_template("select_customer_for_edit.html", customers=customers)
+
+
+@app.route("/edit/purchases/select-supplier")
+@login_required
+@admin_only
+def select_supplier_for_purchases_edit():
+    suppliers = Supplier.query.order_by(Supplier.name).all()
+    return render_template("select_supplier_for_edit.html", suppliers=suppliers)
+
+
+
+@app.route("/product/<int:product_id>/history")
+@login_required
+@emp_allowed
+def product_history(product_id):
+    product = db.get_or_404(Product, product_id)
+
+    sales = Sale.query.filter_by(product_id=product_id).order_by(Sale.id.desc()).all()
+    purchases = Purchase.query.filter_by(product_id=product_id).order_by(Purchase.id.desc()).all()
+    adjustments = StockAdjustment.query.filter_by(product_id=product_id).order_by(StockAdjustment.id.desc()).all()
+    price_changes = PriceChange.query.filter_by(product_id=product_id).order_by(PriceChange.id.desc()).all()
+
+    timeline = []
+
+    for s in sales:
+        customer = Customer.query.get(s.customer_id)
+        timeline.append({
+            "type": "sale",
+            "text": f"{s.quantity} pc ለ {customer.name if customer else 'ያልታወቀ ደንበኛ'} ተሸጠ",
+            "detail": f"በ {s.unit_price:,.2f} ETB",
+            "date": s.date,
+            "sort_key": getattr(s, "created_at", None) or s.date
+        })
+
+    for p in purchases:
+        supplier = Supplier.query.get(p.supplier_id)
+        timeline.append({
+            "type": "purchase",
+            "text": f"{p.quantity} pc ከ {supplier.name if supplier else 'ያልታወቀ አቅራቢ'} ተገዛ",
+            "detail": f"በ {p.unit_price:,.2f} ETB",
+            "date": p.date,
+            "sort_key": getattr(p, "created_at", None) or p.date
+        })
+
+    for a in adjustments:
+        timeline.append({
+            "type": "stock_add" if a.change_type == "add" else "stock_subtract",
+            "text": f"{a.quantity} pc {'ተጨመረ' if a.change_type == 'add' else 'ተቀነሰ'}",
+            "detail": f"በ {a.user.name if a.user else 'ያልታወቀ'} ተመዘገበ",
+            "date": a.created_at.strftime("%m/%d/%Y") if a.created_at else "",
+            "sort_key": a.created_at
+        })
+
+    for pc in price_changes:
+        label = "የመሸጫ ዋጋ" if pc.price_type == "selling" else "የግዢ ዋጋ"
+        timeline.append({
+            "type": "price_change",
+            "text": f"{label} ከ {pc.old_price:,.2f} ወደ {pc.new_price:,.2f} ETB ተቀይሯል",
+            "detail": f"በ {pc.user.name if pc.user else 'ያልታወቀ'} ተመዘገበ",
+            "date": pc.created_at.strftime("%m/%d/%Y") if pc.created_at else "",
+            "sort_key": pc.created_at
+        })
+
+    timeline = [t for t in timeline if t["sort_key"]]
+    timeline.sort(key=lambda x: str(x["sort_key"]), reverse=True)
+
+    return render_template("product_history.html", product=product, timeline=timeline)
+
+
+@app.route("/reports/settings-history")
+@login_required
+@admin_only
+def settings_history():
+    adjustments = StockAdjustment.query.order_by(StockAdjustment.id.desc()).all()
+    price_changes = PriceChange.query.order_by(PriceChange.id.desc()).all()
+
+    records = []
+
+    for a in adjustments:
+        product = Product.query.get(a.product_id)
+        records.append({
+            "type": "stock_add" if a.change_type == "add" else "stock_subtract",
+            "product_name": product.name if product else "ያልታወቀ ምርት",
+            "detail": f"{a.quantity} pc {'ተጨመረ' if a.change_type == 'add' else 'ተቀነሰ'}",
+            "user_name": a.user.name if a.user else "ያልታወቀ",
+            "date": a.created_at,
+            "sort_key": a.created_at
+        })
+
+    for pc in price_changes:
+        product = Product.query.get(pc.product_id)
+        label = "የመሸጫ ዋጋ" if pc.price_type == "selling" else "የግዢ ዋጋ"
+        records.append({
+            "type": "price_change",
+            "product_name": product.name if product else "ያልታወቀ ምርት",
+            "detail": f"{label}: {pc.old_price:,.2f} → {pc.new_price:,.2f} ETB",
+            "user_name": pc.user.name if pc.user else "ያልታወቀ",
+            "date": pc.created_at,
+            "sort_key": pc.created_at
+        })
+
+    records = [r for r in records if r["sort_key"]]
+    records.sort(key=lambda x: x["sort_key"], reverse=True)
+
+    return render_template("settings_history.html", records=records)
+
+
+
+
+
 
 
 
